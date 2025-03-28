@@ -26,7 +26,7 @@ const EntryScreen = () => {
 
     // Navigate after 4 seconds
     const timer = setTimeout(() => {
-      navigation.replace('Main');
+      navigation.replace('LoginScreen');
     }, 4000);
 
     return () => clearTimeout(timer);
