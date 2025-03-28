@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Tournament Data
+// Updated Tournament Data
 const tournaments = [
   {
     id: '1',
-    name: 'Battle Grounds Mobile India',
-    game: 'Battle Grounds Mobile India',
-    startDate: '2025-02-01',
-    endDate: '2025-03-10',
+    name: 'TDM',
+    game: 'TDM Mode',
+    startDate: '2025-03-21',
+    endDate: '2025-03-22',
   },
   {
     id: '2',
-    name: 'FreeFire',
-    game: 'FreeFire',
-    startDate: '2025-03-11',
-    endDate: '2025-03-11',
+    name: 'Livik',
+    game: 'Livik Mode',
+    startDate: '2025-03-23',
+    endDate: '2025-03-23',
   },
   {
     id: '3',
-    name: 'Call of Duty',
-    game: 'Call of Duty',
-    startDate: '2025-03-20',
-    endDate: '2025-03-30',
-  },
-  {
-    id: '4',
-    name: 'CS2 Invitational',
-    game: 'CS2 Invitational',
-    startDate: '2025-03-25',
-    endDate: '2025-04-05',
+    name: 'Nusa',
+    game: 'Nusa Mode',
+    startDate: '2025-03-24',
+    endDate: '2025-03-24',
   },
 ];
 
@@ -62,7 +55,7 @@ const TournamentCard = ({ name, game, startDate, endDate }) => {
     };
 
     updateCountdown(); // Ensure it updates immediately
-    const timer = setInterval(updateCountdown, 10); // Update every second
+    const timer = setInterval(updateCountdown, 1000); // Update every second
 
     return () => clearInterval(timer); // Cleanup timer on unmount
   }, [startDate, endDate]);
@@ -80,67 +73,43 @@ const TournamentCard = ({ name, game, startDate, endDate }) => {
   );
 };
 
-
 // Main Screen Component
 export default function TournamentsScreen() {
   const navigation = useNavigation();
-  const [filterStatus, setFilterStatus] = useState(2); // 1: upcoming, 2: active, 3: past
-  const [filterGame, setFilterGame] = useState('');
 
-  const filterTournaments = () => {
-    const now = new Date();
-    return tournaments.filter((tournament) => {
-      const start = new Date(tournament.startDate);
-      const end = new Date(tournament.endDate);
-
-      let statusMatch = false;
-      if (filterStatus === 3 && now > end) statusMatch = true;
-      if (filterStatus === 2 && now >= start && now <= end) statusMatch = true;
-      if (filterStatus === 1 && now < start) statusMatch = true;
-
-      const gameMatch = filterGame
-        ? tournament.game.toLowerCase().includes(filterGame.toLowerCase())
-        : true;
-
-      return statusMatch && gameMatch;
-    });
+  // Handle Tooltip Press
+  const handlePress = () => {
+    Alert.alert(
+      'Note : ',
+      '1. TDM is a fast-paced mode\n2. Livik is a small map for quick matches\n3. Nusa is the latest map with new challenges',
+      [{ text: 'OK' }]
+    );
   };
 
   return (
     <View style={styles.container}>
       {/* Header with Back Button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Tournaments</Text>
-      </View>
+  <TouchableOpacity
+    onPress={() => navigation.goBack()}
+    style={styles.backButton}
+  >
+    <Ionicons name="chevron-back" size={24} color="black" />
+  </TouchableOpacity>
+  <Text style={styles.title}>Tournaments</Text>
+</View>
 
-      {/* Filter Section */}
-      <View style={styles.filterCard}>
-        <Text style={styles.filterTitle}>Filters</Text>
-
-        {/* Event Status Filter */}
-        <View style={styles.filterRow}>
-          {[
-            { id: 1, label: 'Upcoming' },
-            { id: 2, label: 'Active' },
-            { id: 3, label: 'Past' },
-          ].map((status) => (
-            <TouchableOpacity
-              key={status.id}
-              style={[styles.filterButton, filterStatus === status.id && styles.activeFilter]}
-              onPress={() => setFilterStatus(status.id)}
-            >
-              <Text style={styles.filterButtonText}>{status.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* Livik Title with Tooltip Icon */}
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Upcoming Events</Text>
+        <Pressable onPress={handlePress}>
+          <Ionicons name="information-circle-outline" size={18} color="black" style={styles.tooltipIcon} />
+        </Pressable>
       </View>
 
       {/* Tournament List */}
       <FlatList
-        data={filterTournaments()}
+        data={tournaments}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TournamentCard
@@ -161,21 +130,31 @@ export default function TournamentsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5a623', padding: 20 },
-  backButton: { marginRight: 10 , paddingTop:28},
-  title: { fontSize: 22, fontWeight: 'bold', color: '#000',paddingTop:25, },
-  filterCard: { backgroundColor: '#fff', padding: 20, borderRadius: 10 },
-  filterTitle: { fontSize: 20, fontWeight: 'bold' },
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
-  filterLabel: { fontSize: 16, fontWeight: 'bold', marginRight: 10 },
-  filterButton: { backgroundColor: '#ccc', padding: 8, margin: 5, borderRadius: 10 },
-  activeFilter: { backgroundColor: '#f5a623' },
-  filterButtonText: { color: '#fff', fontWeight: 'bold' },
+  backButton: { marginRight: 10, paddingTop: 28 },
+  title: { fontSize: 22, fontWeight: 'bold', color: '#000', paddingTop: 25 },
   card: { backgroundColor: '#FFF', padding: 20, margin: 10, borderRadius: 10 },
   cardDisabled: { opacity: 0.5 },
   countdownContainer: { position: 'absolute', top: 10, right: 10, backgroundColor: '#D32F2F', padding: 8, borderRadius: 8 },
-  countdown: { fontSize: 14, color: '#FFF', fontWeight: 'bold' },
+  countdown: { fontSize: 12, color: '#FFF', fontWeight: 'bold' },
   tournamentName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   game: { fontSize: 14, color: '#666', marginTop: 5 },
   date: { fontSize: 14, color: '#8A0D52', marginTop: 5 },
   noEvents: { textAlign: 'center', marginTop: 50, fontSize: 18, color: '#666' },
+  tooltipWrapper: {
+    position: 'absolute',
+    top: 0,
+    right: -18, // Adjust to position it properly as superscript
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start', // Align for superscript
+    padding: 10,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 25,
+    position: 'relative', // Ensure relative position for superscript
+  },
 });
