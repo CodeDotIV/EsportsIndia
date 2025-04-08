@@ -14,7 +14,7 @@ const EntryScreen = () => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 2000,
+        duration: 3000,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
@@ -26,8 +26,8 @@ const EntryScreen = () => {
 
     // Navigate after 4 seconds
     const timer = setTimeout(() => {
-      navigation.replace('LoginScreen');
-    }, 4000);
+      navigation.replace('Main');
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [navigation, fadeAnim, slideAnim]);
