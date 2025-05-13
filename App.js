@@ -41,10 +41,8 @@ import Shanokduoregister from './screens/esports/bgmi/shanok/duo/shanokduoregist
 import Shanoksquadregister from './screens/esports/bgmi/shanok/squad/shanoksquadregister.js'
 import Aboutbgmi from './screens/aboutbgmi.js';
 import Aboutfreefire from './screens/aboutfreefire.js';
-import Bgmiarena from './screens/esports/bgmiarena.js';
 import Aboutcallofduty from './screens/aboutcallofduty.js';
 import { auth } from './screens/login/AuthService';
-import RegisterTournament from './screens/bottonscreens/registertournament.js';
 console.log('Firebase Auth:', auth);
 const Stack = createStackNavigator();
 
@@ -56,7 +54,6 @@ export default function App() {
         <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Livik" component={Livik} options={{ headerShown: false }} />
-        <Stack.Screen name="Bgmiarena" component={Bgmiarena} options={{ headerShown: false }} />
         <Stack.Screen name="Aboutbgmi" component={Aboutbgmi} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutfreefire" component={Aboutfreefire} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutcallofduty" component={Aboutcallofduty} options={{ headerShown: false }} />
@@ -94,7 +91,6 @@ export default function App() {
         <Stack.Screen name="Shanoksoloregister" component={Shanoksoloregister} options={{ headerShown: false }} />
         <Stack.Screen name="Shanokduoregister" component={Shanokduoregister} options={{ headerShown: false }} />
         <Stack.Screen name="Shanoksquadregister" component={Shanoksquadregister} options={{ headerShown: false }} />
-        <Stack.Screen name="RegisterTounament" component={RegisterTournament} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
