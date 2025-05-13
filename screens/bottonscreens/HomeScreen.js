@@ -6,7 +6,8 @@ const { width } = Dimensions.get('window');
 
 const imageSources = [
   { source: require('../../assets/images/bgmilogo.png'), game: 'bgmi' },
-   { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+  { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+  { source: require('../../assets/images/freefirelogo.png'), game: 'Freefire' }
  ];
 
 const getGreeting = () => {
@@ -66,7 +67,15 @@ export default function HomeScreen() {
       description: "Realistic first-person shooter action.",
       gameFeatures: "Various weapons, maps, and modes.",
       multiplayerMode: "Competitive and co-op play.",
+    },
+
+    {
+        title: "Free Fire",
+        description: "Realistic first-person shooter action.",
+        gameFeatures: "Various weapons, maps, and modes.",
+        multiplayerMode: "Competitive and co-op play.",
     }
+
   ];
 
   const handleScroll = (event) => {
@@ -144,10 +153,16 @@ export default function HomeScreen() {
             <TouchableOpacity key={index} style={[styles.dot, currentIndex === index && styles.activeDot]} />
           ))}
         </View>
-        <View style={styles.banner1}>
-               
+
+
+        
+       <View style={styles.banner1}>
+                <Text style={styles.title}>Helo world bwiefuewoibwdlciuecjnliwecbcelwij</Text>
                </View>
              
+
+
+
    
       </ScrollView>
     </View>
@@ -201,10 +216,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: width * 0.05,
     paddingHorizontal: 20,
-    paddingVertical: 55,
+    paddingVertical: 10,
   },
   
   title: {
+    marginBottom: 10,
+    paddingTop: 10,
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
@@ -215,6 +232,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: {
+    paddingTop: 20,
+    marginBottom: 10,
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',

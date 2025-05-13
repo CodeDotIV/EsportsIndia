@@ -1,217 +1,196 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Pressable,
-} from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, Image, FlatList, StyleSheet, Dimensions, Animated, ImageBackground, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-// Updated Tournament Data
-const tournaments = [
+const screenWidth = Dimensions.get('window').width;
+const CARD_WIDTH = (screenWidth - 48) / 2; // 16px padding * 2 + 8px spacing
+const CARD_HEIGHT = 100;
+
+const games = [
   {
     id: '1',
-    name: 'TDM',
-    game: 'TDM Mode',
-    startDate: '2025-04-21',
-    endDate: '2025-04-22',
+    name: 'Battle grounds mobile india',
+    sections: [
+      { id: '1.1', name: 'Pro', image: require('../../assets/images/bgmilogo.png') },
+      { id: '1.2', name: 'TDM', image: require('../../assets/images/bgmilogo.png') },
+      { id: '1.3', name: 'Mini Classic', image: require('../../assets/images/bgmilogo.png') },
+      { id: '1.4', name: 'Classic', image: require('../../assets/images/bgmilogo.png') },
+    ]
   },
   {
     id: '2',
-    name: 'Livik',
-    game: 'Livik Mode',
-    startDate: '2025-03-23',
-    endDate: '2025-03-23',
+    name: 'FreeFire',
+    sections: [
+      { id: '2.1', name: 'Pro', image: require('../../assets/images/freefirelogo.png') },
+      { id: '2.2', name: 'TDM', image: require('../../assets/images/freefirelogo.png') },
+      { id: '2.3', name: 'Mini Classic', image: require('../../assets/images/freefirelogo.png') },
+      { id: '2.4', name: 'Classic', image: require('../../assets/images/freefirelogo.png') },
+    ]
   },
   {
     id: '3',
-    name: 'Nusa',
-    game: 'Nusa Mode',
-    startDate: '2025-03-24',
-    endDate: '2025-03-24',
+    name: 'Call of Duty',
+    sections: [
+      { id: '3.1', name: 'Pro', image: require('../../assets/images/callofduty.png') },
+      { id: '3.2', name: 'TDM', image: require('../../assets/images/callofduty.png') },
+      { id: '3.3', name: 'Mini Classic', image: require('../../assets/images/callofduty.png') },
+      { id: '3.4', name: 'Classic', image: require('../../assets/images/callofduty.png') },
+    ]
   },
 ];
 
-// Helper function to calculate time left
-const getTimeLeft = (targetDate) => {
-  const now = new Date();
-  const eventDate = new Date(targetDate);
-  const difference = eventDate - now;
-
-  if (difference <= 0) return 'Event Started';
-
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((difference % (1000 * 60)) / (1000 * 60));
-
-  return `${days}d ${hours}h ${minutes}m`;
-};
-
-// Tournament Card Component
-const TournamentCard = ({ name, game, startDate, endDate, onPress }) => {
-  const [countdown, setCountdown] = useState(getTimeLeft(startDate));
-  const [eventEnded, setEventEnded] = useState(false);
+export default function TournamentsScreen() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
 
   useEffect(() => {
-    const updateCountdown = () => {
-      setCountdown(getTimeLeft(startDate));
-      setEventEnded(new Date() > new Date(endDate));
-    };
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
-    updateCountdown(); // Ensure it updates immediately
-    const timer = setInterval(updateCountdown, 1000); // Update every second
+  const renderGame = ({ item: game }) => (
+    <View key={game.id} style={styles.gameSection}>
+      <Text style={styles.gameTitle}>{game.name}</Text>
 
-    return () => clearInterval(timer); // Cleanup timer on unmount
-  }, [startDate, endDate]);
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={eventEnded}
-      style={[styles.card, eventEnded && styles.cardDisabled]}
-    >
-      <View style={styles.countdownContainer}>
-        <Text style={styles.countdown}>{eventEnded ? 'Event Ended' : countdown}</Text>
-      </View>
-      <Text style={styles.tournamentName}>{name}</Text>
-      <Text style={styles.game}>{game}</Text>
-      <Text style={styles.date}>Start Date: {startDate}</Text>
-      <Text style={styles.date}>End Date: {endDate}</Text>
-    </TouchableOpacity>
+      <FlatList
+        data={game.sections}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+        scrollEnabled={false}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('RegisterTournament', {
+              gameName: game.name,
+              section: item.name,
+            })}
+            activeOpacity={0.8}
+          >
+            <Animated.View
+              style={[
+                styles.cardWrapper,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    {
+                      scale: fadeAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.8, 1],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              {game.name === 'FreeFire' || game.name === 'Call of Duty' ? (
+                <ImageBackground
+                  source={item.image}
+                  style={styles.gameCard}
+                  imageStyle={styles.imageStyle}
+                />
+              ) : (
+                <View style={styles.gameCard}>
+                  <Image source={item.image} style={styles.gameImage} />
+                </View>
+              )}
+              <Text style={styles.gameName}>{item.name}</Text>
+            </Animated.View>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
   );
-};
-
-// Main Screen Component
-export default function TournamentsScreen() {
-  const navigation = useNavigation();
-  const [welcomeDialogVisible, setWelcomeDialogVisible] = useState(false);
-
-  // Show welcome alert when screen loads or re-focuses
-  useFocusEffect(
-    React.useCallback(() => {
-      Alert.alert(
-        'Welcome!',
-        '🎮 Get ready for the upcoming tournaments. Tap OK to view the details.',
-        [{ text: 'OK', onPress: () => setWelcomeDialogVisible(true) }]
-      );
-    }, [])
-  );
-
-  // Show tournament details alert
-  const handleTournamentPress = (item) => {
-    Alert.alert(
-      `${item.name} Details`,
-      `🎮 Mode: ${item.game}\n📅 Start Date: ${item.startDate}\n🏁 End Date: ${item.endDate}`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  // Show tooltip alert
-  const handlePress = () => {
-    Alert.alert(
-      'Note:',
-      '1. TDM is a fast-paced mode\n2. Livik is a small map for quick matches\n3. Nusa is the latest map with new challenges',
-      [{ text: 'OK' }]
-    );
-  };
 
   return (
     <View style={styles.container}>
-      {/* Header with Back Button */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
+        <Ionicons name="chevron-back" size={24} color="black" />
         <Text style={styles.title}>Tournaments</Text>
       </View>
 
-      {/* Title with Tooltip Icon */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Upcoming Events</Text>
-        <Pressable onPress={handlePress}>
-          <Ionicons
-            name="information-circle-outline"
-            size={18}
-            color="black"
-            style={styles.tooltipIcon}
-          />
-        </Pressable>
-      </View>
-
-      {/* Show tournaments only after welcome dialog is closed */}
-      {welcomeDialogVisible ? (
-        <FlatList
-          data={tournaments}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TournamentCard
-              name={item.name}
-              game={item.game}
-              startDate={item.startDate}
-              endDate={item.endDate}
-              onPress={() => handleTournamentPress(item)}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <Text style={styles.noEvents}>No events found.</Text>
-          }
-        />
-      ) : (
-        <Text style={styles.loadingText}>Loading tournaments...</Text>
-      )}
+      <FlatList
+        data={games}
+        keyExtractor={(item) => item.id}
+        renderItem={renderGame}
+        contentContainerStyle={styles.listContainer}
+        ListHeaderComponent={<Text style={styles.title1}>Events</Text>}
+      />
     </View>
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5a623',
     padding: 20,
+    zIndex: 1,
   },
-  backButton: { marginRight: 10, paddingTop: 28 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#000', paddingTop: 25 },
-  card: {
-    backgroundColor: '#FFF',
-    padding: 20,
-    margin: 10,
-    borderRadius: 10,
+  title: { fontSize: 28, fontWeight: 'bold', color: '#000', paddingTop: 23 },
+  listContainer: {
+    paddingTop: 100,
+    paddingBottom: 20,
   },
-  cardDisabled: { opacity: 0.5 },
-  countdownContainer: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#D32F2F',
-    padding: 8,
-    borderRadius: 8,
+  title1: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 30,
+    marginLeft: 24,
+    marginBottom: 16,
   },
-  countdown: { fontSize: 12, color: '#FFF', fontWeight: 'bold' },
-  tournamentName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  game: { fontSize: 14, color: '#666', marginTop: 5 },
-  date: { fontSize: 14, color: '#8A0D52', marginTop: 5 },
-  noEvents: { textAlign: 'center', marginTop: 50, fontSize: 18, color: '#666' },
-  loadingText: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 18,
-    color: '#666',
+  gameSection: {
+    marginBottom: 40,
   },
-  titleContainer: {
-    flexDirection: 'row',
+  gameTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 24,
+    marginBottom: 16,
+    color: '#000',
+  },
+  row: {
+    justifyContent: 'space-between',
+    marginBottom: 25,
+  },
+  cardWrapper: {
+    width: CARD_WIDTH,
     alignItems: 'center',
-    padding: 10,
   },
-  tooltipIcon: { marginLeft: 5 },
+  gameCard: {
+    width: '90%',
+    height: CARD_HEIGHT,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+  },
+  imageStyle: {
+    borderRadius: 8,
+    opacity: 0.5,
+  },
+  gameImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  gameName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 8,
+    textAlign: 'center',
+  },
 });

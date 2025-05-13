@@ -19,7 +19,7 @@ const EntryScreen = () => {
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 1500,
+        duration: 15000,
         useNativeDriver: true,
       }),
     ]).start();
@@ -27,7 +27,7 @@ const EntryScreen = () => {
     // Navigate after 4 seconds
     const timer = setTimeout(() => {
       navigation.replace('Main');
-    }, 1000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [navigation, fadeAnim, slideAnim]);
