@@ -6,10 +6,8 @@ const { width } = Dimensions.get('window');
 
 const imageSources = [
   { source: require('../../assets/images/bgmilogo.png'), game: 'bgmi' },
-  { source: require('../../assets/images/freefirelogo.png'), game: 'freefire' },
-  { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
-  { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
-];
+   { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+ ];
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -62,12 +60,7 @@ export default function HomeScreen() {
       gameFeatures: "Realistic gameplay, immersive environments.",
       multiplayerMode: "Team up with friends and compete.",
     },
-    {
-      title: "Freefire",
-      description: "Fast-paced battle royale experience.",
-      gameFeatures: "Quick matches, unique characters.",
-      multiplayerMode: "Solo, Duo, and Squad modes.",
-    },
+     
     {
       title: "Call of Duty",
       description: "Realistic first-person shooter action.",
@@ -86,9 +79,6 @@ export default function HomeScreen() {
     switch (game) {
       case 'bgmi':
         navigation.navigate('Aboutbgmi');
-        break;
-      case 'freefire':
-        navigation.navigate('Aboutfreefire');
         break;
       case 'callofduty':
         navigation.navigate('Aboutcallofduty');
@@ -121,7 +111,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
+ 
+          
         <FlatList
           data={gameData}
           horizontal
@@ -153,6 +144,11 @@ export default function HomeScreen() {
             <TouchableOpacity key={index} style={[styles.dot, currentIndex === index && styles.activeDot]} />
           ))}
         </View>
+        <View style={styles.banner1}>
+               
+               </View>
+             
+   
       </ScrollView>
     </View>
   );
@@ -190,14 +186,24 @@ const styles = StyleSheet.create({
     margin: 90,
     marginTop: 110,
   },
+  banner1: {
+    width: width * 0.9,
+    backgroundColor: '#f5a623',
+    borderRadius: 10,
+    marginHorizontal: width * 0.05,
+    paddingHorizontal: 20,
+    paddingVertical: 120,
+    marginTop: 20,
+  },
   banner: {
     width: width * 0.9,
     backgroundColor: '#f5a623',
     borderRadius: 10,
     marginHorizontal: width * 0.05,
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 55,
   },
+  
   title: {
     fontSize: 18,
     fontWeight: 'bold',
