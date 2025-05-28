@@ -13,7 +13,7 @@ app.use(session({
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 2000000, httpOnly: true }
+  cookie: { maxAge: 200000, httpOnly: true }
 }))
 
 // json parser middleware added
