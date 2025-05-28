@@ -24,7 +24,7 @@ app.use("/api/auth", Authrouter);
 
 (async () => {
   try {
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 30000;
     const MONGODB_URL = process.env.MONGODB_URL;
 
     await mongoose.connect(MONGODB_URL);
