@@ -8,7 +8,7 @@ const games = [
     id: '1',
     name: 'Battle Grounds Mobile India',
     image: require('../../assets/images/bgmilogo.png'),
-    screen: 'Bgmi',
+    screen: 'Esportsarena',
   },
   {
     id: '3',
