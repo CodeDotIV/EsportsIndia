@@ -1,35 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const RegistrationForm = () => {
+  const navigation = useNavigation();
+
   const [form, setForm] = useState({
     mode: '',
-    slot: '',
     Player1: '',
     gameId: '',
     mobileNumber: '',
     aadhaarNumber: '',
     payment: '',
-    we:'',
-    mode: '',
-    slot: '',
+    we: '',
     name: '',
-    gameId: '',
-    mobileNumber: '',
-    aadhaarNumber: '',
-    payment: '',
-    we:'',
   });
 
   const placeholders = {
     mode: 'Enter Mode',
-    slot: 'Enter Slot',
     Player1: 'Enter Name',
     gameId: 'Enter Team Lead Game ID',
     mobileNumber: 'Enter Mobile Number',
     aadhaarNumber: 'Enter Aadhaar Number',
     payment: 'Enter Payment Details',
     we: 'efef',
+    name: 'Enter Full Name',
   };
 
   const handleChange = (field, value) => {
@@ -38,8 +34,11 @@ const RegistrationForm = () => {
 
   return (
     <View style={styles.container}>
-      {/* Static Header */}
-      <View style={styles.header}> 
+      {/* Header with Back Button */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="black" />
+        </TouchableOpacity>
         <Text style={styles.title}>Register</Text>
       </View>
 
@@ -65,17 +64,27 @@ const RegistrationForm = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Ensures the full height is used
-    backgroundColor: '#f5f5f5',
-    padding:0,
+    flex: 1, backgroundColor: '#f5f5f5', padding: 0,
   },
   header: {
-    backgroundColor: '#f5a623', padding: 30, alignItems: 'left',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5a623',
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 15,
+    top: 55,
+    zIndex: 10,
   },
   title: {
-    fontSize: 28,
+    flex: 1,
+    fontSize: 24,
     fontWeight: 'bold',
-    paddingTop:30,
+    textAlign: 'center',
     color: '#000',
   },
   form: {

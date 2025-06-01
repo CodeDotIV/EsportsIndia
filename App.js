@@ -42,6 +42,7 @@ import Shanoksquadregister from './screens/esports/bgmi/shanok/squad/shanoksquad
 import Aboutbgmi from './screens/aboutbgmi.js';
 import Aboutfreefire from './screens/aboutfreefire.js';
 import Aboutcallofduty from './screens/aboutcallofduty.js';
+import Esportsarena from './screens/esportsarena.js';
 import { auth } from './screens/login/AuthService';
 console.log('Firebase Auth:', auth);
 const Stack = createStackNavigator();
@@ -91,6 +92,8 @@ export default function App() {
         <Stack.Screen name="Shanoksoloregister" component={Shanoksoloregister} options={{ headerShown: false }} />
         <Stack.Screen name="Shanokduoregister" component={Shanokduoregister} options={{ headerShown: false }} />
         <Stack.Screen name="Shanoksquadregister" component={Shanoksquadregister} options={{ headerShown: false }} />
+        <Stack.Screen name="Esportsarena" component={Esportsarena} options={{headerShown: false}} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
