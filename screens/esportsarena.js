@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 30,
+    marginTop: 40,
     marginLeft: 26,
     color: '#333',
   },
@@ -105,7 +105,9 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
     alignItems: 'center',
-    margin: 10,
+    margin: 25,
+   // flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   card: {
     width: 150,
@@ -122,7 +124,7 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 5,
+    marginTop: 12,
     textAlign: 'center',
   },
 });

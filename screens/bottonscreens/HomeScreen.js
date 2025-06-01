@@ -7,6 +7,7 @@ const { width } = Dimensions.get('window');
 const imageSources = [
   { source: require('../../assets/images/bgmilogo.png'), game: 'bgmi' },
    { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+   { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
  ];
 
 const getGreeting = () => {
