@@ -42,8 +42,18 @@ import Shanoksquadregister from './screens/esports/bgmi/shanok/squad/shanoksquad
 import Aboutbgmi from './screens/aboutbgmi.js';
 import Aboutfreefire from './screens/aboutfreefire.js';
 import Aboutcallofduty from './screens/aboutcallofduty.js';
-import Esportsarena from './screens/esportsarena.js';
+import Esportsarena from './screens/esportsarena/esportsarena.js';
 import { auth } from './screens/login/AuthService';
+import Inventory from './screens/esportsarena/modes/inventory.js';
+import Library from './screens/esportsarena/modes/library.js';
+import Livikultimatearena from './screens/esportsarena/modes/livikultimatearena.js';
+import Ruins from './screens/esportsarena/modes/ruins.js';
+import Town from './screens/esportsarena/modes/town.js';
+import Erangelultimatearena from './screens/esportsarena/modes/erangelultimatearena.js';
+import  Hangerarenatraining from './screens/esportsarena/modes/hangerarenatraining.js';
+import  Hangertdm from './screens/esportsarena/modes/hangertdm.js';
+import  Hangertgm from './screens/esportsarena/modes/hangertgm.js';
+
 console.log('Firebase Auth:', auth);
 const Stack = createStackNavigator();
 
@@ -93,6 +103,15 @@ export default function App() {
         <Stack.Screen name="Shanokduoregister" component={Shanokduoregister} options={{ headerShown: false }} />
         <Stack.Screen name="Shanoksquadregister" component={Shanoksquadregister} options={{ headerShown: false }} />
         <Stack.Screen name="Esportsarena" component={Esportsarena} options={{headerShown: false}} />
+        <Stack.Screen name="Inventory" component={Inventory} options={{headerShown: false}} />
+        <Stack.Screen name="Library" component={Library} options={{headerShown: false}} />
+        <Stack.Screen name="Livikultimatearena" component={Livikultimatearena} options={{headerShown: false}} />
+        <Stack.Screen name="Erangelultimatearena" component={Erangelultimatearena} options={{headerShown: false}} />
+        <Stack.Screen name="Ruins" component={Ruins} options={{headerShown: false}} />
+        <Stack.Screen name="Town" component={Town} options={{headerShown: false}} />
+        <Stack.Screen name="Hangerarenatraining" component={Hangerarenatraining} options={{headerShown: false}} />
+        <Stack.Screen name="Hangertdm" component={Hangertdm} options={{headerShown: false}} />
+        <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
 
       </Stack.Navigator>
     </NavigationContainer>
