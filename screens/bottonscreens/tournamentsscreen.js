@@ -26,32 +26,53 @@ const bgmiCategories = [
 export default function TournamentsScreen() {
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState('Active');
+  const [selectedGame, setSelectedGame] = useState('');
   const [showBgmiCards, setShowBgmiCards] = useState(false);
-  const tabs = ['Active', 'Upcoming', 'Past'];
+  const [season, setSeason] = useState('1');
+  const tabs = ['Active', 'Upcoming']; // 'Past' removed
 
   const handleCardPress = (game) => {
     if (game === 'Battlegrounds Mobile India') {
-      setShowBgmiCards((prev) => !prev);
+      setShowBgmiCards(true);
+      setSelectedGame(game);
     } else {
       Alert.alert('Coming Soon', `${game} tournaments will be available soon.`);
     }
+  };
+
+  const handleBackToGames = () => {
+    setShowBgmiCards(false);
+    setSelectedGame('');
+    setSeason('1');
   };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Tournaments</Text>
       </View>
 
-      {/* Events Title */}
-      <Text style={styles.eventsTitle}>Events</Text>
+      {/* Back to Game */}
+      {showBgmiCards && (
+        <TouchableOpacity style={styles.backToBgmiBtn} onPress={handleBackToGames}>
+          <Ionicons name="arrow-back" size={16} />
+          <Text style={styles.backToBgmiText}>Battlegrounds Mobile India</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Events Row (Events + Season) */}
+      <View style={styles.eventsRow}>
+        <Text style={styles.eventsTitle}>Events</Text>
+        {showBgmiCards && (
+          <TouchableOpacity style={styles.seasonDropdown}>
+            <Text style={styles.seasonText}>Season - {season}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Tabs */}
       <View style={styles.tabsContainer}>
@@ -74,34 +95,43 @@ export default function TournamentsScreen() {
         ))}
       </View>
 
-      {/* Game Cards */}
-      <ScrollView contentContainerStyle={styles.cardsContainer}>
-        {games.map((game) => (
-          <View key={`${selectedTab}-${game}`}>
+      {/* Game or BGMI Map Cards */}
+      <ScrollView
+        contentContainerStyle={styles.cardsContainer}
+        showsVerticalScrollIndicator={false} // 👈 Hides scrollbar
+      >
+        {showBgmiCards ? (
+          <>
+            {bgmiCategories.map((category) => (
+              <View key={category.category} style={styles.categorySection}>
+                <Text style={styles.categoryTitle}>
+                  {category.category === 'Mini - Classic'
+                    ? 'Mini Classic - Maps'
+                    : category.category === 'Classic'
+                    ? 'Classic - Map'
+                    : category.category}
+                </Text>
+                <View style={styles.mapCardRow}>
+                  {category.maps.map((map) => (
+                    <TouchableOpacity key={map} style={styles.mapCard}>
+                      <Text style={styles.mapCardText}>{map}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </>
+        ) : (
+          games.map((game) => (
             <TouchableOpacity
-              style={styles.card}
+              key={`${selectedTab}-${game}`}
+              style={styles.gameCard}
               onPress={() => handleCardPress(game)}
             >
-              <Text style={styles.cardText}>{game}</Text>
+              <Text style={styles.gameCardText}>{game}</Text>
             </TouchableOpacity>
-
-            {/* Show BGMI Category Cards */}
-            {game === 'Battlegrounds Mobile India' && showBgmiCards && (
-              <View style={styles.bgmiCardContainer}>
-                {bgmiCategories.map((section) => (
-                  <View key={section.category} style={styles.bgmiSection}>
-                    <Text style={styles.bgmiCategory}>{section.category}</Text>
-                    {section.maps.map((map) => (
-                      <View key={map} style={styles.bgmiCard}>
-                        <Text style={styles.bgmiCardText}>{map}</Text>
-                      </View>
-                    ))}
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        ))}
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -116,21 +146,60 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5a623',
     padding: 20,
   },
-  backButton: { marginRight: 10, paddingTop: 28 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#000', paddingTop: 25 },
+  backButton: { marginRight: 10, paddingTop: 45 },
+  title: { fontSize: 22, fontWeight: 'bold', color: '#000', paddingTop: 45 },
 
-  eventsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+  eventsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 20,
     marginLeft: 20,
+    gap: 150,
+  },
+
+  eventsTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 10,
+  },
+
+  seasonDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginLeft: 28,
+  },
+
+  seasonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#444',
+  },
+
+  backToBgmiBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 28,
+    marginLeft: 20,
+    marginBottom: 10,
+  },
+
+  backToBgmiText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#007aff',
   },
 
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 42,
+    marginTop: 30,
     paddingBottom: 5,
   },
 
@@ -161,7 +230,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
-  card: {
+  gameCard: {
     marginTop: 15,
     backgroundColor: '#fff',
     padding: 50,
@@ -172,46 +241,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderColor: 'red',
-    borderWidth: 0.2,
+    borderWidth: 0.4,
+    elevation: 2,
   },
 
-  cardText: {
-    fontSize: 16,
+  gameCardText: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
   },
 
-  bgmiCardContainer: {
-    paddingLeft: 25,
-    paddingTop: 10,
-    paddingBottom: 20,
-  },
-
-  bgmiSection: {
-    marginBottom: 16,
-  },
-
-  bgmiCategory: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#444',
-    marginBottom: 6,
-  },
-
-  bgmiCard: {
-    backgroundColor: '#eaeaea',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+  mapCard: {
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 40,
+    paddingHorizontal: 50,
     borderRadius: 12,
-    marginVertical: 4,
-    marginLeft: 10,
-    alignSelf: 'flex-start',
+    marginBottom: 18,
+    alignItems: 'center',
+    borderColor: '#bbb',
+    borderWidth: 0.5,
+    width: '65%',
   },
 
-  bgmiCardText: {
-    fontSize: 14,
+  mapCardText: {
+    fontSize: 18,
     fontWeight: '500',
-    color: '#222',
+    color: '#333',
+  },
+
+  categorySection: {
+    marginBottom: 30,
+  },
+
+  categoryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#444',
+    marginBottom: 1,
+    marginLeft: 36,
+    marginTop: 15,
+  },
+
+  mapCardRow: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingTop: 20,
   },
 });
