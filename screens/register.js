@@ -13,34 +13,10 @@ const RegistrationForm = () => {
   const [form, setForm] = useState({
     mode: mode || '',
     team: team || '',
-    firstPlayer: {
-      name: '',
-      gameId: '',
-      mobile: '',
-      email: '',
-      aadhaar: '',
-    },
-    secondPlayer: {
-      name: '',
-      gameId: '',
-      mobile: '',
-      email: '',
-      aadhaar: '',
-    },
-    thirdPlayer: {
-      name: '',
-      gameId: '',
-      mobile: '',
-      email: '',
-      aadhaar: '',
-    },
-    fourthPlayer: {
-      name: '',
-      gameId: '',
-      mobile: '',
-      email: '',
-      aadhaar: '',
-    },
+    firstPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+    secondPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+    thirdPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+    fourthPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
     payment: '',
   });
 
@@ -56,15 +32,11 @@ const RegistrationForm = () => {
   };
 
   const validateForm = () => {
-    const requiredPlayers = ['firstPlayer'];
-
-    for (let player of requiredPlayers) {
-      const details = form[player];
-      for (let field in details) {
-        if (!details[field]) {
-          Alert.alert('Error', `Please fill all required fields for ${team === 'Solo' ? 'Player' : 'First Player'}`);
-          return false;
-        }
+    const details = form.firstPlayer;
+    for (let field in details) {
+      if (!details[field]) {
+        Alert.alert('Error', `Please fill all required fields for ${team === 'Solo' ? 'Player' : 'First Player'}`);
+        return false;
       }
     }
 
@@ -76,10 +48,81 @@ const RegistrationForm = () => {
     return true;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      Alert.alert('Success', 'Form submitted successfully!');
-      // API submission logic can go here
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    let payload = {
+      mode: form.mode,
+      team: form.team,
+      payment: form.payment,
+    };
+
+    if (team === 'Solo' || team === 'Duo' || team === 'Squad') {
+      payload = {
+        ...payload,
+        firstPlayer_name: form.firstPlayer.name,
+        firstPlayer_gameId: form.firstPlayer.gameId,
+        firstPlayer_mobile: form.firstPlayer.mobile,
+        firstPlayer_email: form.firstPlayer.email,
+        firstPlayer_aadhaar: form.firstPlayer.aadhaar,
+      };
+    }
+
+    if (team === 'Duo' || team === 'Squad') {
+      payload = {
+        ...payload,
+        secondPlayer_name: form.secondPlayer.name,
+        secondPlayer_gameId: form.secondPlayer.gameId,
+        secondPlayer_mobile: form.secondPlayer.mobile,
+        secondPlayer_email: form.secondPlayer.email,
+        secondPlayer_aadhaar: form.secondPlayer.aadhaar,
+      };
+    }
+
+    if (team === 'Squad') {
+      payload = {
+        ...payload,
+        thirdPlayer_name: form.thirdPlayer.name,
+        thirdPlayer_gameId: form.thirdPlayer.gameId,
+        thirdPlayer_mobile: form.thirdPlayer.mobile,
+        thirdPlayer_email: form.thirdPlayer.email,
+        thirdPlayer_aadhaar: form.thirdPlayer.aadhaar,
+        fourthPlayer_name: form.fourthPlayer.name,
+        fourthPlayer_gameId: form.fourthPlayer.gameId,
+        fourthPlayer_mobile: form.fourthPlayer.mobile,
+        fourthPlayer_email: form.fourthPlayer.email,
+        fourthPlayer_aadhaar: form.fourthPlayer.aadhaar,
+      };
+    }
+
+    try {
+      const response = await fetch(
+         'https://script.google.com/macros/s/AKfycbzbZVCgptx6wbXq_EKooF8znbZLTl2JXKzInv1eCmGUazK6RC5LKyuYe9Eemg-kSKb__g/exec',
+        
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const resText = await response.text();
+      if (response.ok && resText === 'Success') {
+        Alert.alert('✅ Success', 'Form submitted!');
+        setForm({
+          mode: mode || '',
+          team: team || '',
+          firstPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+          secondPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+          thirdPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+          fourthPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
+          payment: '',
+        });
+      } else {
+        Alert.alert('❌ Error', 'Failed: ' + resText);
+      }
+    } catch (error) {
+      Alert.alert('❌ Error', 'Network error');
     }
   };
 
@@ -113,7 +156,6 @@ const RegistrationForm = () => {
       </View>
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
-        {/* Uneditable Fields */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Mode</Text>
           <TextInput style={[styles.input, styles.disabled]} value={form.mode} editable={false} />
@@ -124,13 +166,11 @@ const RegistrationForm = () => {
           <TextInput style={[styles.input, styles.disabled]} value={form.team} editable={false} />
         </View>
 
-        {/* Player Fields */}
         {renderPlayerFields(team === 'Solo' ? 'Player Details' : 'First Player', 'firstPlayer', true)}
         {team === 'Duo' || team === 'Squad' ? renderPlayerFields('Second Player', 'secondPlayer', false) : null}
         {team === 'Squad' ? renderPlayerFields('Third Player', 'thirdPlayer', false) : null}
         {team === 'Squad' ? renderPlayerFields('Fourth Player', 'fourthPlayer', false) : null}
 
-        {/* Payment Field */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Payment <Text style={{ color: 'red' }}>*</Text></Text>
           <TextInput
@@ -150,49 +190,28 @@ const RegistrationForm = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1, backgroundColor: '#f5f5f5',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#f5a623', paddingTop: 50, paddingBottom: 20, paddingHorizontal: 20,
   },
-  backButton: {
-    position: 'absolute', left: 15, top: 55, zIndex: 10,
-  },
-  title: {
-    flex: 1, fontSize: 24, fontWeight: 'bold',
-    textAlign: 'center', color: '#000',
-  },
-  form: {
-    flex: 1, paddingHorizontal: 20, paddingTop: 10,
-  },
-  inputContainer: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 16, fontWeight: '600', marginBottom: 6,
-  },
+  backButton: { position: 'absolute', left: 15, top: 55, zIndex: 10 },
+  title: { flex: 1, fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#000' },
+  form: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
+  inputContainer: { marginBottom: 15 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
   input: {
     borderWidth: 1, borderColor: '#ccc', borderRadius: 8,
     padding: 10, backgroundColor: 'white',
   },
-  disabled: {
-    backgroundColor: '#e0e0e0',
-    color: '#777',
-  },
-  section: {
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 18, fontWeight: 'bold', marginBottom: 10,
-  },
+  disabled: { backgroundColor: '#e0e0e0', color: '#777' },
+  section: { marginTop: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   submitButton: {
-    backgroundColor: '#f5a623', padding: 15, borderRadius: 8, alignItems: 'center', marginVertical: 20,
+    backgroundColor: '#f5a623', padding: 15, borderRadius: 8,
+    alignItems: 'center', marginVertical: 20,
   },
-  submitText: {
-    fontSize: 16, fontWeight: 'bold', color: 'white',
-  },
+  submitText: { fontSize: 16, fontWeight: 'bold', color: 'white' },
 });
 
 export default RegistrationForm;
