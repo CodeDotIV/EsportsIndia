@@ -29,7 +29,7 @@ export default function TournamentsScreen() {
   const [selectedGame, setSelectedGame] = useState('');
   const [showBgmiCards, setShowBgmiCards] = useState(false);
   const [season, setSeason] = useState('1');
-  const tabs = ['Active', 'Upcoming']; // 'Past' removed
+  const tabs = ['Active', 'Upcoming'];
 
   const handleCardPress = (game) => {
     if (game === 'Battlegrounds Mobile India') {
@@ -44,6 +44,14 @@ export default function TournamentsScreen() {
     setShowBgmiCards(false);
     setSelectedGame('');
     setSeason('1');
+  };
+
+  const handleMapPress = (map, category) => {
+    navigation.navigate('TournamentRegister', {
+      game: selectedGame,
+      map: map,
+      category: category,
+    });
   };
 
   return (
@@ -64,7 +72,7 @@ export default function TournamentsScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Events Row (Events + Season) */}
+      {/* Events Row */}
       <View style={styles.eventsRow}>
         <Text style={styles.eventsTitle}>Events</Text>
         {showBgmiCards && (
@@ -98,7 +106,7 @@ export default function TournamentsScreen() {
       {/* Game or BGMI Map Cards */}
       <ScrollView
         contentContainerStyle={styles.cardsContainer}
-        showsVerticalScrollIndicator={false} // 👈 Hides scrollbar
+        showsVerticalScrollIndicator={false}
       >
         {showBgmiCards ? (
           <>
@@ -113,7 +121,11 @@ export default function TournamentsScreen() {
                 </Text>
                 <View style={styles.mapCardRow}>
                   {category.maps.map((map) => (
-                    <TouchableOpacity key={map} style={styles.mapCard}>
+                    <TouchableOpacity
+                      key={map}
+                      style={styles.mapCard}
+                      onPress={() => handleMapPress(map, category.category)}
+                    >
                       <Text style={styles.mapCardText}>{map}</Text>
                     </TouchableOpacity>
                   ))}

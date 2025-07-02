@@ -53,6 +53,7 @@ import Erangelultimatearena from './screens/esportsarena/modes/erangelultimatear
 import  Hangerarenatraining from './screens/esportsarena/modes/hangerarenatraining.js';
 import  Hangertdm from './screens/esportsarena/modes/hangertdm.js';
 import  Hangertgm from './screens/esportsarena/modes/hangertgm.js';
+import TournamentRegister from './screens/bottonscreens/tournaments/tournamentregister.js';
 
 console.log('Firebase Auth:', auth);
 const Stack = createStackNavigator();
@@ -112,6 +113,8 @@ export default function App() {
         <Stack.Screen name="Hangerarenatraining" component={Hangerarenatraining} options={{headerShown: false}} />
         <Stack.Screen name="Hangertdm" component={Hangertdm} options={{headerShown: false}} />
         <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
+        <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
+
 
       </Stack.Navigator>
     </NavigationContainer>
