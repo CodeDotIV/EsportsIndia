@@ -20,6 +20,8 @@ const RegistrationForm = () => {
     payment: '',
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (player, field, value) => {
     if (player === 'payment') {
       setForm((prev) => ({ ...prev, payment: value }));
@@ -49,7 +51,10 @@ const RegistrationForm = () => {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (!validateForm()) return;
+
+    setIsSubmitting(true);
 
     let payload = {
       mode: form.mode,
@@ -97,8 +102,7 @@ const RegistrationForm = () => {
 
     try {
       const response = await fetch(
-         'https://script.google.com/macros/s/AKfycbzbZVCgptx6wbXq_EKooF8znbZLTl2JXKzInv1eCmGUazK6RC5LKyuYe9Eemg-kSKb__g/exec',
-        
+        'https://script.google.com/macros/s/AKfycbxYpQvWEoJeZVyFWDoTJhRwZfylw6fj0D6niqbuEWER7XxLyg4H2x-z1y-5i-vRxljGkA/exec',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -123,6 +127,8 @@ const RegistrationForm = () => {
       }
     } catch (error) {
       Alert.alert('❌ Error', 'Network error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -181,8 +187,12 @@ const RegistrationForm = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Submit</Text>
+        <TouchableOpacity
+          style={[styles.submitButton, isSubmitting && { opacity: 0.6 }]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        >
+          <Text style={styles.submitText}>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
