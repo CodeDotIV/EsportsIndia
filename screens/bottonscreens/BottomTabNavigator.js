@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import HomeScreen from './HomeScreen';
 import EsportsScreen from './EsportsScreen';
-import TournamentsScreen from './tournamentsscreen';
+import TournamentsScreen from './tournaments/tournamentsscreen';
 import WinnersScreen from './WinnersScreen';
 import ProfileScreen from './ProfileScreen';
 
