@@ -3,14 +3,14 @@ import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { getItem, setItem, removeItem } from '../../utils/storageHelper';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState({
     name: '',
-    email: 'user@example.com', // Non-editable
+    email: 'user@example.com',  // Non-editable placeholder if no email is stored
     phone: '',
     gender: '',
     location: '',
@@ -20,7 +20,7 @@ const ProfileScreen = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const userData = await AsyncStorage.getItem('user');
+        const userData = await getItem('user');
         if (userData) {
           setUser(JSON.parse(userData));
         }
@@ -38,7 +38,7 @@ const ProfileScreen = () => {
     }
 
     try {
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await setItem('user', JSON.stringify(user));
       setIsEditing(false);
       Alert.alert('Success', 'Profile saved successfully!');
     } catch (error) {
@@ -46,7 +46,7 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -55,8 +55,9 @@ const ProfileScreen = () => {
         { 
           text: 'Logout', 
           onPress: async () => {
-            await AsyncStorage.removeItem('user');
-            navigation.replace('LoginScreen'); 
+            await removeItem('user');
+            await removeItem('userToken');  // Optional: clear token too
+            navigation.replace('LoginScreen');
           } 
         },
       ]
@@ -138,6 +139,8 @@ const ProfileScreen = () => {
   );
 };
 
+export default ProfileScreen;
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5a623', padding: 20 },
@@ -155,5 +158,3 @@ const styles = StyleSheet.create({
   logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 20 },
   logoutText: { fontSize: 18, color: 'red', marginLeft: 10 },
 });
-
-export default ProfileScreen;

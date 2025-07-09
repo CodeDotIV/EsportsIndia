@@ -7,11 +7,7 @@ import Bgmi from './screens/esports/bgmi.js';
 import Callofduty from './screens/esports/callofduty.js';
 import Erangel from './screens/esports/bgmi/erangel/erangel.js';
 import EntryScreen from './screens/entryscreen';
-import LoginScreen from './screens/login/LoginScreen';
-import SignupScreen from './screens/login/SignupScreen';
-import OTPScreen from './screens/login/otpscreen';
 import Livik from './screens/esports/bgmi/livik/livik.js';
-import ResetPasswordScreen from './screens/login/resetpasswordscreen';
 import Nusa from './screens/esports/bgmi/nusa/nusa.js';
 import Register from './screens/register';
 import Liviksolo from './screens/esports/bgmi/livik/solo/liviksolo.js';
@@ -43,7 +39,6 @@ import Aboutbgmi from './screens/aboutbgmi.js';
 import Aboutfreefire from './screens/aboutfreefire.js';
 import Aboutcallofduty from './screens/aboutcallofduty.js';
 import Esportsarena from './screens/esportsarena/esportsarena.js';
-import { auth } from './screens/login/AuthService';
 import Inventory from './screens/esportsarena/modes/inventory.js';
 import Library from './screens/esportsarena/modes/library.js';
 import Livikultimatearena from './screens/esportsarena/modes/livikultimatearena.js';
@@ -54,8 +49,12 @@ import  Hangerarenatraining from './screens/esportsarena/modes/hangerarenatraini
 import  Hangertdm from './screens/esportsarena/modes/hangertdm.js';
 import  Hangertgm from './screens/esportsarena/modes/hangertgm.js';
 import TournamentRegister from './screens/bottonscreens/tournaments/tournamentregister.js';
+import LoginScreen from './login/LoginScreen.js';
+import VerifyOtpScreen from './login/VerifyOtpScreen.js';
+import ForgotPasswordScreen from './login/ForgotPasswordScreen.js';
+import ResetPasswordScreen from './login/ResetPasswordScreen.js';
+import SignUpScreen from './login/SignUpScreen.js';
 
-console.log('Firebase Auth:', auth);
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -64,14 +63,14 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} options={{ headerShown: false }} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Livik" component={Livik} options={{ headerShown: false }} />
         <Stack.Screen name="Aboutbgmi" component={Aboutbgmi} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutfreefire" component={Aboutfreefire} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutcallofduty" component={Aboutcallofduty} options={{ headerShown: false }} />
-        <Stack.Screen name="SignupScreen" component={SignupScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Otpscreen" component={OTPScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Resetpasswordscreen" component={ResetPasswordScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Bgmi" component={Bgmi} options={{ headerShown: false }} />
         <Stack.Screen name="Freefire" component={Freefire} options={{ headerShown: false }} />
         <Stack.Screen name="Callofduty" component={Callofduty} options={{ headerShown: false }} />
@@ -114,6 +113,8 @@ export default function App() {
         <Stack.Screen name="Hangertdm" component={Hangertdm} options={{headerShown: false}} />
         <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
         <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
+        <Stack.Screen name="VerifyOtpScreen" component={VerifyOtpScreen}  options={{headerShown: false}} />
+        
 
 
       </Stack.Navigator>
