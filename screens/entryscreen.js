@@ -28,11 +28,11 @@ const EntryScreen = () => {
       const isSignedUp = await AsyncStorage.getItem('userSignedUp');
 
       if (token) {
-        navigation.replace('SignUpScreen');   // User already logged in → Main
+        navigation.replace('Main');   // User already logged in → Main
       } else if (isSignedUp) {
-        navigation.replace('LoginScreen');  // User signed up but not logged in → Login
+        navigation.replace('Main');  // User signed up but not logged in → Login
       } else {
-        navigation.replace('SignUpScreen'); // New user → SignUp
+        navigation.replace('Main'); // New user → SignUp
       }
     };
 

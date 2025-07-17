@@ -11,7 +11,7 @@ const SignUpScreen = ({ navigation }) => {
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const handleSignUp = async () => {
-    console.log('✅ SignUp button clicked');  // Step 1: Check button click in Expo logs
+    console.log('✅ SignUp button clicked');
 
     if (!email || !fullName || !phone || !password) {
       Alert.alert('Missing Fields', 'All fields are required.');
@@ -29,12 +29,12 @@ const SignUpScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await sendOtp(phone, email);  // Step 2: Call OTP API
+      const response = await sendOtp(phone, email);
       console.log('✅ OTP Sent Response:', response.data);
 
       Alert.alert('OTP Sent', 'Check your email for the OTP.');
 
-      navigation.navigate('VerifyOtpScreen', { phone, email, fullName, password });  // Step 3: Navigate only on success
+      navigation.navigate('VerifyOtpScreen', { phone, email, fullName, password });
     } catch (error) {
       console.error('❌ Signup Error:', error);
       Alert.alert('Error', error?.response?.data?.message || 'Failed to send OTP.');
@@ -45,7 +45,7 @@ const SignUpScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
 
-      <TextInput style={styles.input} placeholder="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" />
+      <TextInput style={styles.input} placeholder="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
       <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
       <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
       <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />

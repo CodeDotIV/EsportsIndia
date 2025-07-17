@@ -12,10 +12,21 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ Send OTP
+const formatIST = (date) => {
+  return new Date(date).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+};
+
 exports.sendOtp = async (req, res) => {
-  const phone = req.body.phone?.trim();
-  const email = req.body.email?.trim();
+  const { phone, email } = req.body;
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   try {
@@ -23,12 +34,12 @@ exports.sendOtp = async (req, res) => {
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Your OTP for EsportsIndia',
-      html: `<h2>Your OTP: <strong>${otp}</strong></h2>`,
+      html: `<h2>Your OTP: <strong>${otp}</strong></h2>`
     });
 
     await User.findOneAndUpdate(
       { phone },
-      { phone, email, otp },
+      { phone, email: email.trim().toLowerCase(), otp },
       { upsert: true, new: true }
     );
 
@@ -39,19 +50,14 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
-// ✅ Verify OTP
 exports.verifyOtp = async (req, res) => {
-  const phone = req.body.phone?.trim();
-  const otp = req.body.otp?.trim();
-
+  const { phone, otp } = req.body;
   try {
     const user = await User.findOne({ phone, otp });
-
     if (!user) return res.status(401).json({ message: 'Invalid OTP' });
 
     const token = jwt.sign({ phone: user.phone }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    await User.updateOne({ phone }, { $unset: { otp: "" } });
+    await User.updateOne({ phone }, { $unset: { otp: '' } });
 
     res.json({ token });
   } catch (error) {
@@ -60,43 +66,80 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-// ✅ Register with Password (Add Timestamp Here)
 exports.registerWithPassword = async (req, res) => {
-  const { phone, email, password, name } = req.body;
-  if (!phone || !password) return res.status(400).json({ message: 'Phone and Password required' });
+  let { phone, email, password, name } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  if (!phone || !password || !email || !name) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
 
-  const user = await User.findOneAndUpdate(
-    { phone },
-    {
-      password: hashedPassword,
-      email,
-      name,
-      createdAt: new Date(),    // ✅ Set signup timestamp here
-    },
-    { upsert: true, new: true }
-  );
+  email = email.trim().toLowerCase();
 
-  res.json({ message: 'Password set successfully', user });
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.findOneAndUpdate(
+      { phone },
+      {
+        $set: {
+          email,
+          name,
+          password: hashedPassword,
+          createdAt: new Date()
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    const createdAtIST = formatIST(user.createdAt);
+
+    res.json({
+      message: 'Registered successfully',
+      user: {
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        createdAt: createdAtIST
+      }
+    });
+  } catch (error) {
+    console.error('Register Error:', error);
+    res.status(500).json({ message: 'Registration failed' });
+  }
 };
 
-// ✅ Login
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  try {
+    let { email, password } = req.body;
 
-  if (!user) return res.status(400).json({ message: 'User not found' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    email = email.trim().toLowerCase();
+    const user = await User.findOne({ email });
 
-  const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
 
-  res.json({ token });
+    if (!user.password) {
+      return res.status(400).json({ message: 'Password not set. Please complete registration first.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token });
+  } catch (error) {
+    console.error('Login Error:', error);
+    res.status(500).json({ message: 'Login failed' });
+  }
 };
 
-// ✅ Forgot Password (Send OTP)
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -106,11 +149,10 @@ exports.forgotPassword = async (req, res) => {
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Password Reset OTP',
-      html: `<p>Your OTP: <strong>${otp}</strong></p>`,
+      html: `<p>Your OTP: <strong>${otp}</strong></p>`
     });
 
-    await User.findOneAndUpdate({ email }, { otp });
-
+    await User.findOneAndUpdate({ email: email.trim().toLowerCase() }, { otp });
     res.json({ message: 'OTP sent to email' });
   } catch (error) {
     console.error('Forgot Password Error:', error);
@@ -118,16 +160,40 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// ✅ Reset Password
 exports.resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
-  const user = await User.findOne({ email, otp });
 
-  if (!user) return res.status(400).json({ message: 'Invalid OTP' });
+  try {
+    const user = await User.findOne({ email: email.trim().toLowerCase(), otp });
+    if (!user) return res.status(400).json({ message: 'Invalid OTP' });
 
-  const hashed = await bcrypt.hash(newPassword, 10);
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await User.updateOne({ email: email.trim().toLowerCase() }, { password: hashed, otp: null });
 
-  await User.updateOne({ email }, { password: hashed, otp: null });
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset Password Error:', error);
+    res.status(500).json({ message: 'Failed to reset password' });
+  }
+};
 
-  res.json({ message: 'Password reset successfully' });
+exports.getUserByEmail = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email: email.trim().toLowerCase() }).select('-password -otp');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const createdAtIST = formatIST(user.createdAt);
+
+    res.json({
+      name: user.name || 'Not set',
+      phone: user.phone || 'Not set',
+      email: user.email,
+      createdAt: createdAtIST
+    });
+  } catch (error) {
+    console.error('Get User Error:', error);
+    res.status(500).json({ message: 'Failed to fetch user' });
+  }
 };

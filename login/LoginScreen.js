@@ -1,34 +1,42 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { login } from '../utils/api';  // ✅ Centralized API
+import { login, getUserByEmail } from '../utils/api';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       return Alert.alert('Missing Fields', 'Please enter both email and password.');
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(trimmedEmail)) {
       return Alert.alert('Invalid Email', 'Please enter a valid email address.');
     }
 
     try {
-      const res = await login(email, password);  // ✅ Calling centralized API
+      const res = await login(trimmedEmail, trimmedPassword);
       await AsyncStorage.setItem('userToken', res.data.token);
       Alert.alert('Success', 'Logged in successfully!');
       navigation.replace('MainScreen');
     } catch (error) {
       console.error('Login Error:', error);
-      Alert.alert('Login Failed', 'Invalid email or password. Please try again.');
+      Alert.alert('Login Failed', 'Invalid email or password.');
+
+      try {
+        const userRes = await getUserByEmail(trimmedEmail);
+        const { name, phone } = userRes.data;
+        Alert.alert('Account Found', `Name: ${name}\nPhone: ${phone}`);
+      } catch (err) {
+        console.log('No saved user:', err);
+      }
     }
   };
 
@@ -38,7 +46,7 @@ const LoginScreen = ({ navigation }) => {
 
       <TextInput
         style={styles.input}
-        placeholder="Work Email"
+        placeholder="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"

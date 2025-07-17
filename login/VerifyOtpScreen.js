@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { verifyOtp } from '../utils/api';
+import { verifyOtp, registerUser } from '../utils/api';
 
 const VerifyOtpScreen = ({ route, navigation }) => {
-  const { phone } = route.params;
+  const { phone, email, fullName, password } = route.params;
   const [otp, setOtp] = useState('');
 
   const handleVerifyOtp = async () => {
@@ -13,15 +13,19 @@ const VerifyOtpScreen = ({ route, navigation }) => {
     }
 
     try {
-      const res = await verifyOtp(phone.trim(), otp.trim());   // ✅ trimmed values
-      const token = res.data.token;
+      // 1. Verify OTP
+      const res = await verifyOtp(phone.trim(), otp.trim());
 
-      await AsyncStorage.setItem('userToken', token);
-      Alert.alert('Success', 'Account verified!');
+      // 2. Register the user with password and name
+      await registerUser(phone.trim(), email.trim(), fullName.trim(), password.trim());
+
+      // 3. Save token and navigate
+      await AsyncStorage.setItem('userToken', res.data.token);
+      Alert.alert('Success', 'Account verified and registered!');
       navigation.replace('Main');
     } catch (error) {
-      console.error('OTP Error:', error);
-      Alert.alert('Error', error.response?.data?.message || 'Invalid OTP.');
+      console.error('OTP Verify/Register Error:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Something went wrong.');
     }
   };
 
