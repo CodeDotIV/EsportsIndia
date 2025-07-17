@@ -142,10 +142,27 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5a623', padding: 20 },
-  backButton: { marginRight: 10, paddingTop: 25 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#000', paddingTop: 23 },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 0,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5a623',
+    padding: 20,
+  },
+  backButton: {
+    marginRight: 10,
+    paddingTop: 40,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 38,
+  },
   scrollContainer: { flex: 1, paddingHorizontal: 20 },
   form: { paddingVertical: 20 },
   label: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },

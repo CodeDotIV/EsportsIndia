@@ -150,16 +150,25 @@ export default function TournamentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 0,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5a623',
     padding: 20,
   },
-  backButton: { marginRight: 10, paddingTop: 45 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#000', paddingTop: 45 },
+  backButton: {
+    marginRight: 10,
+    paddingTop: 40,
+  },
+  title: { fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 38, },
 
   eventsRow: {
     flexDirection: 'row',

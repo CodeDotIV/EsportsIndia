@@ -214,10 +214,25 @@ const RegistrationForm = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5a623', paddingTop: 50, paddingBottom: 20, paddingHorizontal: 20 },
-  backButton: { position: 'absolute', left: 15, top: 55, zIndex: 10 },
-  title: { flex: 1, fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#000' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 0,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5a623',
+    padding: 20,
+  },
+  backButton: {
+    marginRight: 10,
+    paddingTop: 40,
+  },
+  title: { fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 38, },
   form: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
   inputContainer: { marginBottom: 15 },
   label: { fontSize: 16, fontWeight: '600', marginBottom: 6 },

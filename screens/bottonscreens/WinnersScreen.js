@@ -26,15 +26,25 @@ const LearnScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 0 },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#f5a623', 
-    padding: 20 ,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 0,
   },
-  backButton: { marginRight: 10,paddingTop:25, },
-  headerText: { fontSize: 24, fontWeight: 'bold', color: '#000' ,paddingTop:23,},
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5a623',
+    padding: 20,
+  },
+  backButton: {
+    marginRight: 10,
+    paddingTop: 40,
+  },
+  headerText: { fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 38,},
   scrollView: { flex: 1 },
   card: { backgroundColor: '#FFF', margin: 15, padding: 18, paddingTop:23,borderRadius: 10 },
   label: { fontSize: 16, fontWeight: 'bold' },

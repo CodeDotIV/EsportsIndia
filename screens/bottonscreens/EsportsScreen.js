@@ -22,6 +22,12 @@ const games = [
     image: require('../../assets/images/callofduty.png'),
     screen: 'Callofduty',
   },
+  {
+    id: '4',
+    name: 'Valorant',
+    image: require('../../assets/images/freefirelogo.png'),
+    screen: 'Freefire',
+  },
 ];
 
 export default function EsportsScreen() {
@@ -77,27 +83,27 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 10,
-    paddingTop: 25,
+    paddingTop: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    paddingTop: 23,
+    paddingTop: 38,
   },
   gameContainer: {
     alignItems: 'center',
-    marginVertical: 25,
+    marginVertical: 18,
   },
   gameImage: {
     height: 120,
-    width: '48%',
+    width: '45%',
     borderRadius: 18,
     marginVertical: 0,
   },
   gameName: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 20,
+    marginTop:25,
   },
 });

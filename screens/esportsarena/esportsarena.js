@@ -58,18 +58,26 @@ const GameScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 0,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5a623',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    padding: 20,
   },
-  backButton: { position: 'absolute', left: 15, top: 55, zIndex: 10 },
+  backButton: {
+    marginRight: 10,
+    paddingTop: 40,
+  },
   headerText: {
-    flex: 1, fontSize: 20, fontWeight: 'bold', textAlign: 'center', color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 38,
   },
   sectionTitle: {
     fontSize: 24, fontWeight: 'bold', marginTop: 40, marginLeft: 26, color: '#333',

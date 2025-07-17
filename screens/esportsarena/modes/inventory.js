@@ -29,7 +29,7 @@ const Inventory = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="black" />
+          <Ionicons name="chevron-back" size={22} color="black" />
         </Pressable>
         <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
       </View>
@@ -61,17 +61,26 @@ const Inventory = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
-  header: {
-    backgroundColor: '#f5a623',
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    padding: 0,
   },
-  backButton: { position: 'absolute', left: 20, top: 45, zIndex: 10 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5a623',
+    padding: 20,
+  },
+  backButton: {
+    marginRight: 10,
+    paddingTop: 40,
+  },
   headerText: {
-    fontSize: 22, fontWeight: 'bold', color: '#000', marginTop: 40,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    paddingTop: 38,
   },
   titleContainer: {
     flexDirection: "row", alignItems: "center",

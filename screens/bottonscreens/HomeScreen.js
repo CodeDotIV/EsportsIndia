@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
+    right: 30,
     zIndex: 1000,
   },
   greetingContainer: {
