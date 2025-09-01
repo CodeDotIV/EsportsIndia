@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking
+  View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -13,24 +13,19 @@ const RegistrationForm = () => {
   const [form, setForm] = useState({
     mode: mode || '',
     team: team || '',
-    firstPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-    secondPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-    thirdPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-    fourthPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-    payment: '',
+    firstPlayer: { name: '', gameId: '', mobile: '', email: '' },
+    secondPlayer: { name: '', gameId: '', mobile: '', email: '' },
+    thirdPlayer: { name: '', gameId: '', mobile: '', email: '' },
+    fourthPlayer: { name: '', gameId: '', mobile: '', email: '' },
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (player, field, value) => {
-    if (player === 'payment') {
-      setForm((prev) => ({ ...prev, payment: value }));
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        [player]: { ...prev[player], [field]: value },
-      }));
-    }
+    setForm((prev) => ({
+      ...prev,
+      [player]: { ...prev[player], [field]: value },
+    }));
   };
 
   const validateForm = () => {
@@ -44,36 +39,15 @@ const RegistrationForm = () => {
     return true;
   };
 
-  const handlePaymentAndSubmit = async () => {
-    if (isSubmitting) return;
-    if (!validateForm()) return;
-
-    // ✅ Open Razorpay Payment Link
-    Linking.openURL('https://rzp.io/rzp/4u7btCQi');  // Replace this with your actual Razorpay link
-
-    // ✅ Auto-fill payment field as "Paid via Razorpay"
-    setForm((prev) => ({ ...prev, payment: 'Paid via Razorpay' }));
-
-    // ✅ Auto-submit after small delay (to give time to complete payment)
-    setTimeout(() => {
-      handleSubmit();
-    }, 500000);  // You can increase delay if needed (in milliseconds)
-  };
-
   const handleSubmit = async () => {
     if (isSubmitting) return;
-
-    if (!form.payment) {
-      Alert.alert('Error', 'Please complete the payment first.');
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     let payload = {
       mode: form.mode,
       team: form.team,
-      payment: form.payment,
     };
 
     if (team === 'Solo' || team === 'Duo' || team === 'Squad') {
@@ -83,7 +57,6 @@ const RegistrationForm = () => {
         firstPlayer_gameId: form.firstPlayer.gameId,
         firstPlayer_mobile: form.firstPlayer.mobile,
         firstPlayer_email: form.firstPlayer.email,
-        firstPlayer_aadhaar: form.firstPlayer.aadhaar,
       };
     }
 
@@ -94,7 +67,6 @@ const RegistrationForm = () => {
         secondPlayer_gameId: form.secondPlayer.gameId,
         secondPlayer_mobile: form.secondPlayer.mobile,
         secondPlayer_email: form.secondPlayer.email,
-        secondPlayer_aadhaar: form.secondPlayer.aadhaar,
       };
     }
 
@@ -105,12 +77,10 @@ const RegistrationForm = () => {
         thirdPlayer_gameId: form.thirdPlayer.gameId,
         thirdPlayer_mobile: form.thirdPlayer.mobile,
         thirdPlayer_email: form.thirdPlayer.email,
-        thirdPlayer_aadhaar: form.thirdPlayer.aadhaar,
         fourthPlayer_name: form.fourthPlayer.name,
         fourthPlayer_gameId: form.fourthPlayer.gameId,
         fourthPlayer_mobile: form.fourthPlayer.mobile,
         fourthPlayer_email: form.fourthPlayer.email,
-        fourthPlayer_aadhaar: form.fourthPlayer.aadhaar,
       };
     }
 
@@ -130,11 +100,10 @@ const RegistrationForm = () => {
         setForm({
           mode: mode || '',
           team: team || '',
-          firstPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-          secondPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-          thirdPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-          fourthPlayer: { name: '', gameId: '', mobile: '', email: '', aadhaar: '' },
-          payment: '',
+          firstPlayer: { name: '', gameId: '', mobile: '', email: '' },
+          secondPlayer: { name: '', gameId: '', mobile: '', email: '' },
+          thirdPlayer: { name: '', gameId: '', mobile: '', email: '' },
+          fourthPlayer: { name: '', gameId: '', mobile: '', email: '' },
         });
       } else {
         Alert.alert('❌ Error', 'Failed: ' + resText);
@@ -149,7 +118,7 @@ const RegistrationForm = () => {
   const renderPlayerFields = (label, key, required) => (
     <View style={styles.section} key={key}>
       <Text style={styles.sectionTitle}>{label}</Text>
-      {['name', 'gameId', 'mobile', 'email', 'aadhaar'].map((field) => (
+      {['name', 'gameId', 'mobile', 'email'].map((field) => (
         <View style={styles.inputContainer} key={`${key}-${field}`}>
           <Text style={styles.label}>
             {field.charAt(0).toUpperCase() + field.slice(1)}
@@ -191,22 +160,12 @@ const RegistrationForm = () => {
         {team === 'Squad' ? renderPlayerFields('Third Player', 'thirdPlayer', false) : null}
         {team === 'Squad' ? renderPlayerFields('Fourth Player', 'fourthPlayer', false) : null}
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Payment <Text style={{ color: 'red' }}>*</Text></Text>
-          <TextInput
-            style={styles.input}
-            value={form.payment}
-            onChangeText={(value) => handleChange('payment', null, value)}
-            placeholder="Payment Status (auto-filled)"
-          />
-        </View>
-
         <TouchableOpacity
           style={[styles.submitButton, isSubmitting && { opacity: 0.6 }]}
-          onPress={handlePaymentAndSubmit}
+          onPress={handleSubmit}
           disabled={isSubmitting}
         >
-          <Text style={styles.submitText}>{isSubmitting ? 'Processing...' : 'Pay & Submit'}</Text>
+          <Text style={styles.submitText}>{isSubmitting ? 'Processing...' : 'Submit'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -229,10 +188,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
     paddingTop: 40,
   },
-  title: { fontSize: 18,
+  title: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    paddingTop: 38, },
+    paddingTop: 38,
+  },
   form: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
   inputContainer: { marginBottom: 15 },
   label: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
