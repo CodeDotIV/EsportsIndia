@@ -1,55 +1,40 @@
-import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { forgotPassword } from '../utils/api';  // ✅ Import from centralized API
+// login/ForgotPasswordScreen.js
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { forgotPassword } from "../services/authService";
 
-const ForgotPasswordScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
+export default function ForgotPasswordScreen({ navigation }) {
+  const [email, setEmail] = useState("");
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleForgot = async () => {
-    if (!email || !validateEmail(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email.");
       return;
     }
-
-    try {
-      await forgotPassword(email);  // ✅ Using centralized API call
-      Alert.alert('Success', 'OTP sent to your email.');
-      navigation.navigate('ResetPasswordScreen', { email });
-    } catch (error) {
-      console.error('Forgot Password Error:', error);
-      Alert.alert('Error', 'Failed to send reset OTP. Please try again.');
+    const res = await forgotPassword(email);
+    if (res.success) {
+      Alert.alert("Success", "Password reset email sent.");
+      navigation.goBack();
+    } else {
+      Alert.alert("Failed", res.error);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Forgot Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Work Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TouchableOpacity style={styles.button} onPress={handleForgot}>
-        <Text style={styles.buttonText}>Send OTP</Text>
+      <TextInput style={styles.input} placeholder="Enter your email" value={email} onChangeText={setEmail} />
+      <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
+        <Text style={styles.buttonText}>Send Reset Link</Text>
       </TouchableOpacity>
     </View>
   );
-};
-
-export default ForgotPasswordScreen;
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, color: '#333', textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 10, marginBottom: 20, fontSize: 16 },
-  button: { backgroundColor: '#4A90E2', padding: 15, borderRadius: 30, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10, borderRadius: 5 },
+  button: { backgroundColor: "#17a2b8", padding: 15, borderRadius: 5, alignItems: "center" },
+  buttonText: { color: "#fff", fontWeight: "bold" },
 });

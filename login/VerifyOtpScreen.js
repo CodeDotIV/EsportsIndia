@@ -1,60 +1,42 @@
-import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { verifyOtp, registerUser } from '../utils/api';
+// login/VerifyOtpScreen.js
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { verifyOtp } from "../services/otpService";
 
-const VerifyOtpScreen = ({ route, navigation }) => {
-  const { phone, email, fullName, password } = route.params;
-  const [otp, setOtp] = useState('');
+export default function VerifyOtpScreen({ route, navigation }) {
+  const { email } = route.params;
+  const [otp, setOtp] = useState("");
 
   const handleVerifyOtp = async () => {
-    if (!otp || otp.length !== 6) {
-      return Alert.alert('Invalid OTP', 'Please enter the 6-digit OTP.');
+    if (!otp) {
+      Alert.alert("Error", "Please enter the OTP.");
+      return;
     }
-
-    try {
-      // 1. Verify OTP
-      const res = await verifyOtp(phone.trim(), otp.trim());
-
-      // 2. Register the user with password and name
-      await registerUser(phone.trim(), email.trim(), fullName.trim(), password.trim());
-
-      // 3. Save token and navigate
-      await AsyncStorage.setItem('userToken', res.data.token);
-      Alert.alert('Success', 'Account verified and registered!');
-      navigation.replace('Main');
-    } catch (error) {
-      console.error('OTP Verify/Register Error:', error);
-      Alert.alert('Error', error.response?.data?.message || 'Something went wrong.');
+    const res = await verifyOtp(email, otp);
+    if (res.success) {
+      navigation.replace("MainScreen");
+    } else {
+      Alert.alert("Verification Failed", res.error);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Verify OTP</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Enter OTP"
-        value={otp}
-        onChangeText={setOtp}
-        keyboardType="numeric"
-        maxLength={6}
-      />
-
+      <Text style={styles.subtitle}>OTP sent to: {email}</Text>
+      <TextInput style={styles.input} placeholder="Enter OTP" value={otp} onChangeText={setOtp} keyboardType="numeric" />
       <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
-        <Text style={styles.buttonText}>Verify</Text>
+        <Text style={styles.buttonText}>Verify OTP</Text>
       </TouchableOpacity>
     </View>
   );
-};
-
-export default VerifyOtpScreen;
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#333' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 10, marginBottom: 15, fontSize: 16 },
-  button: { backgroundColor: '#d49fbf', padding: 15, borderRadius: 30, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
+  subtitle: { textAlign: "center", marginBottom: 20 },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10, borderRadius: 5 },
+  button: { backgroundColor: "#ffc107", padding: 15, borderRadius: 5, alignItems: "center" },
+  buttonText: { color: "#000", fontWeight: "bold" },
 });

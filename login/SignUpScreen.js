@@ -1,73 +1,47 @@
-import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { sendOtp } from '../utils/api';
+// login/SignUpScreen.js
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { signUp } from "../services/authService";
+import { sendOtp } from "../services/otpService";
 
-const SignUpScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+export default function SignUpScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSignUp = async () => {
-    console.log('✅ SignUp button clicked');
-
-    if (!email || !fullName || !phone || !password) {
-      Alert.alert('Missing Fields', 'All fields are required.');
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password.");
       return;
     }
-
-    if (!validateEmail(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
-      return;
-    }
-
-    try {
-      const response = await sendOtp(phone, email);
-      console.log('✅ OTP Sent Response:', response.data);
-
-      Alert.alert('OTP Sent', 'Check your email for the OTP.');
-
-      navigation.navigate('VerifyOtpScreen', { phone, email, fullName, password });
-    } catch (error) {
-      console.error('❌ Signup Error:', error);
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to send OTP.');
+    const res = await signUp(email, password);
+    if (res.success) {
+      await sendOtp(email); // Send OTP after signup
+      navigation.navigate("VerifyOtpScreen", { email });
+    } else {
+      Alert.alert("Signup Failed", res.error);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
-
-      <TextInput style={styles.input} placeholder="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
-      <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-      <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-
+      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign up</Text>
+        <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
-
-      <Text style={styles.linkText} onPress={() => navigation.navigate('LoginScreen')}>
-        Already have an account? Sign In
-      </Text>
+      <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+        <Text style={styles.link}>Already have an account? Login</Text>
+      </TouchableOpacity>
     </View>
   );
-};
-
-export default SignUpScreen;
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 10, marginBottom: 15 },
-  button: { backgroundColor: '#d49fbf', padding: 15, borderRadius: 30, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-  linkText: { textAlign: 'center', marginTop: 15, color: '#80004d' },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10, borderRadius: 5 },
+  button: { backgroundColor: "#28a745", padding: 15, borderRadius: 5, alignItems: "center" },
+  buttonText: { color: "#fff", fontWeight: "bold" },
+  link: { color: "#007bff", textAlign: "center", marginTop: 10 },
 });
