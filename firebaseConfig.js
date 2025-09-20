@@ -1,18 +1,16 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFunctions } from "firebase/functions";
-import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID",
+  apiKey: "AIzaSyDNjVmiYyU1zQmvNVWizaREQ88xVT-o9X0",
+  authDomain: "esportsindia341k.firebaseapp.com",
+  projectId: "esportsindia341k",
+  storageBucket: "esportsindia341k.firebasestorage.app",
+  messagingSenderId: "1047059325621",
+  appId: "1:1047059325621:web:3a514fdde8c66c3bc0d4fc",
+  measurementId: "G-BYYM5X6J2R"
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const functions = getFunctions(app);
-export const db = getFirestore(app);
+
+console.log("Firebase initialized:", app.name); 

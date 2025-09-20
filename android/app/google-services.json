@@ -1,0 +1,46 @@
+{
+    "project_info": {
+      "project_number": "978797070658",
+      "project_id": "esportsindia-db198",
+      "storage_bucket": "esportsindia-db198.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:978797070658:android:56be0fa01bc905f5e460db",
+          "android_client_info": {
+            "package_name": "Esports.India"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "978797070658-g4k8cgmgvltfthgdf5bdgj50d84dqt49.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyDgbVItjhFp4KMRstiJkpmANiDVGvjOAPQ"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "978797070658-g4k8cgmgvltfthgdf5bdgj50d84dqt49.apps.googleusercontent.com",
+                "client_type": 3
+              },
+              {
+                "client_id": "978797070658-0ljce2r2vafhe9eotv7kqo007eog26hm.apps.googleusercontent.com",
+                "client_type": 2,
+                "ios_info": {
+                  "bundle_id": "Esports.India"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }
