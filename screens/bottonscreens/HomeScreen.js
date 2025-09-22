@@ -6,53 +6,40 @@ const { width } = Dimensions.get('window');
 
 const imageSources = [
   { source: require('../../assets/images/bgmilogo.png'), game: 'bgmi' },
-   { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
-   { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
- ];
+  { source: require('../../assets/images/freefirelogo.png'), game: 'freefirelogo' },
+  { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+  { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+];
 
 const getGreeting = () => {
   const hour = new Date().getHours();
-  
-  if (hour >= 5 && hour < 12) return "Good Morning! Welcome to EsportsIndia\nHave a Great Day! 👋";
-  if (hour >= 12 && hour < 17) return "Good Afternoon! Welcome to EsportsIndia\nHope You're Having a Great Day! 👋";
-  if (hour >= 17 && hour < 24) return "Good Evening! Welcome to EsportsIndia\nEnjoy Your Time! 👋";
-  
-  return "Good Night! 🌃\nRest Well and See You Tomorrow!";
+
+  if (hour >= 5 && hour < 12) return "Good Morning! Welcome to EsportsIndia 👋";
+  if (hour >= 12 && hour < 17) return "Good Afternoon! Welcome to EsportsIndia 👋";
+  if (hour >= 17 && hour < 24) return "Good Evening! Welcome to EsportsIndia 👋";
+
+  return "Good Night! 🌃 Welcome to EsportsIndia 👋";
 };
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [greeting, setGreeting] = useState(getGreeting());
-  const [typedGreeting, setTypedGreeting] = useState('');
   const [showGreeting, setShowGreeting] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(1)).current; // opacity value
 
   const scrollX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setGreeting(getGreeting());
-    }, 600);
+    const timer = setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 1000, // fade out duration
+        useNativeDriver: true,
+      }).start(() => setShowGreeting(false));
+    }, 3000); // wait 3 sec before fading
 
-    let index = 0;
-    const typingInterval = setInterval(() => {
-      setTypedGreeting((prev) => prev + greeting[index]);
-      index += 1;
-      if (index === greeting.length) {
-        clearInterval(typingInterval);
-      }
-    }, 100);
-
-    const greetingTimeout = setTimeout(() => {
-      setShowGreeting(false);
-    }, 9000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(typingInterval);
-      clearTimeout(greetingTimeout);
-    };
-  }, [greeting]);
+    return () => clearTimeout(timer);
+  }, []);
 
   const gameData = [
     {
@@ -61,7 +48,6 @@ export default function HomeScreen() {
       gameFeatures: "Realistic gameplay, immersive environments.",
       multiplayerMode: "Team up with friends and compete.",
     },
-     
     {
       title: "Call of Duty",
       description: "Realistic first-person shooter action.",
@@ -75,7 +61,6 @@ export default function HomeScreen() {
     setCurrentIndex(index);
   };
 
-  // Function to navigate to About screen based on the game clicked
   const handleImageClick = (game) => {
     switch (game) {
       case 'bgmi':
@@ -91,6 +76,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
@@ -98,22 +84,29 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Greeting with fade animation */}
       {showGreeting && (
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greetingText}>{typedGreeting} </Text>
-        </View>
+        <Animated.View style={[styles.greetingContainer, { opacity: fadeAnim }]}>
+          <Text style={styles.greetingText}>{getGreeting()}</Text>
+        </Animated.View>
       )}
 
+      {/* Content */}
       <ScrollView style={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
+        {/* Game Thumbnails */}
         <View style={styles.aboutContainer}>
           {imageSources.map((item, index) => (
-            <TouchableOpacity key={index} onPress={() => handleImageClick(item.game)} style={styles.aboutSection}>
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleImageClick(item.game)}
+              style={styles.aboutSection}
+            >
               <Image source={item.source} style={styles.image} />
             </TouchableOpacity>
           ))}
         </View>
- 
-          
+
+        {/* Game Banners */}
         <FlatList
           data={gameData}
           horizontal
@@ -140,16 +133,17 @@ export default function HomeScreen() {
           )}
         />
 
+        {/* Pagination Dots */}
         <View style={styles.pagination}>
           {gameData.map((_, index) => (
-            <TouchableOpacity key={index} style={[styles.dot, currentIndex === index && styles.activeDot]} />
+            <TouchableOpacity
+              key={index}
+              style={[styles.dot, currentIndex === index && styles.activeDot]}
+            />
           ))}
         </View>
-        <View style={styles.banner1}>
-               
-               </View>
-             
-   
+
+        <View style={styles.banner1}></View>
       </ScrollView>
     </View>
   );
@@ -175,13 +169,12 @@ const styles = StyleSheet.create({
   greetingContainer: {
     marginTop: 0,
     marginLeft: 20,
-    width:600,
-    maxWidth:650,
+    width: 600,
+    maxWidth: 650,
     marginBottom: -210,
   },
   greetingText: {
     fontSize: 10,
-    width:600,
     fontWeight: 'bold',
     color: 'blue',
     margin: 90,
@@ -204,7 +197,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 55,
   },
-  
   title: {
     fontSize: 18,
     fontWeight: 'bold',

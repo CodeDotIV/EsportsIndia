@@ -114,9 +114,6 @@ export default function App() {
         <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
         <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
         <Stack.Screen name="VerifyOtpScreen" component={VerifyOtpScreen}  options={{headerShown: false}} />
-        
-
-
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -36,7 +36,7 @@ const EntryScreen = () => {
       if (token) {
         navigation.replace('Main'); // Already logged in
       } else {
-        navigation.replace('LoginScreen'); // Google SSO button will be here
+        navigation.replace('Main'); // Google SSO button will be here
       }
     };
 

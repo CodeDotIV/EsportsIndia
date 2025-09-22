@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Text, Alert } from "react-native";
+import { View, StyleSheet, Text, Alert, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
 import * as Google from "expo-auth-session/providers/google";
@@ -13,35 +13,47 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: "1047059325621-a0un440sj2uvj138qj1dhjs6m7nv9jv1.apps.googleusercontent.com",
-    iosClientId: "1047059325621-a0un440sj2uvj138qj1dhjs6m7nv9jv1.apps.googleusercontent.com",
-    androidClientId: "1047059325621-1h2o2enmv7rr0pm8ckf2qppv09i9djjb.apps.googleusercontent.com",
-    webClientId: "1047059325621-1h2o2enmv7rr0pm8ckf2qppv09i9djjb.apps.googleusercontent.com",
+    // Expo Go uses Web Client ID
+    expoClientId: "1047059325621-rsjgkah208ur3e92j2d0do5tk5pornv5.apps.googleusercontent.com",
+    // Required for iOS standalone builds
+    iosClientId: Platform.OS === "ios" 
+      ? "1047059325621-a0un440sj2uvj138qj1dhjs6m7nv9jv1.apps.googleusercontent.com" 
+      : undefined,
+    // Required for Android standalone builds
+    androidClientId: Platform.OS === "android" 
+      ? "1047059325621-1h2o2enmv7rr0pm8ckf2qppv09i9djjb.apps.googleusercontent.com" 
+      : undefined,
   });
 
   useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
-        .then((userCred) => {
-          console.log("User signed in:", userCred.user);
+    const loginWithGoogle = async () => {
+      if (response?.type === "success" && response.authentication) {
+        const { idToken } = response.authentication;
+
+        if (!idToken) {
+          console.error("No idToken returned. Check client IDs.");
+          Alert.alert("Error", "Failed to get token from Google");
+          return;
+        }
+
+        const credential = GoogleAuthProvider.credential(idToken);
+
+        try {
+          const userCred = await signInWithCredential(auth, credential);
           Alert.alert("Welcome", `Hello ${userCred.user.displayName}`);
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error("Firebase sign-in error:", err);
           Alert.alert("Error", "Failed to sign in with Google");
-        });
-    }
-  }, [response]);
+        }
+      }
+    };
 
-  const handleGoogleLogin = () => {
-    promptAsync();
-  };
+    loginWithGoogle();
+  }, [response]);
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Background video */}
+      {/* Background Video */}
       <Video
         source={require("../assets/vedios/intro.mp4")}
         style={StyleSheet.absoluteFill}
@@ -51,11 +63,16 @@ export default function LoginScreen() {
         isMuted
         volume={0}
       />
-      {/* Semi-transparent overlay to control opacity */}
-<View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.8)" }]} />
 
+      {/* Semi-transparent overlay */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+        ]}
+      />
 
-      {/* Content on top */}
+      {/* Content */}
       <LinearGradient
         colors={["#1a1a2eaa", "#16213eaa", "#0f3460aa", "#e94560aa"]}
         style={styles.container}
@@ -75,7 +92,7 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.buttonWrapper}>
-          <GoogleLoginButton onPress={handleGoogleLogin} />
+          <GoogleLoginButton onPress={() => promptAsync()} />
         </View>
 
         <View style={styles.footer}>
