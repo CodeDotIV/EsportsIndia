@@ -8,7 +8,7 @@ const imageSources = [
   { source: require('../../assets/images/bgmilogo.png'), game: 'bgmi' },
   { source: require('../../assets/images/freefirelogo.png'), game: 'freefirelogo' },
   { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
-  { source: require('../../assets/images/callofduty.png'), game: 'callofduty' },
+  { source: require('../../assets/images/valorant.png'), game: 'callofduty' },
 ];
 
 const getGreeting = () => {
@@ -49,7 +49,19 @@ export default function HomeScreen() {
       multiplayerMode: "Team up with friends and compete.",
     },
     {
-      title: "Call of Duty",
+      title: "Freefire",
+      description: "Realistic first-person shooter action.",
+      gameFeatures: "Various weapons, maps, and modes.",
+      multiplayerMode: "Competitive and co-op play.",
+    },
+    {
+      title: "CallofDuty",
+      description: "Realistic first-person shooter action.",
+      gameFeatures: "Various weapons, maps, and modes.",
+      multiplayerMode: "Competitive and co-op play.",
+    },
+    {
+      title: "Valorant",
       description: "Realistic first-person shooter action.",
       gameFeatures: "Various weapons, maps, and modes.",
       multiplayerMode: "Competitive and co-op play.",

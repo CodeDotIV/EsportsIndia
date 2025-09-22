@@ -8,7 +8,6 @@ const games = [
     id: '1',
     name: 'Battle Grounds Mobile India',
     image: require('../../assets/images/bgmilogo.png'),
-    screen: 'Esportsarena',
   },
   {
     id: '3',
@@ -25,8 +24,8 @@ const games = [
   {
     id: '4',
     name: 'Valorant',
-    image: require('../../assets/images/freefirelogo.png'),
-    screen: 'Freefire',
+    image: require('../../assets/images/valorant.png'),
+    screen: 'valorant',
   },
 ];
 
@@ -34,7 +33,7 @@ export default function EsportsScreen() {
   const navigation = useNavigation();
 
   const handlePress = (screen, name) => {
-    if (screen === 'Freefire' || screen === 'Callofduty') {
+    if (screen === 'Freefire' || screen === 'Callofduty' || screen === 'valorant') {
       Alert.alert('Coming Soon', `${name} will be available soon!`);
       return;
     }

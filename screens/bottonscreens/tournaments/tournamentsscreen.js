@@ -6,15 +6,35 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 const games = [
-  'Battlegrounds Mobile India',
-  'Free Fire',
-  'Call of Duty',
-  'Valorant',
+  {
+    id: '1',
+    name: 'Battle Grounds Mobile India',
+    image: require('../../../assets/images/bgmilogo.png'),
+  },
+  {
+    id: '2',
+    name: 'Freefire',
+    image: require('../../../assets/images/freefirelogo.png'),
+    screen: 'Freefire',
+  },
+  {
+    id: '3',
+    name: 'Call of Duty',
+    image: require('../../../assets/images/callofduty.png'),
+    screen: 'Callofduty',
+  },
+  {
+    id: '4',
+    name: 'Valorant',
+    image: require('../../../assets/images/valorant.png'),
+    screen: 'Valorant',
+  },
 ];
 
 const bgmiCategories = [
@@ -32,11 +52,11 @@ export default function TournamentsScreen() {
   const tabs = ['Active', 'Upcoming'];
 
   const handleCardPress = (game) => {
-    if (game === 'Battlegrounds Mobile India') {
+    if (game.name === 'Battle Grounds Mobile India') {
       setShowBgmiCards(true);
-      setSelectedGame(game);
+      setSelectedGame(game.name);
     } else {
-      Alert.alert('Coming Soon', `${game} tournaments will be available soon.`);
+      Alert.alert('Coming Soon', `${game.name} tournaments will be available soon.`);
     }
   };
 
@@ -68,7 +88,7 @@ export default function TournamentsScreen() {
       {showBgmiCards && (
         <TouchableOpacity style={styles.backToBgmiBtn} onPress={handleBackToGames}>
           <Ionicons name="arrow-back" size={16} />
-          <Text style={styles.backToBgmiText}>Battlegrounds Mobile India</Text>
+          <Text style={styles.backToBgmiText}>{selectedGame}</Text>
         </TouchableOpacity>
       )}
 
@@ -109,38 +129,37 @@ export default function TournamentsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {showBgmiCards ? (
-          <>
-            {bgmiCategories.map((category) => (
-              <View key={category.category} style={styles.categorySection}>
-                <Text style={styles.categoryTitle}>
-                  {category.category === 'Mini - Classic'
-                    ? 'Mini Classic - Maps'
-                    : category.category === 'Classic'
-                    ? 'Classic - Map'
-                    : category.category}
-                </Text>
-                <View style={styles.mapCardRow}>
-                  {category.maps.map((map) => (
-                    <TouchableOpacity
-                      key={map}
-                      style={styles.mapCard}
-                      onPress={() => handleMapPress(map, category.category)}
-                    >
-                      <Text style={styles.mapCardText}>{map}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+          bgmiCategories.map((category) => (
+            <View key={category.category} style={styles.categorySection}>
+              <Text style={styles.categoryTitle}>
+                {category.category === 'Mini - Classic'
+                  ? 'Mini Classic - Maps'
+                  : category.category === 'Classic'
+                  ? 'Classic - Map'
+                  : category.category}
+              </Text>
+              <View style={styles.mapCardRow}>
+                {category.maps.map((map) => (
+                  <TouchableOpacity
+                    key={map}
+                    style={styles.mapCard}
+                    onPress={() => handleMapPress(map, category.category)}
+                  >
+                    <Text style={styles.mapCardText}>{map}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ))}
-          </>
+            </View>
+          ))
         ) : (
           games.map((game) => (
             <TouchableOpacity
-              key={`${selectedTab}-${game}`}
+              key={`${selectedTab}-${game.id}`}
               style={styles.gameCard}
               onPress={() => handleCardPress(game)}
             >
-              <Text style={styles.gameCardText}>{game}</Text>
+              <Image source={game.image} style={styles.gameImage} />
+              <Text style={styles.gameCardText}>{game.name}</Text>
             </TouchableOpacity>
           ))
         )}
@@ -150,163 +169,32 @@ export default function TournamentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5a623',
-    padding: 20,
-  },
-  backButton: {
-    marginRight: 10,
-    paddingTop: 40,
-  },
-  title: { fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    paddingTop: 38, },
-
-  eventsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-    marginLeft: 20,
-    gap: 150,
-  },
-
-  eventsTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 10,
-  },
-
-  seasonDropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginLeft: 28,
-  },
-
-  seasonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#444',
-  },
-
-  backToBgmiBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 28,
-    marginLeft: 20,
-    marginBottom: 10,
-  },
-
-  backToBgmiText: {
-    marginLeft: 6,
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#007aff',
-  },
-
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 30,
-    paddingBottom: 5,
-  },
-
-  tabButton: {
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-
-  tabText: {
-    fontSize: 14,
-    color: '#888',
-    fontWeight: '600',
-  },
-
-  tabTextSelected: {
-    color: '#000',
-  },
-
-  smallUnderline: {
-    marginTop: 4,
-    height: 4.5,
-    width: 45,
-    borderRadius: 2,
-    backgroundColor: 'red',
-  },
-
-  cardsContainer: {
-    padding: 16,
-  },
-
-  gameCard: {
-    marginTop: 15,
-    backgroundColor: '#fff',
-    padding: 50,
+  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 0 },
+  header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5a623', padding: 20 },
+  backButton: { marginRight: 10, paddingTop: 40 },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#000', paddingTop: 38 },
+  eventsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: 20, gap: 150 },
+  eventsTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginLeft: 10 },
+  seasonDropdown: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'red', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, marginLeft: 28 },
+  seasonText: { fontSize: 14, fontWeight: '500', color: '#444' },
+  backToBgmiBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 28, marginLeft: 20, marginBottom: 10 },
+  backToBgmiText: { marginLeft: 6, fontSize: 14, fontWeight: '500', color: '#007aff' },
+  tabsContainer: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 30, paddingBottom: 5 },
+  tabButton: { alignItems: 'center', paddingHorizontal: 10 },
+  tabText: { fontSize: 14, color: '#888', fontWeight: '600' },
+  tabTextSelected: { color: '#000' },
+  smallUnderline: { marginTop: 4, height: 4.5, width: 45, borderRadius: 2, backgroundColor: 'red' },
+  cardsContainer: { padding: 16 },
+  gameCard: { marginTop: 10, paddingVertical:5, paddingHorizontal: 20,  marginBottom: 22, alignSelf: 'center', width: '78%', justifyContent: 'center', alignItems: 'center' },
+  gameImage: {
+    height: 125,
+    width: '240',
     borderRadius: 18,
-    marginBottom: 22,
-    alignSelf: 'center',
-    width: '78%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: 'red',
-    borderWidth: 0.4,
-    elevation: 2,
-  },
-
-  gameCardText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-
-  mapCard: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 40,
-    paddingHorizontal: 50,
-    borderRadius: 12,
-    marginBottom: 18,
-    alignItems: 'center',
-    borderColor: '#bbb',
-    borderWidth: 0.5,
-    width: '65%',
-  },
-
-  mapCardText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#333',
-  },
-
-  categorySection: {
-    marginBottom: 30,
-  },
-
-  categoryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#444',
-    marginBottom: 1,
-    marginLeft: 36,
-    marginTop: 15,
-  },
-
-  mapCardRow: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    paddingTop: 20,
-  },
+    marginVertical: 0,
+  },  gameCardText: { marginTop:28,fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  mapCard: { backgroundColor: '#f0f0f0', paddingVertical: 40, paddingHorizontal: 50, borderRadius: 12, marginBottom: 18, alignItems: 'center', borderColor: '#bbb', borderWidth: 0.5, width: '65%' },
+  mapCardText: { fontSize: 18, fontWeight: '500', color: '#333' },
+  categorySection: { marginBottom: 30 },
+  categoryTitle: { fontSize: 18, fontWeight: 'bold', color: '#444', marginBottom: 1, marginLeft: 36, marginTop: 15 },
+  mapCardRow: { flexDirection: 'column', alignItems: 'center', paddingTop: 20 },
 });
