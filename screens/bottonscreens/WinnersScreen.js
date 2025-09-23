@@ -11,11 +11,11 @@ const LearnScreen = () => {
       {/* Header Section with Back Button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
+          <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Winners </Text>
       </View>
-
+      <View style={styles.headerLine} />
       {/* Scrollable Content */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
        
@@ -26,24 +26,13 @@ const LearnScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5a623',
-    padding: 20,
-  },
-  backButton: {
-    marginRight: 10,
-    paddingTop: 40,
-  },
+  container: { flex: 1, backgroundColor: '#141E30' },
+  header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '', padding: 20 },
+  backButton: {  color: 'white',marginRight: 10, paddingTop: 40 },
+  
   headerText: { fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: 'white',
     paddingTop: 38,},
   scrollView: { flex: 1 },
   card: { backgroundColor: '#FFF', margin: 15, padding: 18, paddingTop:23,borderRadius: 10 },
@@ -51,6 +40,12 @@ const styles = StyleSheet.create({
   required: { color: 'red' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
   point: { fontSize: 15, marginLeft: 10, marginTop: 5 },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
+  },
 });
 
 export default LearnScreen;

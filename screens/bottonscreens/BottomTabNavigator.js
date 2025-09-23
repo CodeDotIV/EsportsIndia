@@ -6,6 +6,8 @@ import EsportsScreen from './EsportsScreen';
 import TournamentsScreen from './tournaments/tournamentsscreen';
 import WinnersScreen from './WinnersScreen';
 import ProfileScreen from './ProfileScreen';
+import { LinearGradient } from 'expo-linear-gradient';
+import { View, StyleSheet } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -19,21 +21,28 @@ export default function BottomTabNavigator() {
           if (route.name === 'Home') iconName = 'home';
           else if (route.name === 'Esports') iconName = 'sports-esports';
           else if (route.name === 'Tournaments') iconName = 'emoji-events';
-          else if (route.name === 'Winners') iconName = 'military-tech'; // ✅ Fixed here
+          else if (route.name === 'Winners') iconName = 'military-tech';
           else if (route.name === 'Profile') iconName = 'person';
           return <Icon name={iconName} size={32} color={color} />;
         },
-        tabBarActiveTintColor: '#8A0D52',
         tabBarInactiveTintColor: '#ccc',
-        tabBarShowLabel: true,
         tabBarStyle: {
-          height: 70,
+          height: 90,
           paddingBottom: 10,
           paddingTop: 14,
+          backgroundColor: 'transparent',
         },
         tabBarItemStyle: {
           flex: 1.5,
         },
+        tabBarBackground: () => (
+          <LinearGradient
+            colors={['#141E30', '#243B55']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+        ),
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
