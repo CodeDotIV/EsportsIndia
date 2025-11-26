@@ -34,9 +34,9 @@ const EntryScreen = () => {
     const checkLoginStatus = async () => {
       const token = await AsyncStorage.getItem('userToken');
       if (token) {
-        navigation.replace('Main'); // Already logged in
+        navigation.replace('SignUpScreen'); // Already logged in
       } else {
-        navigation.replace('Main'); // Google SSO button will be here
+        navigation.replace('SignUpScreen'); // Google SSO button will be here
       }
     };
 
