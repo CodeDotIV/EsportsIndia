@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Alert, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Alert, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-
-const { width } = Dimensions.get('window');
+import { wp, hp, rf, rs, isTablet } from '../../utils/responsive';
 
 const games = [
   { id: '1', name: 'Battle Grounds Mobile India', image: require('../../assets/images/bgmilogo.png'), screen: 'Esportsarena' },
@@ -14,6 +13,8 @@ const games = [
 
 export default function EsportsScreen() {
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
+  const tablet = isTablet();
 
   const handlePress = (screen, name) => {
     if (screen === 'Freefire' || screen === 'Callofduty' || screen === 'valorant') {
@@ -58,50 +59,50 @@ export default function EsportsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#141E30', // dark background
+    backgroundColor: '#141E30',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
   },
   backButton: {
-    marginRight: 10,
-    paddingTop: 0, // original layout spacing
+    marginRight: wp(2.5),
   },
   title: {
-    fontSize: 18,
+    fontSize: rf(18),
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 0, // original layout
   },
   listContent: {
-    paddingVertical: 20,
-    paddingHorizontal: 10,
+    paddingVertical: hp(2.5),
+    paddingHorizontal: wp(2.5),
   },
   gameContainer: {
     alignItems: 'center',
-    width: width * 0.45, // keeps original approximate width
-    marginVertical: 18,
+    width: wp(45),
+    marginVertical: hp(2.2),
   },
   gameImage: {
-    height: 120,
-    width: '100%', // fills container width
-    borderRadius: 18,
+    height: hp(15),
+    width: '100%',
+    borderRadius: rs(18),
+    resizeMode: 'cover',
   },
   gameName: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: 'bold',
-    marginTop: 25, // keep spacing consistent
+    marginTop: hp(3),
     color: '#FFF',
     textAlign: 'center',
+    paddingHorizontal: wp(2),
   },
   headerLine: {
     height: 1,
-    width: '100%',
+    width: wp(100),
     backgroundColor: '#FFD700',
-    marginVertical: 5,
+    marginVertical: hp(0.6),
   },
 });

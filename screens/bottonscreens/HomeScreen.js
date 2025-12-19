@@ -4,17 +4,16 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Dimensions,
   Animated,
   TouchableOpacity,
   Image,
   ScrollView,
   SafeAreaView,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { width } = Dimensions.get('window');
+import { wp, hp, rf, rs, isTablet } from '../../utils/responsive';
 
 const imageSources = [
   { source: require('../../assets/images/bgmilogo.png'), game: 'bgmi' },
@@ -33,10 +32,12 @@ const getGreeting = () => {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showGreeting, setShowGreeting] = useState(true);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const scrollX = useRef(new Animated.Value(0)).current;
+  const tablet = isTablet();
 
   useEffect(() => {
     // Greeting fade out after 5 seconds
@@ -79,7 +80,8 @@ export default function HomeScreen() {
   ];
 
   const handleScroll = (event) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+    const bannerWidth = tablet ? wp(85) + wp(10) : wp(90) + wp(10); // width + margin
+    const index = Math.round(event.nativeEvent.contentOffset.x / bannerWidth);
     setCurrentIndex(index);
   };
 
@@ -146,7 +148,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <Animated.View style={styles.banner}>
+              <Animated.View style={[styles.banner, { width: tablet ? wp(85) : wp(90) }]}>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.description}>{item.summary}</Text>
 
@@ -210,56 +212,142 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: 'transparent',
     flexDirection: 'row',
-    justifyContent: 'left',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(5),
   },
   headerLine: {
-    height: 0.2,
-    width: '100%',
+    height: 1,
+    width: wp(100),
     backgroundColor: '#FFD700',
-    marginVertical: 5,
+    marginVertical: hp(0.6),
   },
-  greetingText: { fontSize: 14, fontWeight: 'bold', color: '#FFD700', textAlign: 'center' },
+  greetingText: {
+    fontSize: rf(14),
+    fontWeight: 'bold',
+    color: '#FFD700',
+    textAlign: 'center',
+    paddingHorizontal: wp(4),
+  },
   banner: {
-    width: width * 0.9,
     backgroundColor: '#1F2A38',
-    borderRadius: 10,
-    marginHorizontal: width * 0.05,
-    padding: 15,
-    marginBottom: 15,
+    borderRadius: rs(10),
+    marginHorizontal: wp(5),
+    padding: rs(15),
+    marginBottom: hp(2),
   },
-  title: { fontSize: 18, fontWeight: 'bold', color: '#FFF', marginBottom: 8 },
-  description: { fontSize: 14, color: '#DDD', marginBottom: 15 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFF', marginBottom: 8 },
-  pagination: { flexDirection: 'row', justifyContent: 'center', marginTop: 10, marginBottom: 20 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ccc', margin: 4 },
-  activeDot: { backgroundColor: '#FFD700', width: 10, height: 10 },
-  scrollViewContent: { marginTop: 10 },
-  logoContainer: { flexDirection: 'row', alignItems: 'center', paddingTop: 20 },
-  logo: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
-  headerText: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
+  title: {
+    fontSize: rf(18),
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: hp(1),
+  },
+  description: {
+    fontSize: rf(14),
+    color: '#DDD',
+    marginBottom: hp(2),
+    lineHeight: rf(20),
+  },
+  sectionTitle: {
+    fontSize: rf(16),
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: hp(1),
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: hp(1.2),
+    marginBottom: hp(2.5),
+  },
+  dot: {
+    width: rs(8),
+    height: rs(8),
+    borderRadius: rs(4),
+    backgroundColor: '#ccc',
+    marginHorizontal: wp(1),
+  },
+  activeDot: {
+    backgroundColor: '#FFD700',
+    width: rs(10),
+    height: rs(10),
+  },
+  scrollViewContent: {
+    marginTop: hp(1.2),
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: hp(2.5),
+  },
+  logo: {
+    width: rs(50),
+    height: rs(50),
+    borderRadius: rs(25),
+    marginRight: wp(2.5),
+  },
+  headerText: {
+    fontSize: rf(24),
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
   aboutContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginHorizontal: 10,
-    marginVertical: 12,
+    marginHorizontal: wp(2.5),
+    marginVertical: hp(1.5),
   },
   aboutSection: {
-    flexBasis: '48%',
-    height: 150,
-    borderRadius: 12,
+    width: wp(48),
+    height: hp(18),
+    borderRadius: rs(12),
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom: hp(1.2),
   },
-  image: { width: '100%', height: '70%', resizeMode: 'cover', borderRadius:8,},
-  rowContainer: { flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 10 },
-  column: { flexBasis: '48%', marginBottom: 10 },
-  dotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  dotPoint: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFD700', marginRight: 8 },
-  dotText: { fontSize: 14, color: '#FFF' },
-  modesWrapper: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
-  modeDotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: rs(8),
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    marginTop: hp(1.2),
+  },
+  column: {
+    width: wp(48),
+    marginBottom: hp(1.2),
+  },
+  dotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(0.7),
+  },
+  dotPoint: {
+    width: rs(6),
+    height: rs(6),
+    borderRadius: rs(3),
+    backgroundColor: '#FFD700',
+    marginRight: wp(2),
+  },
+  dotText: {
+    fontSize: rf(14),
+    color: '#FFF',
+    flex: 1,
+  },
+  modesWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: hp(0.6),
+  },
+  modeDotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(0.7),
+    width: wp(48),
+  },
 });
