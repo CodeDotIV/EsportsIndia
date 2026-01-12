@@ -39,7 +39,7 @@ export default function SignupScreen({ navigation }) {
       await updateProfile(userCred.user, { displayName: name });
 
       Alert.alert("Success", "Account created successfully!");
-      navigation.navigate("Login");
+      navigation.navigate("LoginScreen");
     } catch (err) {
       Alert.alert("Signup Failed", err.message);
     }
@@ -58,6 +58,12 @@ export default function SignupScreen({ navigation }) {
           isLooping
           shouldPlay
           isMuted
+          onError={(error) => {
+            console.error("❌ Video loading error:", error);
+          }}
+          onLoad={() => {
+            console.log("✅ Video loaded successfully");
+          }}
         />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
       </View>

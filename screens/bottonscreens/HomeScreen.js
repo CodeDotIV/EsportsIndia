@@ -40,6 +40,10 @@ export default function HomeScreen() {
   const tablet = isTablet();
 
   useEffect(() => {
+    console.log('🏠 HomeScreen mounted');
+    console.log('📊 Game data:', gameData.length, 'items');
+    console.log('🖼️ Image sources:', imageSources.length, 'images');
+    
     // Greeting fade out after 5 seconds
     const timer = setTimeout(() => {
       Animated.timing(fadeAnim, {

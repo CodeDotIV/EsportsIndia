@@ -60,7 +60,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName="Entryscreen">
         <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false }} />

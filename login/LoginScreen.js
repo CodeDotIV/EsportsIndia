@@ -17,6 +17,7 @@ import { Video } from "expo-av";
 import { auth } from "../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { wp, hp, rf, rs, isTablet, isSmallDevice } from "../utils/responsive";
+import { setItem } from "../utils/storageHelper";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -29,9 +30,34 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
+      console.log("🔐 Attempting login for:", email);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert("Success", `Welcome ${userCredential.user.email}`);
+      const user = userCredential.user;
+      
+      console.log("✅ Login successful:", user.email);
+      
+      // Save user data to AsyncStorage
+      const userData = {
+        email: user.email,
+        name: user.displayName || email.split("@")[0],
+        uid: user.uid,
+      };
+      
+      try {
+        await setItem("user", JSON.stringify(userData));
+        // Firebase Auth doesn't provide accessToken directly, use uid as token identifier
+        await setItem("userToken", user.uid || "firebase_token");
+        console.log("💾 User data saved to storage:", userData);
+      } catch (storageError) {
+        console.error("❌ Failed to save user data:", storageError);
+        // Continue navigation even if storage fails
+      }
+      
+      Alert.alert("Success", `Welcome ${user.email}`);
+      // Use replace instead of navigate to prevent going back to login
+      navigation.replace("Main");
     } catch (error) {
+      console.error("❌ Login failed:", error);
       Alert.alert("Login Failed", error.message);
     }
   };
@@ -49,6 +75,12 @@ export default function LoginScreen({ navigation }) {
           isLooping
           shouldPlay
           isMuted
+          onError={(error) => {
+            console.error("❌ Video loading error:", error);
+          }}
+          onLoad={() => {
+            console.log("✅ Video loaded successfully");
+          }}
         />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
       </View>

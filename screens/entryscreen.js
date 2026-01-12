@@ -34,11 +34,25 @@ const EntryScreen = () => {
 
     // Check login status
     const checkLoginStatus = async () => {
-      const token = await AsyncStorage.getItem('userToken');
-      if (token) {
-        navigation.replace('SignUpScreen'); // Already logged in
-      } else {
-        navigation.replace('SignUpScreen'); // Google SSO button will be here
+      try {
+        console.log('🔍 Checking login status...');
+        const token = await AsyncStorage.getItem('userToken');
+        const userData = await AsyncStorage.getItem('user');
+        
+        console.log('📦 Token exists:', !!token);
+        console.log('👤 User data exists:', !!userData);
+        
+        if (token && userData) {
+          console.log('✅ User is logged in, navigating to Main');
+          navigation.replace('Main');
+        } else {
+          console.log('ℹ️ User not logged in, navigating to LoginScreen');
+          navigation.replace('LoginScreen');
+        }
+      } catch (error) {
+        console.error('❌ Error checking login status:', error);
+        // Default to login screen on error
+        navigation.replace('LoginScreen');
       }
     };
 

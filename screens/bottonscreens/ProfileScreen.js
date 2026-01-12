@@ -21,12 +21,19 @@ const ProfileScreen = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        console.log('📱 Loading user data from storage...');
         const userData = await getItem('user');
+        console.log('📦 Retrieved user data:', userData);
         if (userData) {
-          setUser(JSON.parse(userData));
+          const parsedData = JSON.parse(userData);
+          console.log('✅ Parsed user data:', parsedData);
+          setUser(parsedData);
+        } else {
+          console.log('ℹ️ No user data found in storage');
         }
       } catch (error) {
-        console.error('Failed to load user data:', error);
+        console.error('❌ Failed to load user data:', error);
+        Alert.alert('Error', 'Failed to load profile data. Please try again.');
       }
     };
     loadUserData();
@@ -39,11 +46,14 @@ const ProfileScreen = () => {
     }
 
     try {
+      console.log('💾 Saving user data:', user);
       await setItem('user', JSON.stringify(user));
+      console.log('✅ User data saved successfully');
       setIsEditing(false);
       Alert.alert('Success', 'Profile saved successfully!');
     } catch (error) {
-      console.error('Failed to save user data:', error);
+      console.error('❌ Failed to save user data:', error);
+      Alert.alert('Error', 'Failed to save profile. Please try again.');
     }
   };
 
