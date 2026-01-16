@@ -14,9 +14,10 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { Video } from "expo-av";
-import { auth } from "../firebaseConfig";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { signUp } from "../services/authService";
 import { wp, hp, rf, rs, isTablet, isSmallDevice } from "../utils/responsive";
+import { setItem } from "../utils/storageHelper";
+import { sendOtp } from "../services/otpService";
 
 export default function SignupScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -33,15 +34,31 @@ export default function SignupScreen({ navigation }) {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
 
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCred.user, { displayName: name });
-
-      Alert.alert("Success", "Account created successfully!");
-      navigation.navigate("LoginScreen");
+      console.log("🔐 Attempting signup for:", email);
+      const result = await signUp(name, email, password);
+      
+      if (result.success) {
+        console.log("✅ Signup successful:", result.user.email);
+        
+        // Always navigate to OTP verification screen after signup
+        // OTP is automatically sent during signup
+        navigation.navigate("VerifyOtpScreen", {
+          email: result.user.email,
+          purpose: "email_verification"
+        });
+      } else {
+        console.error("❌ Signup failed:", result.error);
+        Alert.alert("Signup Failed", result.error);
+      }
     } catch (err) {
-      Alert.alert("Signup Failed", err.message);
+      console.error("❌ Signup error:", err);
+      Alert.alert("Signup Failed", err.message || "An unexpected error occurred");
     }
   };
 

@@ -14,8 +14,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { Video } from "expo-av";
-import { auth } from "../firebaseConfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { login } from "../services/authService";
+import { sendOtp } from "../services/otpService";
 import { wp, hp, rf, rs, isTablet, isSmallDevice } from "../utils/responsive";
 import { setItem } from "../utils/storageHelper";
 
@@ -31,34 +31,68 @@ export default function LoginScreen({ navigation }) {
 
     try {
       console.log("🔐 Attempting login for:", email);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const result = await login(email, password);
       
-      console.log("✅ Login successful:", user.email);
-      
-      // Save user data to AsyncStorage
-      const userData = {
-        email: user.email,
-        name: user.displayName || email.split("@")[0],
-        uid: user.uid,
-      };
-      
-      try {
-        await setItem("user", JSON.stringify(userData));
-        // Firebase Auth doesn't provide accessToken directly, use uid as token identifier
-        await setItem("userToken", user.uid || "firebase_token");
-        console.log("💾 User data saved to storage:", userData);
-      } catch (storageError) {
-        console.error("❌ Failed to save user data:", storageError);
-        // Continue navigation even if storage fails
+      if (result.success) {
+        console.log("✅ Login successful:", result.user.email);
+        
+        // Save user data to AsyncStorage
+        const userData = {
+          email: result.user.email,
+          name: result.user.name,
+          id: result.user.id,
+          isEmailVerified: result.user.isEmailVerified,
+        };
+        
+        try {
+          await setItem("user", JSON.stringify(userData));
+          await setItem("userToken", result.token);
+          console.log("💾 User data saved to storage:", userData);
+        } catch (storageError) {
+          console.error("❌ Failed to save user data:", storageError);
+          // Continue navigation even if storage fails
+        }
+        
+        Alert.alert("Success", `Welcome ${result.user.name || result.user.email}`);
+        // Use replace instead of navigate to prevent going back to login
+        navigation.replace("Main");
+      } else {
+        console.error("❌ Login failed:", result.error);
+        
+        // If email verification is required, navigate to OTP screen
+        if (result.requiresVerification) {
+          Alert.alert(
+            "Email Not Verified",
+            result.error || "Please verify your email before logging in.",
+            [
+              {
+                text: "Send OTP",
+                onPress: async () => {
+                  // Send OTP for email verification
+                  const otpResult = await sendOtp(result.email || email, "email_verification");
+                  if (otpResult.success) {
+                    navigation.navigate("VerifyOtpScreen", {
+                      email: result.email || email,
+                      purpose: "email_verification"
+                    });
+                  } else {
+                    Alert.alert("Error", otpResult.error || "Failed to send OTP");
+                  }
+                }
+              },
+              {
+                text: "Cancel",
+                style: "cancel"
+              }
+            ]
+          );
+        } else {
+          Alert.alert("Login Failed", result.error);
+        }
       }
-      
-      Alert.alert("Success", `Welcome ${user.email}`);
-      // Use replace instead of navigate to prevent going back to login
-      navigation.replace("Main");
     } catch (error) {
-      console.error("❌ Login failed:", error);
-      Alert.alert("Login Failed", error.message);
+      console.error("❌ Login error:", error);
+      Alert.alert("Login Failed", error.message || "An unexpected error occurred");
     }
   };
 

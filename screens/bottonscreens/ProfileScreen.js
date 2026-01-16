@@ -3,15 +3,16 @@ import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { getItem, setItem, removeItem } from '../../utils/storageHelper';
+import { logout } from '../../services/authService';
 import { wp, hp, rf, rs, isTablet } from '../../utils/responsive';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState({
     name: '',
-    email: 'user@example.com',  // Non-editable placeholder if no email is stored
+    email: 'user@example.com',
     phone: '',
     gender: '',
     location: '',
@@ -57,22 +58,82 @@ const ProfileScreen = () => {
     }
   };
 
+  const performLogout = async () => {
+    try {
+      console.log('🚪 Starting logout process...');
+      
+      // Clear storage
+      await removeItem('user');
+      await removeItem('userToken');
+      console.log('✅ Storage cleared');
+      
+      // Verify
+      const checkUser = await getItem('user');
+      const checkToken = await getItem('userToken');
+      console.log('🔍 Verification - User:', checkUser, 'Token:', checkToken);
+      
+      // Navigate to LoginScreen via Stack Navigator
+      console.log('🔄 Navigating to LoginScreen...');
+      
+      // Get Stack Navigator (parent of Tab Navigator)
+      const tabNav = navigation.getParent();
+      const stackNav = tabNav?.getParent();
+      
+      console.log('📍 Tab Nav:', !!tabNav, 'Stack Nav:', !!stackNav);
+      
+      if (stackNav) {
+        try {
+          console.log('✅ Resetting to LoginScreen');
+          stackNav.reset({
+            index: 0,
+            routes: [{ name: 'LoginScreen' }],
+          });
+          console.log('✅ Navigation successful!');
+        } catch (error) {
+          console.error('❌ Reset failed:', error);
+          // Try dispatch
+          try {
+            stackNav.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'LoginScreen' }],
+              })
+            );
+            console.log('✅ Dispatch successful!');
+          } catch (dispatchError) {
+            console.error('❌ Dispatch failed:', dispatchError);
+            // Fallback to EntryScreen
+            stackNav.navigate('Entryscreen');
+          }
+        }
+      } else {
+        console.log('⚠️ Stack Nav not found, navigating to EntryScreen');
+        navigation.navigate('Entryscreen');
+      }
+      
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      // Force clear and navigate
+      try {
+        await removeItem('user');
+        await removeItem('userToken');
+        const tabNav = navigation.getParent();
+        const stackNav = tabNav?.getParent();
+        if (stackNav) {
+          stackNav.navigate('Entryscreen');
+        } else {
+          navigation.navigate('Entryscreen');
+        }
+      } catch (e) {
+        console.error('❌ Final fallback failed:', e);
+      }
+    }
+  };
+
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          onPress: async () => {
-            await removeItem('user');
-            await removeItem('userToken');  // Optional: clear token too
-            navigation.replace('LoginScreen');
-          } 
-        },
-      ]
-    );
+    console.log('🔴 Logout button clicked!');
+    // Direct logout - Alert seems to not be working
+    performLogout();
   };
 
   const tablet = isTablet();
@@ -87,13 +148,17 @@ const ProfileScreen = () => {
           <Text style={styles.title}>Profile</Text>
         </View>
       
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: hp(5) }}
+      >
         <View style={styles.form}>
           <Text style={styles.label}>Name</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter your name"
-            value={user.name}
+            value={user.name || ''}
             onChangeText={(text) => setUser({ ...user, name: text })}
             editable={isEditing}
           />
@@ -101,7 +166,7 @@ const ProfileScreen = () => {
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={[styles.input, styles.disabledInput]}
-            value={user.email}
+            value={user.email || ''}
             editable={false}
           />
 
@@ -110,7 +175,7 @@ const ProfileScreen = () => {
             style={styles.input}
             placeholder="Enter your mobile number"
             keyboardType="phone-pad"
-            value={user.phone}
+            value={user.phone || ''}
             onChangeText={(text) => setUser({ ...user, phone: text })}
             editable={isEditing}
           />
@@ -119,7 +184,7 @@ const ProfileScreen = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter your gender"
-            value={user.gender}
+            value={user.gender || ''}
             onChangeText={(text) => setUser({ ...user, gender: text })}
             editable={isEditing}
           />
@@ -128,7 +193,7 @@ const ProfileScreen = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter your location"
-            value={user.location}
+            value={user.location || ''}
             onChangeText={(text) => setUser({ ...user, location: text })}
             editable={isEditing}
           />
@@ -144,7 +209,11 @@ const ProfileScreen = () => {
           )}
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity 
+          style={styles.logoutButton} 
+          onPress={handleLogout}
+          activeOpacity={0.7}
+        >
           <Ionicons name="log-out-outline" size={rs(24)} color="red" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -241,6 +310,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: hp(2.5),
     paddingVertical: hp(1.5),
+    backgroundColor: 'transparent',
+    minHeight: 44,
   },
   logoutText: {
     fontSize: rf(18),

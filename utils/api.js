@@ -10,9 +10,10 @@ const getApiBaseUrl = () => {
   
   // For Android Emulator, use 10.0.2.2 (special IP that maps to host machine's localhost)
   if (Platform.OS === 'android') {
-    // Try local IP first (update this to your machine's IP if needed)
-    return 'http://192.168.0.73:5000/api';
-    // Alternative: return 'http://10.0.2.2:5000/api'; // For Android emulator
+    // For Android emulator, use 10.0.2.2 to access host machine's localhost
+    // For physical device, use your machine's local IP address
+    return 'http://10.0.2.2:5000/api'; // Android emulator
+    // return 'http://YOUR_LOCAL_IP:5000/api'; // Physical device - update YOUR_LOCAL_IP
   }
   
   // For web, use localhost
@@ -76,15 +77,25 @@ api.interceptors.response.use(
   }
 );
 
-export const sendOtp = (phone, email) => api.post('/send-otp', { phone, email });
-export const verifyOtp = (phone, otp) => api.post('/verify-otp', { phone, otp });
-export const registerUser = (phone, email, name, password) =>
-  api.post('/register', { phone, email, name, password });
-export const login = (email, password) => api.post('/login', { email, password });
-export const forgotPassword = (email) => api.post('/forgot-password', { email });
-export const resetPassword = (email, otp, newPassword) =>
-  api.post('/reset-password', { email, otp, newPassword });
-export const getUserByEmail = (email) => api.post('/get-user', { email });
+// OTP endpoints (using new backend structure)
+export const sendOtp = (email, purpose = 'email_verification') => 
+  api.post('/otp/send', { email, purpose });
+export const verifyOtp = (email, otp) => 
+  api.post('/otp/verify', { email, otp });
+
+// Auth endpoints (using new backend structure)
+export const registerUser = (name, email, password) =>
+  api.post('/auth/signup', { name, email, password });
+export const login = (email, password) => 
+  api.post('/auth/login', { email, password });
+export const forgotPassword = (email) => 
+  api.post('/auth/forgot-password', { email });
+export const resetPassword = (token, password) =>
+  api.post('/auth/reset-password', { token, password });
+export const getCurrentUser = (token) =>
+  api.get('/auth/me', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
 // Export the base URL for debugging
 export { API_BASE_URL };

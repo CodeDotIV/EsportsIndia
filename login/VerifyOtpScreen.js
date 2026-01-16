@@ -10,23 +10,78 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { verifyOtp } from "../services/otpService";
+import { verifyOtp, sendOtp } from "../services/otpService";
+import { setItem } from "../utils/storageHelper";
 
 export default function VerifyOtpScreen({ route, navigation }) {
-  const { email } = route.params;
+  const { email, purpose = 'email_verification' } = route.params || {};
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      Alert.alert("Error", "Please enter 4-digit OTP.");
+    if (!otp || otp.length !== 6) {
+      Alert.alert("Error", "Please enter 6-digit OTP.");
       return;
     }
 
-    const res = await verifyOtp(email, otp);
-    if (res.success) {
-      navigation.replace("MainScreen");
-    } else {
-      Alert.alert("Verification Failed", res.error);
+    setLoading(true);
+    try {
+      const res = await verifyOtp(email, otp);
+      if (res.success) {
+        // If token is returned (email verification), save it and navigate to Main
+        if (res.token && res.user) {
+          try {
+            await setItem("user", JSON.stringify(res.user));
+            await setItem("userToken", res.token);
+            console.log("💾 User data and token saved after OTP verification");
+          } catch (storageError) {
+            console.error("❌ Failed to save user data:", storageError);
+          }
+          
+          // Navigate directly to Main screen
+          navigation.replace("Main");
+        } else {
+          // For other purposes, show success message
+          Alert.alert(
+            "Success", 
+            "OTP verified successfully!",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  if (purpose === 'email_verification') {
+                    navigation.replace("LoginScreen");
+                  } else {
+                    navigation.replace("Main");
+                  }
+                }
+              }
+            ]
+          );
+        }
+      } else {
+        Alert.alert("Verification Failed", res.error);
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    try {
+      const res = await sendOtp(email, purpose);
+      if (res.success) {
+        Alert.alert("Success", "OTP resent! Please check your email.");
+      } else {
+        Alert.alert("Error", res.error || "Failed to resend OTP");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to resend OTP");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,22 +97,32 @@ export default function VerifyOtpScreen({ route, navigation }) {
 
         <TextInput
           style={styles.otpInput}
-          placeholder="Enter 4-digit OTP"
+          placeholder="Enter 6-digit OTP"
           value={otp}
           onChangeText={setOtp}
           keyboardType="numeric"
-          maxLength={4}
+          maxLength={6}
+          editable={!loading}
         />
 
-        <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyOtp}>
-          <Text style={styles.verifyButtonText}>Verify OTP</Text>
+        <TouchableOpacity 
+          style={[styles.verifyButton, loading && styles.verifyButtonDisabled]} 
+          onPress={handleVerifyOtp}
+          disabled={loading}
+        >
+          <Text style={styles.verifyButtonText}>
+            {loading ? "Verifying..." : "Verify OTP"}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.resendButton}
-          onPress={() => Alert.alert("OTP Resent", "Please check your inbox!")}
+          onPress={handleResendOtp}
+          disabled={loading}
         >
-          <Text style={styles.resendText}>Resend OTP</Text>
+          <Text style={[styles.resendText, loading && styles.resendTextDisabled]}>
+            Resend OTP
+          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -107,6 +172,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
   },
+  verifyButtonDisabled: {
+    backgroundColor: "#ccc",
+    opacity: 0.6,
+  },
   verifyButtonText: {
     color: "#fff",
     fontWeight: "bold",
@@ -119,5 +188,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: "#007bff",
+  },
+  resendTextDisabled: {
+    color: "#ccc",
   },
 });

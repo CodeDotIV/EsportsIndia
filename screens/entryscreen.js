@@ -37,18 +37,34 @@ const EntryScreen = () => {
       try {
         console.log('🔍 Checking login status...');
         const token = await AsyncStorage.getItem('userToken');
-        const userData = await AsyncStorage.getItem('user');
+        const userDataStr = await AsyncStorage.getItem('user');
         
         console.log('📦 Token exists:', !!token);
-        console.log('👤 User data exists:', !!userData);
+        console.log('👤 User data exists:', !!userDataStr);
         
-        if (token && userData) {
-          console.log('✅ User is logged in, navigating to Main');
-          navigation.replace('Main');
-        } else {
-          console.log('ℹ️ User not logged in, navigating to LoginScreen');
-          navigation.replace('LoginScreen');
+        if (token && userDataStr) {
+          try {
+            const userData = JSON.parse(userDataStr);
+            // Verify token is valid by checking if user data exists
+            if (userData && userData.email) {
+              console.log('✅ User is logged in, navigating to Main');
+              navigation.replace('Main');
+              return;
+            }
+          } catch (parseError) {
+            console.error('❌ Error parsing user data:', parseError);
+            // Clear invalid data
+            await AsyncStorage.removeItem('user');
+            await AsyncStorage.removeItem('userToken');
+          }
         }
+        
+        // No valid token or user data, go to login
+        console.log('ℹ️ User not logged in, navigating to LoginScreen');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'LoginScreen' }],
+        });
       } catch (error) {
         console.error('❌ Error checking login status:', error);
         // Default to login screen on error
