@@ -7,9 +7,11 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { wp, hp, rf, rs } from '../../../utils/responsive';
 
 export default function TournamentRegister() {
   const route = useRoute();
@@ -55,60 +57,97 @@ export default function TournamentRegister() {
 
   const renderPlayerFields = (playerKey, label, isRequired = false) => (
     <View key={playerKey} style={styles.section}>
-      <Text style={styles.sectionTitle}>{label}</Text>
-
-      {['name', 'gameId', 'mobile', 'email', 'aadhaar'].map((field) => (
-        <View style={styles.inputContainer} key={field}>
-          <Text style={styles.label}>
-            {field.charAt(0).toUpperCase() + field.slice(1)}{' '}
-            {isRequired && <Text style={styles.required}>*</Text>}
-          </Text>
-          <TextInput
-            placeholder={`Enter ${field}`}
-            style={styles.input}
-            keyboardType={
-              field === 'mobile'
-                ? 'phone-pad'
-                : field === 'aadhaar'
-                ? 'numeric'
-                : field === 'email'
-                ? 'email-address'
-                : 'default'
-            }
-            maxLength={field === 'aadhaar' ? 12 : undefined}
-            value={form[playerKey][field]}
-            onChangeText={(text) => handleChange(playerKey, field, text)}
-          />
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionTitleContainer}>
+          <Ionicons name="person" size={rs(18)} color="#FFD700" />
+          <Text style={styles.sectionTitle}>{label}</Text>
+          {isRequired && <Text style={styles.requiredBadge}>Required</Text>}
         </View>
-      ))}
+      </View>
+
+      {['name', 'gameId', 'mobile', 'email', 'aadhaar'].map((field) => {
+        const fieldIcons = {
+          name: 'person-outline',
+          gameId: 'id-card-outline',
+          mobile: 'call-outline',
+          email: 'mail-outline',
+          aadhaar: 'document-text-outline',
+        };
+        return (
+          <View style={styles.inputContainer} key={field}>
+            <View style={styles.labelContainer}>
+              <Ionicons name={fieldIcons[field]} size={rs(14)} color="#9CA3AF" />
+              <Text style={styles.label}>
+                {field === 'gameId' ? 'Game ID' : field === 'aadhaar' ? 'Aadhaar Number' : field.charAt(0).toUpperCase() + field.slice(1)}
+                {isRequired && <Text style={styles.required}> *</Text>}
+              </Text>
+            </View>
+            <TextInput
+              placeholder={`Enter ${field === 'gameId' ? 'Game ID' : field === 'aadhaar' ? 'Aadhaar Number' : field}`}
+              placeholderTextColor="#6B7280"
+              style={styles.input}
+              keyboardType={
+                field === 'mobile'
+                  ? 'phone-pad'
+                  : field === 'aadhaar'
+                  ? 'numeric'
+                  : field === 'email'
+                  ? 'email-address'
+                  : 'default'
+              }
+              maxLength={field === 'aadhaar' ? 12 : undefined}
+              value={form[playerKey][field]}
+              onChangeText={(text) => handleChange(playerKey, field, text)}
+            />
+          </View>
+        );
+      })}
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Tournament Register</Text>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="clipboard" size={rs(24)} color="#FFD700" />
+            <Text style={styles.title}>Tournament Register</Text>
+          </View>
+        </View>
       </View>
 
-      <ScrollView style={styles.form}>
-        {/* Auto-filled Fields */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Esport</Text>
-          <TextInput value={game} editable={false} style={[styles.input, styles.disabled]} />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Category</Text>
-          <TextInput value={category} editable={false} style={[styles.input, styles.disabled]} />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Map</Text>
-          <TextInput value={map} editable={false} style={[styles.input, styles.disabled]} />
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.formContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Tournament Info Card */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoCardHeader}>
+            <Ionicons name="information-circle" size={rs(20)} color="#FFD700" />
+            <Text style={styles.infoCardTitle}>Tournament Details</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <View style={styles.infoItem}>
+              <Ionicons name="game-controller" size={rs(16)} color="#9CA3AF" />
+              <Text style={styles.infoLabel}>Esport</Text>
+              <Text style={styles.infoValue}>{game || 'N/A'}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Ionicons name="layers" size={rs(16)} color="#9CA3AF" />
+              <Text style={styles.infoLabel}>Category</Text>
+              <Text style={styles.infoValue}>{category || 'N/A'}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Ionicons name="map" size={rs(16)} color="#9CA3AF" />
+              <Text style={styles.infoLabel}>Map</Text>
+              <Text style={styles.infoValue}>{map || 'N/A'}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Player Fields */}
@@ -119,98 +158,196 @@ export default function TournamentRegister() {
 
         {/* Submit Button */}
         <TouchableOpacity
-          style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           disabled={submitting}
+          activeOpacity={0.8}
         >
+          <Ionicons 
+            name={submitting ? "hourglass" : "checkmark-circle"} 
+            size={rs(20)} 
+            color="#000000" 
+          />
           <Text style={styles.submitText}>
-            {submitting ? 'Submitting...' : 'Submit'}
+            {submitting ? 'Submitting...' : 'Submit Registration'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 0,
+    backgroundColor: '#0F1419',
   },
   header: {
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5a623',
-    padding: 20,
   },
   backButton: {
-    marginRight: 10,
-    paddingTop: 40,
+    marginRight: wp(3),
+    padding: wp(1),
   },
-  title: { fontSize: 18,
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: rf(24),
     fontWeight: 'bold',
-    color: '#000',
-    paddingTop: 38, },
-
-  form: {
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+  },
+  scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
   },
-
-  inputContainer: {
-    marginBottom: 15,
+  formContent: {
+    flexGrow: 1,
+    paddingHorizontal: wp(5),
+    paddingTop: hp(2),
+    paddingBottom: hp(4),
   },
-
-  label: {
-    fontSize: 16,
+  infoCard: {
+    backgroundColor: '#1A1F2E',
+    borderRadius: rs(12),
+    padding: wp(4),
+    marginBottom: hp(3),
+    borderWidth: 1,
+    borderColor: '#2A3441',
+  },
+  infoCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(2),
+    paddingBottom: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A3441',
+  },
+  infoCardTitle: {
+    fontSize: rf(18),
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+  },
+  infoRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  infoItem: {
+    width: '48%',
+    marginBottom: hp(1.5),
+    backgroundColor: '#0F1419',
+    padding: wp(3),
+    borderRadius: rs(8),
+    borderWidth: 1,
+    borderColor: '#2A3441',
+  },
+  infoLabel: {
+    fontSize: rf(11),
+    color: '#9CA3AF',
+    marginTop: hp(0.5),
+    marginBottom: hp(0.3),
+  },
+  infoValue: {
+    fontSize: rf(14),
     fontWeight: '600',
-    marginBottom: 6,
-    color: '#000',
+    color: '#FFFFFF',
   },
-
+  inputContainer: {
+    marginBottom: hp(2),
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(0.8),
+  },
+  label: {
+    fontSize: rf(14),
+    fontWeight: '600',
+    color: '#D1D5DB',
+    marginLeft: wp(1.5),
+  },
   required: {
-    color: 'red',
+    color: '#FF6B6B',
+    fontWeight: 'bold',
   },
-
+  requiredBadge: {
+    fontSize: rf(10),
+    color: '#FF6B6B',
+    fontWeight: '600',
+    marginLeft: wp(2),
+    backgroundColor: '#2A1F1F',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.3),
+    borderRadius: rs(4),
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: 'white',
+    borderColor: '#2A3441',
+    borderRadius: rs(10),
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(4),
+    backgroundColor: '#1A1F2E',
+    color: '#FFFFFF',
+    fontSize: rf(14),
   },
-
-  disabled: {
-    backgroundColor: '#e0e0e0',
-    color: '#777',
-  },
-
   section: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingTop: 10,
+    marginTop: hp(3),
+    backgroundColor: '#1A1F2E',
+    borderRadius: rs(12),
+    padding: wp(4),
+    borderWidth: 1,
+    borderColor: '#2A3441',
   },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  sectionHeader: {
+    marginBottom: hp(2),
+    paddingBottom: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A3441',
   },
-
-  submitButton: {
-    backgroundColor: '#f5a623',
-    padding: 15,
-    borderRadius: 8,
+  sectionTitleContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
   },
-
-  submitText: {
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: rf(18),
     fontWeight: 'bold',
-    color: 'white',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+  },
+  submitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFD700',
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(6),
+    borderRadius: rs(12),
+    marginTop: hp(3),
+    marginBottom: hp(2),
+    elevation: 4,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitText: {
+    fontSize: rf(16),
+    fontWeight: 'bold',
+    color: '#000000',
+    marginLeft: wp(2),
   },
 });

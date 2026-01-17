@@ -55,7 +55,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
     setLoading(true);
     try {
       const res = await resetPassword(token, password);
-      if (res.success) {
+    if (res.success) {
         Alert.alert(
           "Success",
           "Password reset successful! You can now login with your new password.",
@@ -66,7 +66,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
             }
           ]
         );
-      } else {
+    } else {
         Alert.alert("Failed", res.error || "Password reset failed. The link may have expired.");
       }
     } catch (error) {
@@ -80,15 +80,15 @@ export default function ResetPasswordScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.videoContainer}>
-        <Video
-          source={require("../assets/vedios/intro.mp4")}
-          style={StyleSheet.absoluteFill}
-          resizeMode="cover"
-          isLooping
-          shouldPlay
-          isMuted
-        />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
+      <Video
+        source={require("../assets/vedios/intro.mp4")}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+        isLooping
+        shouldPlay
+        isMuted
+      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
       </View>
 
       <LinearGradient colors={["#1a1a2eaa", "#16213eaa", "#0f3460aa"]} style={styles.container}>
@@ -101,32 +101,32 @@ export default function ResetPasswordScreen({ navigation, route }) {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.header}>
-              <MaskedView maskElement={<Text style={styles.title}>Reset Password</Text>}>
-                <LinearGradient
-                  colors={["#FF9933", "#FFFFFF", "#138808"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={[styles.title, { opacity: 0 }]}>Reset Password</Text>
-                </LinearGradient>
-              </MaskedView>
+        >
+          <View style={styles.header}>
+            <MaskedView maskElement={<Text style={styles.title}>Reset Password</Text>}>
+              <LinearGradient
+                colors={["#FF9933", "#FFFFFF", "#138808"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={[styles.title, { opacity: 0 }]}>Reset Password</Text>
+              </LinearGradient>
+            </MaskedView>
               <Text style={styles.subtitle}>
                 {token ? "Enter your new password" : "Enter reset token from email and new password"}
               </Text>
-            </View>
+          </View>
 
-            <View style={styles.form}>
+          <View style={styles.form}>
               {!token && (
-                <TextInput
+            <TextInput
                   placeholder="Reset Token (from email)"
-                  placeholderTextColor="#aaa"
+              placeholderTextColor="#aaa"
                   value={token}
                   onChangeText={setToken}
                   style={styles.input}
                   editable={!loading}
-                  autoCapitalize="none"
+              autoCapitalize="none"
                 />
               )}
 
@@ -146,9 +146,9 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
-                style={styles.input}
+              style={styles.input}
                 editable={!loading}
-              />
+            />
 
               <TouchableOpacity
                 style={[styles.resetBtn, loading && styles.resetBtnDisabled]}
@@ -158,14 +158,14 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 <Text style={styles.resetText}>
                   {loading ? "Resetting..." : "Reset Password"}
                 </Text>
-              </TouchableOpacity>
+            </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
-                <Text style={styles.backText}>← Back to Login</Text>
-              </TouchableOpacity>
-            </View>
+              <Text style={styles.backText}>← Back to Login</Text>
+            </TouchableOpacity>
+          </View>
 
-            <Text style={styles.footer}>© 2025 EsportsIndia. All Rights Reserved.</Text>
+          <Text style={styles.footer}>© 2025 EsportsIndia. All Rights Reserved.</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>

@@ -47,8 +47,8 @@ const EntryScreen = () => {
             const userData = JSON.parse(userDataStr);
             // Verify token is valid by checking if user data exists
             if (userData && userData.email) {
-              console.log('✅ User is logged in, navigating to Main');
-              navigation.replace('Main');
+          console.log('✅ User is logged in, navigating to Main');
+          navigation.replace('Main');
               return;
             }
           } catch (parseError) {
@@ -60,7 +60,7 @@ const EntryScreen = () => {
         }
         
         // No valid token or user data, go to login
-        console.log('ℹ️ User not logged in, navigating to LoginScreen');
+          console.log('ℹ️ User not logged in, navigating to LoginScreen');
         navigation.reset({
           index: 0,
           routes: [{ name: 'LoginScreen' }],

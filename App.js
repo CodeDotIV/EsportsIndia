@@ -54,6 +54,7 @@ import VerifyOtpScreen from './login/VerifyOtpScreen.js';
 import ForgotPasswordScreen from './login/ForgotPasswordScreen.js';
 import ResetPasswordScreen from './login/ResetPasswordScreen.js';
 import SignUpScreen from './login/SignUpScreen.js';
+import ProfileScreen from './screens/bottonscreens/ProfileScreen.js';
 
 const Stack = createStackNavigator();
 
@@ -114,6 +115,7 @@ export default function App() {
         <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
         <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
         <Stack.Screen name="VerifyOtpScreen" component={VerifyOtpScreen}  options={{headerShown: false}} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

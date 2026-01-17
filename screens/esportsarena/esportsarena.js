@@ -1,10 +1,16 @@
 import React, { useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity,
-  StyleSheet, Image
+  View, 
+  Text, 
+  FlatList, 
+  TouchableOpacity,
+  StyleSheet, 
+  Image,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { wp, hp, rf, rs } from '../../utils/responsive';
 
 const livik = require('../../assets/images/livik.png');
 
@@ -12,15 +18,15 @@ const GameScreen = () => {
   const navigation = useNavigation();
 
   const arenaData = [
-    { name: 'Inventory', screen: 'Inventory', image: livik },
-    { name: 'Ruins', screen: 'Ruins', image: livik },
-    { name: 'Town - Domination', screen: 'Town', image: livik },
-    { name: 'Library', screen: 'Library', image: livik },
-    { name: 'Hanger - TDM', screen: 'Hangertdm', image: livik },
-    { name: 'Hanger - TGM', screen: 'Hangertgm', image: livik },
-    { name: 'Hanger - Arena training', screen: 'Hangerarenatraining', image: livik },
-    { name: 'Livik - Ultimate Arena', screen: 'Livikultimatearena', image: livik },
-    { name: 'Erangel - Ultimate Arena', screen: 'Erangelultimatearena', image: livik },
+    { name: 'Inventory', screen: 'Inventory', image: livik, icon: 'cube-outline' },
+    { name: 'Ruins', screen: 'Ruins', image: livik, icon: 'location-outline' },
+    { name: 'Town', screen: 'Town', image: livik, icon: 'business-outline' },
+    { name: 'Library', screen: 'Library', image: livik, icon: 'library-outline' },
+    { name: 'Hanger TDM', screen: 'Hangertdm', image: livik, icon: 'people-outline' },
+    { name: 'Hanger TGM', screen: 'Hangertgm', image: livik, icon: 'trophy-outline' },
+    { name: 'Arena Training', screen: 'Hangerarenatraining', image: livik, icon: 'fitness-outline' },
+    { name: 'Livik Arena', screen: 'Livikultimatearena', image: livik, icon: 'map-outline' },
+    { name: 'Erangel Arena', screen: 'Erangelultimatearena', image: livik, icon: 'map-outline' },
   ];
 
   const handlePress = useCallback((screen, mode) => {
@@ -28,68 +34,163 @@ const GameScreen = () => {
   }, [navigation]);
 
   const renderItem = ({ item }) => (
-    <View style={styles.cardContainer}>
-      <TouchableOpacity style={styles.card} onPress={() => handlePress(item.screen, item.name)}>
-        <Image source={item.image} style={styles.cardImage} />
-      </TouchableOpacity>
-      <Text style={styles.cardText}>{item.name}</Text>
-    </View>
+    <TouchableOpacity 
+      style={styles.cardContainer}
+      onPress={() => handlePress(item.screen, item.name)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.card}>
+        <View style={styles.cardImageContainer}>
+          <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
+        </View>
+        <View style={styles.cardInfo}>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name={item.icon} size={rs(20)} color="#FFD700" />
+            <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
+            <Ionicons name="arrow-forward-circle" size={rs(18)} color="#FFD700" />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
+            <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+          </View>
+        </View>
       </View>
-      <Text style={styles.sectionTitle}>Arena</Text>
+
+      {/* Section Header */}
+      <View style={styles.sectionHeader}>
+        <Ionicons name="trophy" size={rs(22)} color="#FFD700" />
+        <Text style={styles.sectionTitle}>Arena Modes</Text>
+      </View>
+
+      {/* Arena Grid */}
       <FlatList
         data={arenaData}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.name}-${index}`}
         numColumns={2}
         contentContainerStyle={styles.grid}
+        columnWrapperStyle={styles.columnWrapper}
         showsVerticalScrollIndicator={false}
+        style={styles.flatList}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 0,
+    backgroundColor: '#0F1419',
   },
   header: {
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5a623',
-    padding: 20,
   },
   backButton: {
-    marginRight: 10,
-    paddingTop: 40,
+    marginRight: wp(3),
+    padding: wp(1),
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerText: {
-    fontSize: 18,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    color: '#000',
-    paddingTop: 38,
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
+    marginTop: hp(1),
   },
   sectionTitle: {
-    fontSize: 24, fontWeight: 'bold', marginTop: 40, marginLeft: 26, color: '#333',
+    fontSize: rf(22),
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
   },
-  grid: { gap: 10, paddingTop: 10, paddingHorizontal: 10, paddingBottom: 20 },
-  cardContainer: { flex: 1, alignItems: 'center', margin: 25, flexWrap: 'wrap' },
+  flatList: {
+    flex: 1,
+    minHeight: 0,
+  },
+  grid: {
+    paddingHorizontal: wp(3),
+    paddingTop: hp(1),
+    paddingBottom: hp(4),
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(1),
+  },
+  cardContainer: {
+    width: '48%',
+    marginBottom: hp(2),
+  },
   card: {
-    width: 150, height: 100, backgroundColor: '#fff', borderRadius: 10, overflow: 'hidden',
+    backgroundColor: '#1A1F2E',
+    borderRadius: rs(16),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  cardImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  cardImageContainer: {
+    width: '100%',
+    height: hp(12),
+    position: 'relative',
+    backgroundColor: '#0F1419',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cardInfo: {
+    padding: wp(3),
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   cardText: {
-    fontSize: 14, fontWeight: 'bold', marginTop: 12, textAlign: 'center',
+    fontSize: rf(13),
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+    flex: 1,
+    textAlign: 'left',
   },
 });
 

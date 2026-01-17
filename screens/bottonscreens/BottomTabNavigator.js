@@ -5,9 +5,9 @@ import HomeScreen from './HomeScreen';
 import EsportsScreen from './EsportsScreen';
 import TournamentsScreen from './tournaments/tournamentsscreen';
 import WinnersScreen from './WinnersScreen';
-import ProfileScreen from './ProfileScreen';
+import LiveScreen from './LiveScreen';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,7 +22,7 @@ export default function BottomTabNavigator() {
           else if (route.name === 'Esports') iconName = 'sports-esports';
           else if (route.name === 'Tournaments') iconName = 'emoji-events';
           else if (route.name === 'Winners') iconName = 'military-tech';
-          else if (route.name === 'Profile') iconName = 'person';
+          else if (route.name === 'Live') iconName = 'live-tv';
           return <Icon name={iconName} size={32} color={color} />;
         },
         tabBarInactiveTintColor: '#ccc',
@@ -43,13 +43,15 @@ export default function BottomTabNavigator() {
             style={StyleSheet.absoluteFill}
           />
         ),
+        tabBarAccessibilityLabel: `${route.name} tab`,
       })}
+      detachInactiveScreens={Platform.OS === 'web' ? false : true}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Esports" component={EsportsScreen} />
       <Tab.Screen name="Tournaments" component={TournamentsScreen} />
       <Tab.Screen name="Winners" component={WinnersScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Live" component={LiveScreen} />
     </Tab.Navigator>
   );
 }

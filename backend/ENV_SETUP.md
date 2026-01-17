@@ -5,7 +5,7 @@
 Your MongoDB Atlas connection string has been configured. Use this in your `.env` file:
 
 ```env
-MONGODB_URI=mongodb+srv://noreplyesportsindia_db_user:2JFBXAP4HC1sYbDr@cluster0.tppbbdo.mongodb.net/esportsindia?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=your_mongodb_connection_string_here
 ```
 
 ## Complete .env File Template
@@ -14,10 +14,10 @@ Create a `.env` file in the `backend` directory with the following content:
 
 ```env
 # MongoDB Connection
-MONGODB_URI=mongodb+srv://noreplyesportsindia_db_user:2JFBXAP4HC1sYbDr@cluster0.tppbbdo.mongodb.net/esportsindia?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=your_mongodb_connection_string_here
 
-# JWT Secret (Generated secure key)
-JWT_SECRET=32d8306993df3645c9de14d11c1d00ae88370a3f3948455309b1667c715170db
+# JWT Secret (Generate a strong random key)
+JWT_SECRET=generate_a_strong_random_secret_key_here
 
 # JWT Expiration
 JWT_EXPIRES_IN=7d
@@ -43,7 +43,7 @@ FRONTEND_URL=http://localhost:8081
    cp .env.example .env
    ```
 
-2. **Update `.env` with your MongoDB URI** (already provided above)
+2. **Update `.env` with your MongoDB URI** (get it from MongoDB Atlas dashboard)
 
 3. **Set up Gmail App Password**:
    - Go to https://myaccount.google.com/apppasswords

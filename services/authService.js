@@ -134,3 +134,24 @@ export const getCurrentUser = async (token) => {
     };
   }
 };
+
+// Update user profile
+export const updateProfile = async (token, profileData) => {
+  try {
+    const response = await axios.put(`${BASE_URL}/auth/profile`, profileData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return { 
+      success: true, 
+      user: response.data.user,
+      message: response.data.message || 'Profile updated successfully'
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.response?.data?.message || error.message 
+    };
+  }
+};

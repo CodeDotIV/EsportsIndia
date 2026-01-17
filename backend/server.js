@@ -18,7 +18,8 @@ dotenv.config({ path: join(__dirname, '.env') });
 if (!process.env.MONGODB_URI) {
   console.error('❌ ERROR: MONGODB_URI is not set in .env file');
   console.error('Please create a .env file in the backend directory with:');
-  console.error('MONGODB_URI=mongodb+srv://noreplyesportsindia_db_user:2JFBXAP4HC1sYbDr@cluster0.tppbbdo.mongodb.net/esportsindia?retryWrites=true&w=majority&appName=Cluster0');
+  console.error('MONGODB_URI=your_mongodb_connection_string_here');
+  console.error('See backend/.env.example for template');
   process.exit(1);
 }
 
