@@ -217,10 +217,12 @@ export const getCurrentUser = async (token) => {
 // Update user profile
 export const updateProfile = async (token, profileData) => {
   try {
+    console.log('📤 Sending profile update:', profileData);
     const response = await axios.put(`${BASE_URL}/auth/profile`, profileData, {
       headers: {
         Authorization: `Bearer ${token}`
-      }
+      },
+      timeout: 15000
     });
     return { 
       success: true, 
@@ -228,9 +230,32 @@ export const updateProfile = async (token, profileData) => {
       message: response.data.message || 'Profile updated successfully'
     };
   } catch (error) {
+    console.error('❌ Profile update error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    
+    // Extract detailed error message
+    let errorMessage = 'Failed to update profile';
+    
+    if (error.response?.data) {
+      errorMessage = error.response.data.message || 'Validation failed';
+      
+      // Include validation errors if present
+      if (error.response.data.errors && Array.isArray(error.response.data.errors)) {
+        const validationErrors = error.response.data.errors.map(e => e.msg || e.message || e).join(', ');
+        errorMessage = `${errorMessage}: ${validationErrors}`;
+      } else if (error.response.data.error) {
+        errorMessage = error.response.data.error;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return { 
       success: false, 
-      error: error.response?.data?.message || error.message 
+      error: errorMessage
     };
   }
 };

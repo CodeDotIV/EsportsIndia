@@ -227,53 +227,85 @@ const ProfileScreen = () => {
       // Validate and format dateOfBirth
       let formattedDateOfBirth = null;
       if (user.dateOfBirth && user.dateOfBirth.trim()) {
+        const dateStr = user.dateOfBirth.trim();
         // Check if it's a valid date format (YYYY-MM-DD)
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (dateRegex.test(user.dateOfBirth.trim())) {
-          formattedDateOfBirth = user.dateOfBirth.trim();
+        if (dateRegex.test(dateStr)) {
+          // Validate that it's actually a valid date
+          const date = new Date(dateStr);
+          const [year, month, day] = dateStr.split('-').map(Number);
+          const isValidDate = 
+            !isNaN(date.getTime()) &&
+            date.getFullYear() === year &&
+            date.getMonth() + 1 === month &&
+            date.getDate() === day &&
+            year >= 1900 &&
+            year <= new Date().getFullYear() &&
+            month >= 1 &&
+            month <= 12 &&
+            day >= 1 &&
+            day <= 31;
+          
+          if (isValidDate) {
+            formattedDateOfBirth = dateStr;
+          } else {
+            Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format (e.g., 1990-01-15)');
+            setLoading(false);
+            return;
+          }
         } else {
-          Alert.alert('Invalid Date', 'Please enter date in YYYY-MM-DD format (e.g., 1990-01-15)');
+          Alert.alert('Invalid Date Format', 'Please enter date in YYYY-MM-DD format (e.g., 1990-01-15)');
           setLoading(false);
           return;
         }
       }
 
-      // Validate yearsOfGaming
+      // Validate yearsOfGaming - convert empty string to null
       let formattedYearsOfGaming = null;
-      if (user.yearsOfGaming && user.yearsOfGaming.toString().trim()) {
-        const years = parseInt(user.yearsOfGaming.toString().trim());
-        if (!isNaN(years) && years >= 0 && years <= 100) {
-          formattedYearsOfGaming = years;
-        } else {
-          Alert.alert('Invalid Years', 'Years of gaming must be a number between 0 and 100');
-          setLoading(false);
-          return;
+      if (user.yearsOfGaming !== null && user.yearsOfGaming !== undefined && user.yearsOfGaming !== '') {
+        const yearsStr = user.yearsOfGaming.toString().trim();
+        if (yearsStr) {
+          const years = parseInt(yearsStr);
+          if (!isNaN(years) && years >= 0 && years <= 100) {
+            formattedYearsOfGaming = years;
+          } else {
+            Alert.alert('Invalid Years', 'Years of gaming must be a number between 0 and 100');
+            setLoading(false);
+            return;
+          }
         }
       }
+
+      // Helper function to convert empty strings to null for optional fields
+      const sanitizeField = (value) => {
+        if (value === null || value === undefined) return null;
+        const trimmed = String(value).trim();
+        return trimmed === '' ? null : trimmed;
+      };
 
       const profileData = {
         name: user.name.trim(),
-        phone: user.phone.trim(),
-        gender: user.gender,
-        location: user.location.trim(),
-        bio: user.bio !== undefined && user.bio !== null ? String(user.bio).trim() : '',
+        phone: sanitizeField(user.phone),
+        gender: sanitizeField(user.gender) || '',
+        location: sanitizeField(user.location),
+        bio: sanitizeField(user.bio) || '',
         dateOfBirth: formattedDateOfBirth,
-        avatar: user.avatar || '',
-        gamingUsername: user.gamingUsername.trim(),
-        favoriteGame: user.favoriteGame.trim(),
-        gamingPlatform: user.gamingPlatform,
-        skillLevel: user.skillLevel,
-        teamName: user.teamName.trim(),
+        avatar: sanitizeField(user.avatar) || '',
+        gamingUsername: sanitizeField(user.gamingUsername),
+        favoriteGame: sanitizeField(user.favoriteGame),
+        gamingPlatform: user.gamingPlatform || '',
+        skillLevel: user.skillLevel || '',
+        teamName: sanitizeField(user.teamName),
         yearsOfGaming: formattedYearsOfGaming,
-        preferredGameMode: user.preferredGameMode,
-        country: user.country.trim(),
-        timezone: user.timezone.trim(),
-        language: user.language.trim(),
-        instagram: user.instagram.trim(),
-        twitter: user.twitter.trim(),
-        discord: user.discord.trim(),
-        youtube: user.youtube.trim(),
-        twitch: user.twitch.trim(),
+        preferredGameMode: user.preferredGameMode || '',
+        country: sanitizeField(user.country),
+        timezone: sanitizeField(user.timezone),
+        language: user.language.trim() || 'English',
+        instagram: sanitizeField(user.instagram),
+        twitter: sanitizeField(user.twitter),
+        discord: sanitizeField(user.discord),
+        youtube: sanitizeField(user.youtube),
+        twitch: sanitizeField(user.twitch),
       };
 
       console.log('📤 Sending profile data - bio:', profileData.bio);

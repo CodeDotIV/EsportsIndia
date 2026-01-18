@@ -351,15 +351,28 @@ router.put('/profile', authenticate, [
     return true;
   }),
   body('dateOfBirth').optional().custom((value) => {
-    if (!value) return true; // Allow null/empty
+    if (!value || value === null || value === '') return true; // Allow null/empty
     // Check if it's a valid date string in YYYY-MM-DD format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(value)) {
       throw new Error('Date must be in YYYY-MM-DD format');
     }
-    const date = new Date(value);
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date');
+    // Parse the date components
+    const [year, month, day] = value.split('-').map(Number);
+    // Validate date components
+    if (year < 1900 || year > new Date().getFullYear()) {
+      throw new Error('Year must be between 1900 and current year');
+    }
+    if (month < 1 || month > 12) {
+      throw new Error('Month must be between 1 and 12');
+    }
+    if (day < 1 || day > 31) {
+      throw new Error('Day must be between 1 and 31');
+    }
+    // Create date and validate it's actually valid
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+      throw new Error('Invalid date (e.g., February 30th doesn\'t exist)');
     }
     return true;
   }),
@@ -523,23 +536,44 @@ router.put('/profile', authenticate, [
       if (dateOfBirth !== undefined) {
         // Convert date string to Date object if provided
         if (dateOfBirth && typeof dateOfBirth === 'string' && dateOfBirth.trim()) {
+          const dateStr = dateOfBirth.trim();
           // Validate date format (YYYY-MM-DD)
           const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-          if (!dateRegex.test(dateOfBirth.trim())) {
+          if (!dateRegex.test(dateStr)) {
             return res.status(400).json({
               success: false,
               message: 'Invalid date format. Use YYYY-MM-DD format (e.g., 1990-01-15).'
             });
           }
-          const date = new Date(dateOfBirth.trim());
-          if (!isNaN(date.getTime())) {
-            user.dateOfBirth = date;
-          } else {
+          // Parse and validate date components
+          const [year, month, day] = dateStr.split('-').map(Number);
+          if (year < 1900 || year > new Date().getFullYear()) {
             return res.status(400).json({
               success: false,
-              message: 'Invalid date. Please check the date value.'
+              message: 'Year must be between 1900 and current year.'
             });
           }
+          if (month < 1 || month > 12) {
+            return res.status(400).json({
+              success: false,
+              message: 'Month must be between 1 and 12.'
+            });
+          }
+          if (day < 1 || day > 31) {
+            return res.status(400).json({
+              success: false,
+              message: 'Day must be between 1 and 31.'
+            });
+          }
+          // Create date and validate it's actually valid
+          const date = new Date(year, month - 1, day);
+          if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+            return res.status(400).json({
+              success: false,
+              message: 'Invalid date (e.g., February 30th doesn\'t exist).'
+            });
+          }
+          user.dateOfBirth = date;
         } else {
           user.dateOfBirth = null;
         }
