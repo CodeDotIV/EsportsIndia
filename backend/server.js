@@ -26,10 +26,15 @@ if (!process.env.MONGODB_URI) {
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:8081',
-  credentials: true
-}));
+// CORS configuration - allow all origins in production (for Expo apps)
+const corsOptions = {
+  origin: process.env.FRONTEND_URL === '*' 
+    ? true 
+    : (process.env.FRONTEND_URL || 'http://localhost:8081'),
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

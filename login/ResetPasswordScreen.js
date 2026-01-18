@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
-import { Video } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { resetPassword } from "../services/authService";
 
 export default function ResetPasswordScreen({ navigation, route }) {
@@ -21,6 +21,12 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
+
+  const player = useVideoPlayer(require("../assets/vedios/intro.mp4"), (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+  });
 
   useEffect(() => {
     // Get token from route params (when navigated from email link or manually)
@@ -80,15 +86,13 @@ export default function ResetPasswordScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.videoContainer}>
-      <Video
-        source={require("../assets/vedios/intro.mp4")}
-        style={StyleSheet.absoluteFill}
-        resizeMode="cover"
-        isLooping
-        shouldPlay
-        isMuted
-      />
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
+        <VideoView
+          player={player}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          nativeControls={false}
+        />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
       </View>
 
       <LinearGradient colors={["#1a1a2eaa", "#16213eaa", "#0f3460aa"]} style={styles.container}>

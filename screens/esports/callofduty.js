@@ -69,6 +69,7 @@ const GameScreen = () => {
       {/* FlatList for sections */}
       <FlatList
         data={sections}
+        style={styles.flatList}
         renderItem={({ item }) => (
           <FlatList
             data={item.data}
@@ -78,11 +79,15 @@ const GameScreen = () => {
             contentContainerStyle={styles.grid}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={() => renderSectionHeader({ section: item })}
+            nestedScrollEnabled={true}
+            scrollEnabled={false}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        bounces={true}
       />
     </View>
   );
@@ -108,6 +113,9 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginLeft: 26,
     color: '#333',
+  },
+  flatList: {
+    flex: 1,
   },
   listContainer: {
     paddingBottom: 20,

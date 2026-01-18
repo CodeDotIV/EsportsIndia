@@ -11,11 +11,17 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
-import { Video } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { forgotPassword } from "../services/authService";
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState("");
+
+  const player = useVideoPlayer(require("../assets/vedios/intro.mp4"), (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+  });
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -34,13 +40,11 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <Video
-        source={require("../assets/vedios/intro.mp4")}
+      <VideoView
+        player={player}
         style={StyleSheet.absoluteFill}
-        resizeMode="cover"
-        isLooping
-        shouldPlay
-        isMuted
+        contentFit="cover"
+        nativeControls={false}
       />
 
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.80)" }]} />

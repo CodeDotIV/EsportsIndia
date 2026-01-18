@@ -17,7 +17,7 @@ import { wp, hp, rf, rs } from '../../utils/responsive';
 const games = [
   { 
     id: '1', 
-    name: 'Battle Grounds Mobile India', 
+    name: 'BGMI', 
     shortName: 'BGMI',
     image: require('../../assets/images/bgmilogo.png'), 
     screen: 'Esportsarena',
@@ -195,10 +195,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2A3441',
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
     height: '100%', // Ensure inner card takes full height
     flexDirection: 'column',
   },

@@ -68,7 +68,7 @@ const GameScreen = () => {
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
-            <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
           </View>
         </View>
       </View>
@@ -80,16 +80,20 @@ const GameScreen = () => {
       </View>
 
       {/* Arena Grid */}
-      <FlatList
-        data={arenaData}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.name}-${index}`}
-        numColumns={2}
-        contentContainerStyle={styles.grid}
-        columnWrapperStyle={styles.columnWrapper}
-        showsVerticalScrollIndicator={false}
-        style={styles.flatList}
-      />
+      <View style={styles.listContainer}>
+        <FlatList
+          data={arenaData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.name}-${index}`}
+          numColumns={2}
+          contentContainerStyle={styles.grid}
+          columnWrapperStyle={styles.columnWrapper}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+          nestedScrollEnabled={true}
+          bounces={true}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -123,6 +127,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginLeft: wp(2),
+    flexShrink: 1,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -137,9 +142,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginLeft: wp(2),
   },
+  listContainer: {
+    flex: 1,
+  },
   flatList: {
     flex: 1,
-    minHeight: 0,
   },
   grid: {
     paddingHorizontal: wp(3),
@@ -161,10 +168,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2A3441',
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
   },
   cardImageContainer: {
     width: '100%',

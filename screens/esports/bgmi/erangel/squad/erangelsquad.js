@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable, Alert, ImageBackground } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, Alert, ImageBackground, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; 
-import { useNavigation } from '@react-navigation/native';  // Import useNavigation hook
+import { useNavigation } from '@react-navigation/native';
+import { wp, hp, rf, rs } from '../../../../../utils/responsive';
 
 const Livik = () => {
   const navigation = useNavigation();  // Initialize navigation
@@ -27,17 +28,23 @@ const Livik = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
+            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
+          </View>
+        </View>
       </View>
 
       {/* Livik Title with Tooltip Icon */}
       <View style={styles.titleContainer}>
+        <Ionicons name="trophy" size={rs(20)} color="#FFD700" />
         <Text style={styles.title}>Erangel - Squad</Text>
         <Pressable onPress={handlePress}>
-          <Ionicons name="information-circle-outline" size={18} color="black" style={styles.tooltipIcon} />
+          <Ionicons name="information-circle-outline" size={rs(18)} color="#FFD700" style={styles.tooltipIcon} />
         </Pressable>
       </View>
 
@@ -49,65 +56,88 @@ const Livik = () => {
         contentContainerStyle={styles.grid}
         renderItem={({ item }) => (
           <Pressable onPress={() => handleSlotPress(item)} style={styles.gridItemWrapper}>
-            <ImageBackground 
-              source={require('../../../../../assets/images/livik.png')} 
-              style={styles.gridItem}
-              imageStyle={{ borderRadius: 8 }}
-            >
-              {/* Overlay to darken/lighten the image */}
-              <View style={styles.overlay} />
-
-              {/* Time Text */}
-              <Text style={styles.gridText}>{item}</Text>
-            </ImageBackground>
+            <View style={styles.card}>
+              <ImageBackground 
+                source={require('../../../../../assets/images/livik.png')} 
+                style={styles.gridItem}
+                imageStyle={{ borderRadius: rs(8) }}
+              >
+                <View style={styles.overlay} />
+                <Text style={styles.gridText}>{item}</Text>
+              </ImageBackground>
+            </View>
           </Pressable>
         )}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5', // Add a background color to ensure proper contrast
+    backgroundColor: '#0F1419',
   },
   header: {
-    backgroundColor: 'rgba(245, 166, 35, 0.8)',
-    padding: 30,
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   headerText: {
-    fontSize: 22,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    color: '#000',
-    marginTop: 40,
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+    flexShrink: 1,
   },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 30,
-    marginTop: 20,
-    marginBottom: 10,
+    marginLeft: wp(5),
+    marginTop: hp(2),
+    marginBottom: hp(1),
   },
   title: {
-    fontSize: 24,
+    fontSize: rf(22),
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
   },
   tooltipIcon: {
-    marginLeft: 5,
-    marginTop: -18, 
+    marginLeft: wp(2),
+    alignSelf: "center",
   },
   grid: {
     gap: 10,
-    paddingTop: 10,
+    paddingTop: hp(1),
+    paddingHorizontal: wp(3),
   },
   gridItemWrapper: {
-    flex: 1, // Make sure grid items are flexible
-    margin: 18, // Add space between grid items
-    height: 100, // Set a fixed height for grid items
+    flex: 1,
+    margin: wp(3),
+    height: hp(12),
+  },
+  card: {
+    borderRadius: rs(16),
+    overflow: 'hidden',
+    elevation: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
+    height: '100%',
   },
   gridItem: {
     flex: 1,
@@ -117,14 +147,15 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent dark overlay
-    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: rs(8),
   },
   gridText: {
-    fontSize: 22,
+    fontSize: rf(18),
     fontWeight: 'bold',
-    color: '#FFD700', // Bright gold for better contrast
-    position: 'absolute', // Ensures text is above the overlay
+    color: '#FFD700',
+    position: 'absolute',
+    zIndex: 1,
   },
 });
 

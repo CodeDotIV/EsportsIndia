@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
-import { Video } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { signUp } from "../services/authService";
 import { wp, hp, rf, rs, isTablet, isSmallDevice } from "../utils/responsive";
 import { setItem } from "../utils/storageHelper";
@@ -24,6 +24,12 @@ export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const player = useVideoPlayer(require("../assets/vedios/intro.mp4"), (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+  });
 
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -68,19 +74,11 @@ export default function SignupScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.videoContainer}>
-        <Video
-          source={require("../assets/vedios/intro.mp4")}
+        <VideoView
+          player={player}
           style={StyleSheet.absoluteFill}
-          resizeMode="cover"
-          isLooping
-          shouldPlay
-          isMuted
-          onError={(error) => {
-            console.error("❌ Video loading error:", error);
-          }}
-          onLoad={() => {
-            console.log("✅ Video loaded successfully");
-          }}
+          contentFit="cover"
+          nativeControls={false}
         />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
       </View>

@@ -1,10 +1,11 @@
 import React from "react";
 import {
   View, Text, StyleSheet, FlatList,
-  Pressable, Alert, Image
+  Pressable, Alert, Image, SafeAreaView
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { wp, hp, rf, rs } from '../../../utils/responsive';
 
 const Hangertgm = () => {
   const navigation = useNavigation();
@@ -26,80 +27,127 @@ const Hangertgm = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color="black" />
-        </Pressable>
-        <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+        <View style={styles.headerContent}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
+          </Pressable>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
+            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.titleContainer}>
+        <Ionicons name="trophy" size={rs(20)} color="#FFD700" />
         <Text style={styles.title}>{mode}</Text>
         <Pressable onPress={handlePress}>
-          <Ionicons name="information-circle-outline" size={18} color="black" style={styles.tooltipIcon} />
+          <Ionicons name="information-circle-outline" size={rs(18)} color="#FFD700" style={styles.tooltipIcon} />
         </Pressable>
       </View>
 
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.grid}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.gridItem}
-            onPress={() => navigation.navigate(item.screen, { mode, team: item.name })}
-          >
-            <Image source={item.image} style={styles.image} />
-            <Text style={styles.name}>{item.name}</Text>
-          </Pressable>
-        )}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
+      <View style={styles.listContainer}>
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.grid}
+          style={styles.flatList}
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.gridItem}
+              onPress={() => navigation.navigate(item.screen, { mode, team: item.name })}
+            >
+              <View style={styles.card}>
+                <Image source={item.image} style={styles.image} />
+                <Text style={styles.name}>{item.name}</Text>
+              </View>
+            </Pressable>
+          )}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          bounces={true}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 0,
+    backgroundColor: '#0F1419',
   },
   header: {
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5a623',
-    padding: 20,
   },
   backButton: {
-    marginRight: 10,
-    paddingTop: 40,
+    marginRight: wp(3),
+    padding: wp(1),
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerText: {
-    fontSize: 18,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    color: '#000',
-    paddingTop: 38,
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+    flexShrink: 1,
   },
   titleContainer: {
-    flexDirection: "row", alignItems: "center",
-    marginLeft: 30, marginTop: 20, marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: wp(5),
+    marginTop: hp(2),
+    marginBottom: hp(1),
   },
   title: {
-    fontSize: 24, fontWeight: 'bold',
-    fontFamily: 'sans-serif-black', color: '#333',
+    fontSize: rf(22),
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
   },
-  tooltipIcon: { marginLeft: 5, alignSelf: "center" },
-  grid: { paddingTop: 10, paddingHorizontal: 20, alignItems: "center" },
-  gridItem: { marginBottom: 20, alignItems: 'center' },
+  tooltipIcon: { marginLeft: wp(2), alignSelf: "center" },
+  listContainer: {
+    flex: 1,
+  },
+  flatList: {
+    flex: 1,
+  },
+  grid: { 
+    paddingTop: hp(1), 
+    paddingHorizontal: wp(3), 
+    paddingBottom: hp(4),
+    alignItems: "center" 
+  },
+  gridItem: { marginBottom: hp(2), alignItems: 'center' },
+  card: {
+    borderRadius: rs(16),
+    overflow: 'hidden',
+    elevation: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
+  },
   image: {
-    width: 200, height: 120, borderRadius: 12,
-    resizeMode: "cover", margin: 18,
+    width: 200, height: 120, borderRadius: rs(12),
+    resizeMode: "cover", margin: hp(2),
   },
   name: {
-    fontSize: 18, fontWeight: 'bold',
-    color: 'black', marginTop: 8, textAlign: 'center',
+    fontSize: rf(16), fontWeight: 'bold',
+    color: '#FFFFFF', marginTop: hp(0.5), marginBottom: hp(1.5), textAlign: 'center',
   },
 });
 

@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Otp from '../models/Otp.js';
 import { generateToken } from '../utils/generateToken.js';
 import { generateResetToken, generateOtp } from '../utils/generateOtp.js';
+import { generateUserId } from '../utils/generateUserId.js';
 import { sendPasswordResetLink, sendOtpEmail } from '../utils/emailService.js';
 import { authenticate } from '../middleware/auth.js';
 import crypto from 'crypto';
@@ -51,7 +52,7 @@ router.post('/signup', [
     const gameModes = ['Solo', 'Duo', 'Squad', 'Tournament', 'All'];
     const genders = ['Male', 'Female', 'Other', 'Prefer not to say'];
     
-    // Create user (userId will be auto-generated in pre-save hook)
+    // Generate userId explicitly to avoid validation errors
     // Handle potential userId collisions by retrying
     let user;
     let retries = 0;
@@ -59,7 +60,11 @@ router.post('/signup', [
     
     while (retries < maxRetries) {
       try {
+        // Generate userId explicitly before creating user
+        const userId = await generateUserId(User);
+        
         user = new User({
+          userId, // Set userId explicitly
           name,
           email,
           password,

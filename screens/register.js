@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { wp, hp, rf, rs } from '../utils/responsive';
+
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyC8bb14gmxo_xVHd3DzxwKCb6YHG3f1xWR5m-No-OiWs1Oso0nyz3doTOGEubg5fbHeA/exec";
 
 const RegistrationForm = () => {
   const navigation = useNavigation();
@@ -28,14 +41,46 @@ const RegistrationForm = () => {
     }));
   };
 
-  const validateForm = () => {
-    const details = form.firstPlayer;
-    for (let field in details) {
-      if (!details[field]) {
-        Alert.alert('Error', `Please fill all required fields for ${team === 'Solo' ? 'Player' : 'First Player'}`);
-        return false;
-      }
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+
+  const validatePlayer = (playerKey, label, required = true) => {
+    const p = form[playerKey];
+
+    if (!required) return true;
+
+    if (!p.name || !p.gameId || !p.mobile || !p.email) {
+      Alert.alert("Error", `Please fill all fields for ${label}`);
+      return false;
     }
+
+    const mobileDigits = String(p.mobile).replace(/\D/g, "");
+    if (mobileDigits.length < 8) {
+      Alert.alert("Error", `${label} mobile number is invalid`);
+      return false;
+    }
+
+    if (!isValidEmail(p.email)) {
+      Alert.alert("Error", `${label} email is invalid`);
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateForm = () => {
+    if (!validatePlayer("firstPlayer", team === "Solo" ? "Player" : "First Player", true)) return false;
+
+    if (team === "Duo") {
+      if (!validatePlayer("secondPlayer", "Second Player", true)) return false;
+    }
+
+    if (team === "Squad") {
+      if (!validatePlayer("secondPlayer", "Second Player", true)) return false;
+      if (!validatePlayer("thirdPlayer", "Third Player", true)) return false;
+      if (!validatePlayer("fourthPlayer", "Fourth Player", true)) return false;
+    }
+
     return true;
   };
 
@@ -48,19 +93,14 @@ const RegistrationForm = () => {
     let payload = {
       mode: form.mode,
       team: form.team,
+
+      firstPlayer_name: form.firstPlayer.name,
+      firstPlayer_gameId: form.firstPlayer.gameId,
+      firstPlayer_mobile: form.firstPlayer.mobile,
+      firstPlayer_email: form.firstPlayer.email,
     };
 
-    if (team === 'Solo' || team === 'Duo' || team === 'Squad') {
-      payload = {
-        ...payload,
-        firstPlayer_name: form.firstPlayer.name,
-        firstPlayer_gameId: form.firstPlayer.gameId,
-        firstPlayer_mobile: form.firstPlayer.mobile,
-        firstPlayer_email: form.firstPlayer.email,
-      };
-    }
-
-    if (team === 'Duo' || team === 'Squad') {
+    if (team === "Duo" || team === "Squad") {
       payload = {
         ...payload,
         secondPlayer_name: form.secondPlayer.name,
@@ -70,13 +110,14 @@ const RegistrationForm = () => {
       };
     }
 
-    if (team === 'Squad') {
+    if (team === "Squad") {
       payload = {
         ...payload,
         thirdPlayer_name: form.thirdPlayer.name,
         thirdPlayer_gameId: form.thirdPlayer.gameId,
         thirdPlayer_mobile: form.thirdPlayer.mobile,
         thirdPlayer_email: form.thirdPlayer.email,
+
         fourthPlayer_name: form.fourthPlayer.name,
         fourthPlayer_gameId: form.fourthPlayer.gameId,
         fourthPlayer_mobile: form.fourthPlayer.mobile,
@@ -85,18 +126,20 @@ const RegistrationForm = () => {
     }
 
     try {
-      const response = await fetch(
-        'https://script.google.com/macros/s/AKfycbxYpQvWEoJeZVyFWDoTJhRwZfylw6fj0D6niqbuEWER7XxLyg4H2x-z1y-5i-vRxljGkA/exec',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          // CORS FIX for Expo Web
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify(payload),
+      });
 
       const resText = await response.text();
-      if (response.ok && resText === 'Success') {
-        Alert.alert('✅ Success', 'Form submitted!');
+
+      if (response.ok && resText.trim() === "Success") {
+        Alert.alert("✅ Success", "Form submitted!");
+
         setForm({
           mode: mode || '',
           team: team || '',
@@ -106,10 +149,10 @@ const RegistrationForm = () => {
           fourthPlayer: { name: '', gameId: '', mobile: '', email: '' },
         });
       } else {
-        Alert.alert('❌ Error', 'Failed: ' + resText);
+        Alert.alert("❌ Error", "Failed: " + resText);
       }
-    } catch (error) {
-      Alert.alert('❌ Error', 'Network error');
+    } catch (err) {
+      Alert.alert("❌ Error", "Network error: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -118,91 +161,172 @@ const RegistrationForm = () => {
   const renderPlayerFields = (label, key, required) => (
     <View style={styles.section} key={key}>
       <Text style={styles.sectionTitle}>{label}</Text>
-      {['name', 'gameId', 'mobile', 'email'].map((field) => (
-        <View style={styles.inputContainer} key={`${key}-${field}`}>
-          <Text style={styles.label}>
-            {field.charAt(0).toUpperCase() + field.slice(1)}
-            {required && <Text style={{ color: 'red' }}> *</Text>}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={form[key][field]}
-            onChangeText={(value) => handleChange(key, field, value)}
-            placeholder={`Enter ${field}`}
-          />
-        </View>
-      ))}
+
+      {/* Name */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>
+          Name {required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={form[key].name}
+          onChangeText={(value) => handleChange(key, "name", value)}
+          placeholder="Enter name"
+          placeholderTextColor="#999"
+          autoCapitalize="words"
+        />
+      </View>
+
+      {/* Game ID */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>
+          Game ID {required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={form[key].gameId}
+          onChangeText={(value) => handleChange(key, "gameId", value)}
+          placeholder="Enter game ID"
+          placeholderTextColor="#999"
+          autoCapitalize="none"
+        />
+      </View>
+
+      {/* Mobile */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>
+          Mobile {required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={form[key].mobile}
+          onChangeText={(value) => handleChange(key, "mobile", value)}
+          placeholder="Enter mobile number"
+          placeholderTextColor="#999"
+          keyboardType="phone-pad"
+        />
+      </View>
+
+      {/* Email */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>
+          Email {required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={form[key].email}
+          onChangeText={(value) => handleChange(key, "email", value)}
+          placeholder="Enter email"
+          placeholderTextColor="#999"
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Register</Text>
-      </View>
-
-      <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Mode</Text>
-          <TextInput style={[styles.input, styles.disabled]} value={form.mode} editable={false} />
+    <SafeAreaView style={styles.container}>
+      <View style={{ flex: 1 }}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
+            </TouchableOpacity>
+  
+            <View style={styles.headerTitleContainer}>
+              <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
+              <Text style={styles.title}>Register</Text>
+            </View>
+          </View>
         </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Team</Text>
-          <TextInput style={[styles.input, styles.disabled]} value={form.team} editable={false} />
-        </View>
-
-        {renderPlayerFields(team === 'Solo' ? 'Player Details' : 'First Player', 'firstPlayer', true)}
-        {team === 'Duo' || team === 'Squad' ? renderPlayerFields('Second Player', 'secondPlayer', false) : null}
-        {team === 'Squad' ? renderPlayerFields('Third Player', 'thirdPlayer', false) : null}
-        {team === 'Squad' ? renderPlayerFields('Fourth Player', 'fourthPlayer', false) : null}
-
-        <TouchableOpacity
-          style={[styles.submitButton, isSubmitting && { opacity: 0.6 }]}
-          onPress={handleSubmit}
-          disabled={isSubmitting}
+  
+        {/* SCROLL */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: wp(5), paddingTop: hp(2), paddingBottom: hp(20) }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.submitText}>{isSubmitting ? 'Processing...' : 'Submit'}</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Mode</Text>
+            <TextInput style={[styles.input, styles.disabled]} value={form.mode} editable={false} />
+          </View>
+  
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Team</Text>
+            <TextInput style={[styles.input, styles.disabled]} value={form.team} editable={false} />
+          </View>
+  
+          {renderPlayerFields(team === 'Solo' ? 'Player Details' : 'First Player', 'firstPlayer', true)}
+          {team === 'Duo' || team === 'Squad'
+            ? renderPlayerFields('Second Player', 'secondPlayer', team !== "Solo")
+            : null}
+          {team === 'Squad' ? renderPlayerFields('Third Player', 'thirdPlayer', true) : null}
+          {team === 'Squad' ? renderPlayerFields('Fourth Player', 'fourthPlayer', true) : null}
+  
+          <TouchableOpacity
+            style={[styles.submitButton, isSubmitting && { opacity: 0.6 }]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.submitText}>{isSubmitting ? "Processing..." : "Submit"}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
+  
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 0,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5a623',
-    padding: 20,
-  },
-  backButton: {
-    marginRight: 10,
-    paddingTop: 40,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    paddingTop: 38,
-  },
-  form: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
-  inputContainer: { marginBottom: 15 },
-  label: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, backgroundColor: 'white' },
-  disabled: { backgroundColor: '#e0e0e0', color: '#777' },
-  section: { marginTop: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  submitButton: { backgroundColor: '#f5a623', padding: 15, borderRadius: 8, alignItems: 'center', marginVertical: 20 },
-  submitText: { fontSize: 16, fontWeight: 'bold', color: 'white' },
-});
-
 export default RegistrationForm;
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0F1419' },
+
+  header: {
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: { flexDirection: 'row', alignItems: 'center' },
+  backButton: { marginRight: wp(3), padding: wp(1) },
+  headerTitleContainer: { flexDirection: 'row', alignItems: 'center' },
+  title: { fontSize: rf(20), fontWeight: 'bold', color: '#FFFFFF', marginLeft: wp(2) },
+
+  form: { flex: 1 },
+
+  // 🔥 This is the MAIN scroll fix
+  scrollContent: {
+    paddingBottom: hp(15),
+  },
+
+  inputContainer: { marginBottom: hp(2) },
+  label: { fontSize: rf(16), fontWeight: '600', marginBottom: hp(0.5), color: '#FFFFFF' },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: rs(8),
+    padding: hp(1.2),
+    backgroundColor: '#1A1F2E',
+    color: '#FFFFFF',
+    fontSize: rf(15),
+  },
+  disabled: { backgroundColor: '#1A1F2E', color: '#999' },
+
+  section: { marginTop: hp(2) },
+  sectionTitle: { fontSize: rf(18), fontWeight: 'bold', marginBottom: hp(1), color: '#FFD700' },
+
+  submitButton: {
+    backgroundColor: '#FFD700',
+    padding: hp(2),
+    borderRadius: rs(8),
+    alignItems: 'center',
+    marginVertical: hp(2.5),
+  },
+  submitText: { fontSize: rf(16), fontWeight: 'bold', color: '#000' },
+});

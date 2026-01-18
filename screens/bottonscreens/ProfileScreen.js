@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -363,7 +363,6 @@ const ProfileScreen = () => {
         colors={['#1a1a2e', '#16213e', '#0f3460']}
         style={styles.gradient}
       >
-      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -383,7 +382,9 @@ const ProfileScreen = () => {
           style={styles.scrollContainer} 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
           nestedScrollEnabled={true}
+          bounces={true}
         >
             {/* Profile Header Card */}
             <View style={styles.profileHeader}>
@@ -938,7 +939,6 @@ const ProfileScreen = () => {
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
           </ScrollView>
-      </View>
 
       {/* Country Picker Modal */}
       <Modal
@@ -949,19 +949,28 @@ const ProfileScreen = () => {
         accessibilityViewIsModal={true}
         statusBarTranslucent={true}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowCountryPicker(false)}
-        >
-          <TouchableOpacity 
+        <View style={styles.modalOverlay}>
+          <Pressable 
+            style={StyleSheet.absoluteFill}
+            onPress={() => setShowCountryPicker(false)}
+            accessible={false}
+            accessibilityRole="none"
+          />
+          <View 
             style={styles.modalContent}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
+            accessible={true}
+            importantForAccessibility="yes"
+            accessibilityViewIsModal={true}
+            onStartShouldSetResponder={() => true}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Country</Text>
-              <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+              <TouchableOpacity 
+                onPress={() => setShowCountryPicker(false)}
+                accessible={true}
+                accessibilityLabel="Close country picker"
+                accessibilityRole="button"
+              >
                 <Ionicons name="close" size={rs(28)} color="#fff" />
               </TouchableOpacity>
             </View>
@@ -978,14 +987,15 @@ const ProfileScreen = () => {
               }}
               style={styles.picker}
               itemStyle={styles.pickerItem}
+              accessible={true}
             >
               <Picker.Item label="Select Country" value="" />
               {COUNTRIES.map((country) => (
                 <Picker.Item key={country.code} label={`${country.name} (${country.timezone})`} value={country.name} />
               ))}
             </Picker>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       {/* Language Picker Modal */}
@@ -998,21 +1008,19 @@ const ProfileScreen = () => {
         statusBarTranslucent={true}
         presentationStyle="overFullScreen"
       >
-        <View 
-          style={styles.modalOverlay}
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-        >
-          <TouchableOpacity 
+        <View style={styles.modalOverlay}>
+          <Pressable 
             style={StyleSheet.absoluteFill}
-            activeOpacity={1}
             onPress={() => setShowLanguagePicker(false)}
             accessible={false}
+            accessibilityRole="none"
           />
           <View 
             style={styles.modalContent}
             accessible={true}
             importantForAccessibility="yes"
+            accessibilityViewIsModal={true}
+            onStartShouldSetResponder={() => true}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Language</Text>
@@ -1056,9 +1064,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-  },
-  container: {
-    flex: 1,
+    ...(Platform.OS === 'web' && { pointerEvents: 'box-none' }),
   },
   header: {
     flexDirection: 'row',
@@ -1086,11 +1092,10 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    minHeight: 0,
   },
   scrollContent: {
-    paddingBottom: hp(6),
-    flexGrow: 1,
+    paddingBottom: hp(8),
+    paddingTop: hp(1),
   },
   profileHeader: {
     alignItems: 'center',

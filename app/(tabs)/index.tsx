@@ -1,8 +1,7 @@
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import EditScreenInfo from '../../components/EditScreenInfo';
 import { Text, View } from '../../components/Themed';
-import React from 'react';
-
 
 export default function TabOneScreen() {
   return (
@@ -15,9 +14,7 @@ export default function TabOneScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1, // ✅ FIX: remove center alignment to allow scrolling screens
   },
   title: {
     fontSize: 20,

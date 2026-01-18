@@ -13,6 +13,7 @@ import {
   Modal,
   FlatList,
   Image,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -288,13 +289,22 @@ const RegistrationForm = ({ route }) => {
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
+        accessibilityViewIsModal={true}
       >
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <View style={styles.dropdown}>
+        <View style={styles.overlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setModalVisible(false)}
+            accessible={false}
+            accessibilityRole="none"
+          />
+          <View 
+            style={styles.dropdown}
+            accessible={true}
+            importantForAccessibility="yes"
+            accessibilityViewIsModal={true}
+            onStartShouldSetResponder={() => true}
+          >
             <FlatList
               data={teamSlots}
               keyExtractor={(item) => item}
@@ -302,13 +312,15 @@ const RegistrationForm = ({ route }) => {
                 <TouchableOpacity
                   style={styles.option}
                   onPress={() => handleSelect(item)}
+                  accessible={true}
+                  accessibilityRole="button"
                 >
                   <Text style={styles.optionText}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );

@@ -1,23 +1,39 @@
 import axios from 'axios';
 import { Platform, Alert } from 'react-native';
 
-// Detect the API base URL based on platform and environment
+// API Configuration - Works anywhere without manual IP setup
+// Production backend is deployed at: https://esportsindia-hh3x.onrender.com
+// Option 1: Use deployed backend (default) - works everywhere
+// Option 2: For local development, set EXPO_PUBLIC_API_IP in .env for local IP
+
 const getApiBaseUrl = () => {
-  // For iOS Simulator, use localhost
-  if (Platform.OS === 'ios') {
+  // Priority 1: Use explicit API URL from environment variable (works everywhere)
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  // Default to deployed backend (works everywhere)
+  const DEPLOYED_BACKEND_URL = 'https://esportsindia-hh3x.onrender.com/api';
+
+  // Priority 2: For local development - use local IP if provided
+  const localIP = process.env.EXPO_PUBLIC_API_IP;
+  
+  if (Platform.OS === 'web') {
+    // Web: Use local IP if provided, otherwise localhost, then deployed backend
+    if (localIP) {
+      return `http://${localIP}:5000/api`;
+    }
     return 'http://localhost:5000/api';
   }
-  
-  // For Android Emulator, use 10.0.2.2 (special IP that maps to host machine's localhost)
-  if (Platform.OS === 'android') {
-    // For Android emulator, use 10.0.2.2 to access host machine's localhost
-    // For physical device, use your machine's local IP address
-    return 'http://10.0.2.2:5000/api'; // Android emulator
-    // return 'http://YOUR_LOCAL_IP:5000/api'; // Physical device - update YOUR_LOCAL_IP
+
+  // For mobile devices (iOS/Android)
+  if (localIP) {
+    // Use provided local IP for local development
+    return `http://${localIP}:5000/api`;
   }
-  
-  // For web, use localhost
-  return 'http://localhost:5000/api';
+
+  // Default: Use deployed backend (works everywhere)
+  return DEPLOYED_BACKEND_URL;
 };
 
 const API_BASE_URL = getApiBaseUrl();

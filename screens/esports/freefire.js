@@ -69,12 +69,13 @@ const GameScreen = () => {
     <View style={styles.container}>
       
       <View style={styles.header}>
-        <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+        <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
       </View>
 
       {/* FlatList for sections */}
       <FlatList
         data={sections}
+        style={styles.flatList}
         renderItem={({ item }) => (
           <FlatList
             data={item.data}
@@ -84,11 +85,15 @@ const GameScreen = () => {
             contentContainerStyle={styles.grid}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={() => renderSectionHeader({ section: item })}
+            nestedScrollEnabled={true}
+            scrollEnabled={false}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        bounces={true}
       />
     </View>
   );
@@ -107,6 +112,7 @@ const styles = StyleSheet.create({
     paddingTop:30,
     color: '#000',
     marginBottom:30,
+    flexShrink: 1,
   },
   sectionTitle: {
     fontSize: 24,
@@ -114,6 +120,9 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginLeft: 26,
     color: '#333',
+  },
+  flatList: {
+    flex: 1,
   },
   listContainer: {
     paddingBottom: 20,

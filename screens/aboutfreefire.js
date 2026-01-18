@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     padding: 20,
     margin:15,
     borderRadius: 10,
-    shadowColor: '#000',  // Add shadow effect for card elevation
+    //shadowColor: '#000',  // Add shadow effect for card elevation - deprecated for web
     
   },
   label: {

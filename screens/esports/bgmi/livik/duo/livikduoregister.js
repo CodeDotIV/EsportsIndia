@@ -9,7 +9,10 @@ import {
   Alert,
   ActivityIndicator,
   TouchableOpacity,
-  Platform,Modal,FlatList,
+  Platform,
+  Modal,
+  FlatList,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -213,20 +216,43 @@ const RegistrationForm = ({ route }) => {
       </TouchableOpacity>
 
       {/* Dropdown Modal */}
-      <Modal transparent={true} visible={modalVisible} animationType="fade">
-        <TouchableOpacity style={styles.overlay} onPress={() => setModalVisible(false)}>
-          <View style={styles.dropdown}>
+      <Modal 
+        transparent={true} 
+        visible={modalVisible} 
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+        accessibilityViewIsModal={true}
+      >
+        <View style={styles.overlay}>
+          <Pressable 
+            style={StyleSheet.absoluteFill}
+            onPress={() => setModalVisible(false)}
+            accessible={false}
+            accessibilityRole="none"
+          />
+          <View 
+            style={styles.dropdown}
+            accessible={true}
+            importantForAccessibility="yes"
+            accessibilityViewIsModal={true}
+            onStartShouldSetResponder={() => true}
+          >
             <FlatList
               data={teamSlots}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity style={styles.option} onPress={() => handleSelect(item)}>
+                <TouchableOpacity 
+                  style={styles.option} 
+                  onPress={() => handleSelect(item)}
+                  accessible={true}
+                  accessibilityRole="button"
+                >
                   <Text style={styles.optionText}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
         
@@ -327,10 +353,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     elevation: 5, // Android shadow
     zIndex: 10,
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    //shadowColor: "#000", // iOS shadow - deprecated for web
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.2,
+    //shadowRadius: 4,
   },
   inputContainer: {
     marginBottom: 20,

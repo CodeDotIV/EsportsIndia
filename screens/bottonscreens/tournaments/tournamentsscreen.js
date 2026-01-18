@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../../utils/responsive';
 
 const games = [
-  { id: '1', name: 'Battle Grounds Mobile India', image: require('../../../assets/images/bgmilogo.png') },
+  { id: '1', name: 'BGMI', image: require('../../../assets/images/bgmilogo.png') },
   { id: '2', name: 'Freefire', image: require('../../../assets/images/freefirelogo.png'), screen: 'Freefire' },
   { id: '3', name: 'Call of Duty', image: require('../../../assets/images/callofduty.png'), screen: 'Callofduty' },
   { id: '4', name: 'Valorant', image: require('../../../assets/images/valorant.png'), screen: 'Valorant' },
@@ -35,7 +35,7 @@ export default function TournamentsScreen() {
   const tabs = ['Active', 'Upcoming'];
 
   const handleCardPress = (game) => {
-    if (game.name === 'Battle Grounds Mobile India') {
+    if (game.name === 'BGMI') {
       setShowBgmiCards(true);
       setSelectedGame(game.name);
     } else {
@@ -172,7 +172,7 @@ export default function TournamentsScreen() {
                 <View style={styles.gameCardInner}>
                   <View style={styles.gameImageContainer}>
                     <Image source={game.image} style={styles.gameImage} resizeMode="contain" />
-                    {game.name !== 'Battle Grounds Mobile India' && (
+                    {game.name !== 'BGMI' && (
                       <View style={styles.comingSoonOverlay}>
                         <Text style={styles.comingSoonText}>Coming Soon</Text>
                       </View>
@@ -334,10 +334,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2A3441',
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
   },
   gameImageContainer: {
     width: '100%',
@@ -418,10 +418,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2A3441',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 1 },
+    //shadowOpacity: 0.2,
+    //shadowRadius: 2,
   },
   mapCardContent: {
     flexDirection: 'row',

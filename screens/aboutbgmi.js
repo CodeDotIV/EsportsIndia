@@ -1,19 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { wp, hp, rf, rs } from '../utils/responsive';
 
 const LearnScreen = () => {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header Section with Back Button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
+            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
+          </View>
+        </View>
       </View>
 
       {/* Scrollable Content */}
@@ -65,63 +71,74 @@ const LearnScreen = () => {
           <Text style={styles.point}>• Maintain sportsmanship even in tough situations.</Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
-    backgroundColor: '#f5f5f5', 
-    paddingHorizontal: 1,  // Add padding for consistent spacing
+    backgroundColor: '#0F1419',
   },
   header: {
-    backgroundColor: '#f5a623', 
-    paddingTop: 40,   // Adjust padding for header to make space for the back button
-    paddingBottom: 20, 
-    alignItems: 'flex-start',  // Change to 'flex-start' for proper alignment
-    flexDirection: 'row',  // Ensure the text and button are horizontally aligned
-    justifyContent: 'flex-start', 
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButton: {
-    paddingLeft: 10,  // Adjusted padding for proper alignment
-    marginTop:23,
+    marginRight: wp(3),
+    padding: wp(1),
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerText: {
-    fontSize: 22,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    color: '#000',
-    marginTop:20,
-    marginLeft: 10,  // Add margin to prevent the header text from being too close to the back button
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+    flexShrink: 1,
   },
   scrollView: {
     flex: 1,
   },
   card: {
-    backgroundColor: '#FFF',
-    marginBottom: 15,
-    padding: 20,
-    margin:15,
-    borderRadius: 10,
-    shadowColor: '#000',  // Add shadow effect for card elevation
-    
+    marginBottom: hp(2),
+    padding: hp(2.5),
+    marginHorizontal: wp(4),
+    borderRadius: rs(12),
+    elevation: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
   },
   label: {
-    fontSize: 16,
+    fontSize: rf(18),
     fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   required: {
-    color: 'red',
+    color: '#FF6B6B',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: rf(18),
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: hp(1),
+    color: '#FFD700',
   },
   point: {
-    fontSize: 15,
-    marginLeft: 10,
-    marginTop: 5,
+    fontSize: rf(15),
+    marginLeft: wp(2),
+    marginTop: hp(0.5),
+    color: '#FFFFFF',
   },
 });
 

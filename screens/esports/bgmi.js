@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import { 
   View, Text, FlatList, TouchableOpacity, 
-  StyleSheet, Image 
+  StyleSheet, Image, SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { wp, hp, rf, rs } from '../../utils/responsive';
 
 // Import the Livik image
 const livik = require('../../assets/images/livik.png');
@@ -57,18 +58,28 @@ const GameScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header with Back Button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Battle Grounds Mobile India</Text>
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
+            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
+          </View>
+        </View>
       </View>
 
       {/* FlatList for sections */}
       <FlatList
         data={sections}
+        style={styles.flatList}
         renderItem={({ item }) => (
           <FlatList
             data={item.data}
@@ -78,67 +89,85 @@ const GameScreen = () => {
             contentContainerStyle={styles.grid}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={() => renderSectionHeader({ section: item })}
+            nestedScrollEnabled={true}
+            scrollEnabled={false}
           />
         )}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        bounces={true}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, backgroundColor: '#f5f5f5', padding: 0,
+    flex: 1,
+    backgroundColor: '#0F1419',
   },
   header: {
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 2,
+    borderBottomColor: '#2A3441',
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5a623',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
   },
   backButton: {
-    position: 'absolute',
-    left: 15,
-    top: 55,
-    zIndex: 10,
+    marginRight: wp(3),
+    padding: wp(1),
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerText: {
-    flex: 1,
-    fontSize: 20,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#000',
+    color: '#FFFFFF',
+    marginLeft: wp(2),
+    flexShrink: 1,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: rf(22),
     fontWeight: 'bold',
-    marginTop: 30,
-    marginLeft: 26,
-    color: '#333',
+    marginTop: hp(2),
+    marginLeft: wp(5),
+    marginBottom: hp(1),
+    color: '#FFFFFF',
+  },
+  flatList: {
+    flex: 1,
   },
   listContainer: {
-    paddingBottom: 20,
-    paddingHorizontal: 10,
+    paddingBottom: hp(4),
+    paddingHorizontal: wp(2),
   },
   grid: {
     gap: 10,
-    paddingTop: 10,
+    paddingTop: hp(1),
   },
   cardContainer: {
     flex: 1,
     alignItems: 'center',
-    margin: 10,
+    margin: wp(2),
   },
   card: {
     width: 150,
     height: 100,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: rs(12),
     overflow: 'hidden',
+    elevation: 4,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 2 },
+    //shadowOpacity: 0.3,
+    //shadowRadius: 4,
   },
   cardImage: {
     width: '100%',
@@ -146,10 +175,11 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   cardText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 5,
+    fontSize: rf(13),
+    fontWeight: '600',
+    marginTop: hp(0.5),
     textAlign: 'center',
+    color: '#FFFFFF',
   },
 });
 
