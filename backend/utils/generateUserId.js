@@ -21,15 +21,24 @@ export const generateUserId = async (UserModel = null) => {
     
     // If collision, add milliseconds (3 digits) to make it unique
     while (exists && attempts < maxAttempts) {
-      const ms = String(now.getMilliseconds()).padStart(3, '0');
+      // Get fresh timestamp for milliseconds
+      const freshNow = new Date();
+      const ms = String(freshNow.getMilliseconds()).padStart(3, '0');
       userId = `${year}${month}${day}${hours}${minutes}${seconds}${ms}`;
       exists = await UserModel.findOne({ userId });
       attempts++;
+      
+      // If still collision, add random suffix
+      if (exists && attempts >= 10) {
+        const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        userId = `${year}${month}${day}${hours}${minutes}${seconds}${randomSuffix}`;
+        exists = await UserModel.findOne({ userId });
+      }
     }
     
-    // If still collision after max attempts, add random suffix
+    // Final fallback: add random suffix if still collision
     if (exists) {
-      const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
       userId = `${year}${month}${day}${hours}${minutes}${seconds}${randomSuffix}`;
     }
   }
