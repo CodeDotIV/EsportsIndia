@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -391,41 +390,32 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#1a1a2e', '#16213e', '#0f3460']}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={rs(24)} color="#fff" />
+            <Ionicons name="chevron-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.title}>My Profile</Text>
+          <Text style={styles.headerText}>My Profile</Text>
           <View style={styles.headerRight}>
             {!isEditing ? (
               <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.editIconButton}>
-                <Ionicons name="create-outline" size={rs(22)} color="#fff" />
+                <Ionicons name="create-outline" size={22} color="white" />
               </TouchableOpacity>
             ) : null}
           </View>
         </View>
-        
+        <View style={styles.headerLine} />
         <ScrollView 
           style={styles.scrollContainer} 
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={Platform.OS !== 'web'}
           keyboardShouldPersistTaps="always"
           nestedScrollEnabled={true}
           bounces={true}
         >
             {/* Profile Header Card */}
             <View style={styles.profileHeader}>
-              <View style={styles.avatarContainer}>
-                <Image 
-                  source={{ uri: user.avatar || getRandomAvatar(user.name, user.email) }} 
-                  style={styles.avatarImage}
-                />
-              </View>
               <Text style={styles.profileName}>{user.name || 'User Name'}</Text>
               <Text style={styles.profileEmail}>{user.email || 'user@example.com'}</Text>
               {user.gamingUsername ? (
@@ -437,10 +427,10 @@ const ProfileScreen = () => {
               
               {/* Bio Section */}
               {isEditing ? (
-                <View style={styles.bioEditContainer}>
+                <View style={styles.inputContainer}>
                   <Text style={styles.label}>Bio</Text>
                   <TextInput
-                    style={[styles.input, styles.bioInput]}
+                    style={[styles.input, { minHeight: hp(12), textAlignVertical: 'top', paddingTop: hp(1.2) }]}
                     placeholder="Tell us about yourself..."
                     placeholderTextColor="#999"
                     value={user.bio || ''}
@@ -468,242 +458,270 @@ const ProfileScreen = () => {
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Personal Information</Text>
                 
-                <View style={styles.labelContainer}>
-                  <Text style={styles.label}>Full Name</Text>
-                  <Text style={styles.requiredIndicator}>* Required</Text>
-                </View>
-          <TextInput
-            style={styles.input}
-                  placeholder="Enter your full name"
-                  placeholderTextColor="#999"
-            value={user.name}
-            onChangeText={(text) => setUser({ ...user, name: text })}
-            editable={isEditing}
-          />
-
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={[styles.input, styles.disabledInput]}
-            value={user.email}
-            editable={false}
-                  placeholderTextColor="#999"
-          />
-
-                <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-                  placeholder="Enter your phone number"
-                  placeholderTextColor="#999"
-            keyboardType="phone-pad"
-            value={user.phone}
-            onChangeText={(text) => setUser({ ...user, phone: text })}
-            editable={isEditing}
-          />
-
-          <Text style={styles.label}>Gender</Text>
-                {isEditing ? (
-                  <View style={styles.genderContainer}>
-                    {['Male', 'Female', 'Other', 'Prefer not to say'].map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        style={[
-                          styles.genderOption,
-                          user.gender === option && styles.genderOptionSelected
-                        ]}
-                        onPress={() => setUser({ ...user, gender: option })}
-                      >
-                        <Text style={[
-                          styles.genderOptionText,
-                          user.gender === option && styles.genderOptionTextSelected
-                        ]}>
-                          {option}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                ) : (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>
+                    Full Name <Text style={{ color: '#FF6B6B' }}>*</Text>
+                  </Text>
                   <TextInput
-                    style={[styles.input, styles.disabledInput]}
-                    value={user.gender || 'Not specified'}
+                    style={styles.input}
+                    placeholder="Enter your full name"
+                    placeholderTextColor="#999"
+                    value={user.name}
+                    onChangeText={(text) => setUser({ ...user, name: text })}
+                    editable={isEditing}
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabled]}
+                    value={user.email}
                     editable={false}
                     placeholderTextColor="#999"
                   />
-                )}
+                </View>
 
-                <Text style={styles.label}>Date of Birth</Text>
-          <TextInput
-            style={styles.input}
-                  placeholder="YYYY-MM-DD (e.g., 1990-01-15)"
-                  placeholderTextColor="#999"
-                  value={user.dateOfBirth}
-                  onChangeText={(text) => {
-                    // Only allow valid date format characters
-                    const cleaned = text.replace(/[^0-9-]/g, '');
-                    // Auto-format as user types: YYYY-MM-DD
-                    let formatted = cleaned;
-                    if (cleaned.length > 4 && cleaned[4] !== '-') {
-                      formatted = cleaned.slice(0, 4) + '-' + cleaned.slice(4);
-                    }
-                    if (formatted.length > 7 && formatted[7] !== '-') {
-                      formatted = formatted.slice(0, 7) + '-' + formatted.slice(7);
-                    }
-                    // Limit to 10 characters (YYYY-MM-DD)
-                    if (formatted.length <= 10) {
-                      setUser({ ...user, dateOfBirth: formatted });
-                    }
-                  }}
-            editable={isEditing}
-                  maxLength={10}
-                  keyboardType="numeric"
-          />
-                {isEditing && (
-                  <Text style={styles.helperText}>Format: YYYY-MM-DD (e.g., 1990-01-15)</Text>
-                )}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Phone Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your phone number"
+                    placeholderTextColor="#999"
+                    keyboardType="phone-pad"
+                    value={user.phone}
+                    onChangeText={(text) => setUser({ ...user, phone: text })}
+                    editable={isEditing}
+                  />
+                </View>
 
-          <Text style={styles.label}>Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your location"
-                  placeholderTextColor="#999"
-            value={user.location}
-            onChangeText={(text) => setUser({ ...user, location: text })}
-            editable={isEditing}
-          />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Gender</Text>
+                  {isEditing ? (
+                    <View style={styles.genderContainer}>
+                      {['Male', 'Female', 'Other', 'Prefer not to say'].map((option) => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.genderOption,
+                            user.gender === option && styles.genderOptionSelected
+                          ]}
+                          onPress={() => setUser({ ...user, gender: option })}
+                        >
+                          <Text style={[
+                            styles.genderOptionText,
+                            user.gender === option && styles.genderOptionTextSelected
+                          ]}>
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <TextInput
+                      style={[styles.input, styles.disabled]}
+                      value={user.gender || 'Not specified'}
+                      editable={false}
+                      placeholderTextColor="#999"
+                    />
+                  )}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Date of Birth</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YYYY-MM-DD (e.g., 1990-01-15)"
+                    placeholderTextColor="#999"
+                    value={user.dateOfBirth}
+                    onChangeText={(text) => {
+                      // Only allow valid date format characters
+                      const cleaned = text.replace(/[^0-9-]/g, '');
+                      // Auto-format as user types: YYYY-MM-DD
+                      let formatted = cleaned;
+                      if (cleaned.length > 4 && cleaned[4] !== '-') {
+                        formatted = cleaned.slice(0, 4) + '-' + cleaned.slice(4);
+                      }
+                      if (formatted.length > 7 && formatted[7] !== '-') {
+                        formatted = formatted.slice(0, 7) + '-' + formatted.slice(7);
+                      }
+                      // Limit to 10 characters (YYYY-MM-DD)
+                      if (formatted.length <= 10) {
+                        setUser({ ...user, dateOfBirth: formatted });
+                      }
+                    }}
+                    editable={isEditing}
+                    maxLength={10}
+                    keyboardType="numeric"
+                  />
+                  {isEditing && (
+                    <Text style={styles.helperText}>Format: YYYY-MM-DD (e.g., 1990-01-15)</Text>
+                  )}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Location</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your location"
+                    placeholderTextColor="#999"
+                    value={user.location}
+                    onChangeText={(text) => setUser({ ...user, location: text })}
+                    editable={isEditing}
+                  />
+                </View>
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Gaming Profile</Text>
-                <Text style={styles.label}>Gaming Username</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your gaming username"
-                  placeholderTextColor="#999"
-                  value={user.gamingUsername}
-                  onChangeText={(text) => setUser({ ...user, gamingUsername: text })}
-                  editable={isEditing}
-                />
-
-                <Text style={styles.label}>Favorite Game</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your favorite game"
-                  placeholderTextColor="#999"
-                  value={user.favoriteGame}
-                  onChangeText={(text) => setUser({ ...user, favoriteGame: text })}
-                  editable={isEditing}
-                />
-
-                <Text style={styles.label}>Gaming Platform</Text>
-                {isEditing ? (
-                  <View style={styles.optionsContainer}>
-                    {['PC', 'Mobile', 'Console', 'PC & Mobile', 'PC & Console', 'Mobile & Console', 'All Platforms'].map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        style={[
-                          styles.optionButton,
-                          user.gamingPlatform === option && styles.optionButtonSelected
-                        ]}
-                        onPress={() => setUser({ ...user, gamingPlatform: option })}
-                      >
-                        <Text style={[
-                          styles.optionButtonText,
-                          user.gamingPlatform === option && styles.optionButtonTextSelected
-                        ]}>
-                          {option}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                ) : (
+                
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Gaming Username</Text>
                   <TextInput
-                    style={[styles.input, styles.disabledInput]}
-                    value={user.gamingPlatform || 'Not specified'}
-                    editable={false}
+                    style={styles.input}
+                    placeholder="Enter your gaming username"
                     placeholderTextColor="#999"
+                    value={user.gamingUsername}
+                    onChangeText={(text) => setUser({ ...user, gamingUsername: text })}
+                    editable={isEditing}
+                    autoCapitalize="none"
                   />
-                )}
+                </View>
 
-                <Text style={styles.label}>Skill Level</Text>
-          {isEditing ? (
-                  <View style={styles.optionsContainer}>
-                    {['Beginner', 'Intermediate', 'Advanced', 'Professional'].map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        style={[
-                          styles.optionButton,
-                          user.skillLevel === option && styles.optionButtonSelected
-                        ]}
-                        onPress={() => setUser({ ...user, skillLevel: option })}
-                      >
-                        <Text style={[
-                          styles.optionButtonText,
-                          user.skillLevel === option && styles.optionButtonTextSelected
-                        ]}>
-                          {option}
-                        </Text>
-            </TouchableOpacity>
-                    ))}
-                  </View>
-                ) : (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Favorite Game</Text>
                   <TextInput
-                    style={[styles.input, styles.disabledInput]}
-                    value={user.skillLevel || 'Not specified'}
-                    editable={false}
+                    style={styles.input}
+                    placeholder="Enter your favorite game"
                     placeholderTextColor="#999"
+                    value={user.favoriteGame}
+                    onChangeText={(text) => setUser({ ...user, favoriteGame: text })}
+                    editable={isEditing}
                   />
-                )}
+                </View>
 
-                <Text style={styles.label}>Team/Clan Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your team or clan name"
-                  placeholderTextColor="#999"
-                  value={user.teamName}
-                  onChangeText={(text) => setUser({ ...user, teamName: text })}
-                  editable={isEditing}
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Gaming Platform</Text>
+                  {isEditing ? (
+                    <View style={styles.optionsContainer}>
+                      {['PC', 'Mobile', 'Console', 'PC & Mobile', 'PC & Console', 'Mobile & Console', 'All Platforms'].map((option) => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.optionButton,
+                            user.gamingPlatform === option && styles.optionButtonSelected
+                          ]}
+                          onPress={() => setUser({ ...user, gamingPlatform: option })}
+                        >
+                          <Text style={[
+                            styles.optionButtonText,
+                            user.gamingPlatform === option && styles.optionButtonTextSelected
+                          ]}>
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <TextInput
+                      style={[styles.input, styles.disabled]}
+                      value={user.gamingPlatform || 'Not specified'}
+                      editable={false}
+                      placeholderTextColor="#999"
+                    />
+                  )}
+                </View>
 
-                <Text style={styles.label}>Years of Gaming Experience</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter years (e.g., 5)"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  value={user.yearsOfGaming ? user.yearsOfGaming.toString() : ''}
-                  onChangeText={(text) => setUser({ ...user, yearsOfGaming: text })}
-                  editable={isEditing}
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Skill Level</Text>
+                  {isEditing ? (
+                    <View style={styles.optionsContainer}>
+                      {['Beginner', 'Intermediate', 'Advanced', 'Professional'].map((option) => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.optionButton,
+                            user.skillLevel === option && styles.optionButtonSelected
+                          ]}
+                          onPress={() => setUser({ ...user, skillLevel: option })}
+                        >
+                          <Text style={[
+                            styles.optionButtonText,
+                            user.skillLevel === option && styles.optionButtonTextSelected
+                          ]}>
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <TextInput
+                      style={[styles.input, styles.disabled]}
+                      value={user.skillLevel || 'Not specified'}
+                      editable={false}
+                      placeholderTextColor="#999"
+                    />
+                  )}
+                </View>
 
-                <Text style={styles.label}>Preferred Game Mode</Text>
-                {isEditing ? (
-                  <View style={styles.optionsContainer}>
-                    {['Solo', 'Duo', 'Squad', 'Tournament', 'All'].map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        style={[
-                          styles.optionButton,
-                          user.preferredGameMode === option && styles.optionButtonSelected
-                        ]}
-                        onPress={() => setUser({ ...user, preferredGameMode: option })}
-                      >
-                        <Text style={[
-                          styles.optionButtonText,
-                          user.preferredGameMode === option && styles.optionButtonTextSelected
-                        ]}>
-                          {option}
-                        </Text>
-            </TouchableOpacity>
-                    ))}
-                  </View>
-                ) : (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Team/Clan Name</Text>
                   <TextInput
-                    style={[styles.input, styles.disabledInput]}
-                    value={user.preferredGameMode || 'Not specified'}
-                    editable={false}
+                    style={styles.input}
+                    placeholder="Enter your team or clan name"
                     placeholderTextColor="#999"
+                    value={user.teamName}
+                    onChangeText={(text) => setUser({ ...user, teamName: text })}
+                    editable={isEditing}
                   />
-          )}
-        </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Years of Gaming Experience</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter years (e.g., 5)"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                    value={user.yearsOfGaming ? user.yearsOfGaming.toString() : ''}
+                    onChangeText={(text) => setUser({ ...user, yearsOfGaming: text })}
+                    editable={isEditing}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Preferred Game Mode</Text>
+                  {isEditing ? (
+                    <View style={styles.optionsContainer}>
+                      {['Solo', 'Duo', 'Squad', 'Tournament', 'All'].map((option) => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.optionButton,
+                            user.preferredGameMode === option && styles.optionButtonSelected
+                          ]}
+                          onPress={() => setUser({ ...user, preferredGameMode: option })}
+                        >
+                          <Text style={[
+                            styles.optionButtonText,
+                            user.preferredGameMode === option && styles.optionButtonTextSelected
+                          ]}>
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <TextInput
+                      style={[styles.input, styles.disabled]}
+                      value={user.preferredGameMode || 'Not specified'}
+                      editable={false}
+                      placeholderTextColor="#999"
+                    />
+                  )}
+                </View>
+              </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Social Media</Text>
@@ -798,138 +816,158 @@ const ProfileScreen = () => {
                   <>
                     <Text style={styles.sectionSubtitle}>Paste your profile links. Click icons to open profiles.</Text>
                     
-                    <View style={styles.socialRow}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (user.instagram) {
-                            const url = user.instagram.startsWith('http') ? user.instagram : `https://instagram.com/${user.instagram.replace('@', '')}`;
-                            Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Instagram'));
-                          }
-                        }}
-                        disabled={!user.instagram}
-                      >
-                        <Ionicons 
-                          name="logo-instagram" 
-                          size={rs(24)} 
-                          color={user.instagram ? "#E4405F" : "#666"} 
-                          style={styles.socialIcon} 
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Instagram</Text>
+                      <View style={styles.socialRow}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (user.instagram) {
+                              const url = user.instagram.startsWith('http') ? user.instagram : `https://instagram.com/${user.instagram.replace('@', '')}`;
+                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Instagram'));
+                            }
+                          }}
+                          disabled={!user.instagram}
+                        >
+                          <Ionicons 
+                            name="logo-instagram" 
+                            size={rs(24)} 
+                            color={user.instagram ? "#E4405F" : "#666"} 
+                            style={styles.socialIcon} 
+                          />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Instagram profile URL or @username"
+                          placeholderTextColor="#999"
+                          value={user.instagram}
+                          onChangeText={(text) => setUser({ ...user, instagram: text })}
+                          editable={isEditing}
+                          autoCapitalize="none"
                         />
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.socialInput}
-                        placeholder="Instagram profile URL or @username"
-                        placeholderTextColor="#999"
-                        value={user.instagram}
-                        onChangeText={(text) => setUser({ ...user, instagram: text })}
-                        editable={isEditing}
-                      />
+                      </View>
                     </View>
 
-                    <View style={styles.socialRow}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (user.twitter) {
-                            const url = user.twitter.startsWith('http') ? user.twitter : `https://twitter.com/${user.twitter.replace('@', '')}`;
-                            Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitter'));
-                          }
-                        }}
-                        disabled={!user.twitter}
-                      >
-                        <Ionicons 
-                          name="logo-twitter" 
-                          size={rs(24)} 
-                          color={user.twitter ? "#1DA1F2" : "#666"} 
-                          style={styles.socialIcon} 
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Twitter</Text>
+                      <View style={styles.socialRow}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (user.twitter) {
+                              const url = user.twitter.startsWith('http') ? user.twitter : `https://twitter.com/${user.twitter.replace('@', '')}`;
+                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitter'));
+                            }
+                          }}
+                          disabled={!user.twitter}
+                        >
+                          <Ionicons 
+                            name="logo-twitter" 
+                            size={rs(24)} 
+                            color={user.twitter ? "#1DA1F2" : "#666"} 
+                            style={styles.socialIcon} 
+                          />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Twitter profile URL or @username"
+                          placeholderTextColor="#999"
+                          value={user.twitter}
+                          onChangeText={(text) => setUser({ ...user, twitter: text })}
+                          editable={isEditing}
+                          autoCapitalize="none"
                         />
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.socialInput}
-                        placeholder="Twitter profile URL or @username"
-                        placeholderTextColor="#999"
-                        value={user.twitter}
-                        onChangeText={(text) => setUser({ ...user, twitter: text })}
-                        editable={isEditing}
-                      />
+                      </View>
                     </View>
 
-                    <View style={styles.socialRow}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (user.discord) {
-                            Alert.alert('Discord', `Discord: ${user.discord}\n\nCopy this to add as friend on Discord.`);
-                          }
-                        }}
-                        disabled={!user.discord}
-                      >
-                        <Ionicons 
-                          name="logo-discord" 
-                          size={rs(24)} 
-                          color={user.discord ? "#5865F2" : "#666"} 
-                          style={styles.socialIcon} 
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Discord</Text>
+                      <View style={styles.socialRow}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (user.discord) {
+                              Alert.alert('Discord', `Discord: ${user.discord}\n\nCopy this to add as friend on Discord.`);
+                            }
+                          }}
+                          disabled={!user.discord}
+                        >
+                          <Ionicons 
+                            name="logo-discord" 
+                            size={rs(24)} 
+                            color={user.discord ? "#5865F2" : "#666"} 
+                            style={styles.socialIcon} 
+                          />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Discord username#1234"
+                          placeholderTextColor="#999"
+                          value={user.discord}
+                          onChangeText={(text) => setUser({ ...user, discord: text })}
+                          editable={isEditing}
+                          autoCapitalize="none"
                         />
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.socialInput}
-                        placeholder="Discord username#1234"
-                        placeholderTextColor="#999"
-                        value={user.discord}
-                        onChangeText={(text) => setUser({ ...user, discord: text })}
-                        editable={isEditing}
-                      />
+                      </View>
                     </View>
 
-                    <View style={styles.socialRow}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (user.youtube) {
-                            const url = user.youtube.startsWith('http') ? user.youtube : `https://youtube.com/@${user.youtube.replace('@', '').replace(/ /g, '')}`;
-                            Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open YouTube'));
-                          }
-                        }}
-                        disabled={!user.youtube}
-                      >
-                        <Ionicons 
-                          name="logo-youtube" 
-                          size={rs(24)} 
-                          color={user.youtube ? "#FF0000" : "#666"} 
-                          style={styles.socialIcon} 
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>YouTube</Text>
+                      <View style={styles.socialRow}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (user.youtube) {
+                              const url = user.youtube.startsWith('http') ? user.youtube : `https://youtube.com/@${user.youtube.replace('@', '').replace(/ /g, '')}`;
+                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open YouTube'));
+                            }
+                          }}
+                          disabled={!user.youtube}
+                        >
+                          <Ionicons 
+                            name="logo-youtube" 
+                            size={rs(24)} 
+                            color={user.youtube ? "#FF0000" : "#666"} 
+                            style={styles.socialIcon} 
+                          />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="YouTube channel URL or channel name"
+                          placeholderTextColor="#999"
+                          value={user.youtube}
+                          onChangeText={(text) => setUser({ ...user, youtube: text })}
+                          editable={isEditing}
+                          autoCapitalize="none"
                         />
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.socialInput}
-                        placeholder="YouTube channel URL or channel name"
-                        placeholderTextColor="#999"
-                        value={user.youtube}
-                        onChangeText={(text) => setUser({ ...user, youtube: text })}
-                        editable={isEditing}
-                      />
+                      </View>
                     </View>
 
-                    <View style={styles.socialRow}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (user.twitch) {
-                            const url = user.twitch.startsWith('http') ? user.twitch : `https://twitch.tv/${user.twitch.replace('@', '').replace(/ /g, '')}`;
-                            Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitch'));
-                          }
-                        }}
-                        disabled={!user.twitch}
-                      >
-                        <Ionicons 
-                          name="logo-twitch" 
-                          size={rs(24)} 
-                          color={user.twitch ? "#9146FF" : "#666"} 
-                          style={styles.socialIcon} 
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Twitch</Text>
+                      <View style={styles.socialRow}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (user.twitch) {
+                              const url = user.twitch.startsWith('http') ? user.twitch : `https://twitch.tv/${user.twitch.replace('@', '').replace(/ /g, '')}`;
+                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitch'));
+                            }
+                          }}
+                          disabled={!user.twitch}
+                        >
+                          <Ionicons 
+                            name="logo-twitch" 
+                            size={rs(24)} 
+                            color={user.twitch ? "#9146FF" : "#666"} 
+                            style={styles.socialIcon} 
+                          />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Twitch channel URL or username"
+                          placeholderTextColor="#999"
+                          value={user.twitch}
+                          onChangeText={(text) => setUser({ ...user, twitch: text })}
+                          editable={isEditing}
+                          autoCapitalize="none"
                         />
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.socialInput}
-                        placeholder="Twitch channel URL or username"
-                        placeholderTextColor="#999"
-                        value={user.twitch}
-                        onChangeText={(text) => setUser({ ...user, twitch: text })}
-                        editable={isEditing}
-                      />
+                      </View>
                     </View>
                   </>
                 )}
@@ -1082,7 +1120,7 @@ const ProfileScreen = () => {
           </View>
         </View>
       </Modal>
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 };
@@ -1092,42 +1130,68 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#141E30',
+    ...(Platform.OS === 'web' && {
+      height: '100vh',
+      overflow: 'hidden',
+    }),
   },
   gradient: {
     flex: 1,
-    ...(Platform.OS === 'web' && { pointerEvents: 'box-none' }),
+    backgroundColor: '#141E30',
+    ...(Platform.OS === 'web' && {
+      height: '100%',
+      minHeight: '100%',
+    }),
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    paddingTop: Platform.OS === 'ios' ? hp(1) : hp(2.5),
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: '',
+    padding: 20,
   },
   backButton: {
-    marginRight: wp(2.5),
+    color: 'white',
+    marginRight: 10,
+    paddingTop: 40,
   },
-  title: {
-    fontSize: rf(20),
+  headerText: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: 'white',
+    paddingTop: 38,
     flex: 1,
   },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
+  },
   headerRight: {
-    width: rs(30),
+    paddingTop: 40,
+    alignItems: 'flex-end',
   },
   editIconButton: {
-    padding: rs(5),
+    padding: 0,
   },
   scrollContainer: {
     flex: 1,
+    ...(Platform.OS === 'web' && {
+      height: '100%',
+      minHeight: 0,
+    }),
+  },
+  scrollView: {
+    flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: wp(5),
     paddingBottom: hp(8),
-    paddingTop: hp(1),
+    paddingTop: hp(2),
+    ...(Platform.OS === 'web' && {
+      minHeight: '100%',
+    }),
   },
   profileHeader: {
     alignItems: 'center',
@@ -1140,22 +1204,20 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: hp(1.5),
   },
-  avatar: {
+  avatarCircle: {
     width: rs(100),
     height: rs(100),
     borderRadius: rs(50),
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#E97FA9',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
     borderColor: '#fff',
   },
-  avatarImage: {
-    width: rs(100),
-    height: rs(100),
-    borderRadius: rs(50),
-    borderWidth: 3,
-    borderColor: '#fff',
+  avatarInitials: {
+    fontSize: rf(32),
+    fontWeight: 'bold',
+    color: '#000',
   },
   profileName: {
     fontSize: rf(22),
@@ -1187,55 +1249,37 @@ const styles = StyleSheet.create({
     marginLeft: wp(1.5),
   },
   form: {
-    paddingHorizontal: wp(5),
+    flex: 1,
   },
   section: {
-    marginBottom: hp(3),
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: rs(15),
-    padding: wp(4.5),
+    marginTop: hp(2),
   },
   sectionTitle: {
     fontSize: rf(18),
     fontWeight: 'bold',
-    color: '#f5a623',
-    marginBottom: hp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(245, 166, 35, 0.3)',
-    paddingBottom: hp(0.8),
+    marginBottom: hp(1),
+    color: '#FFD700',
   },
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: hp(1.5),
-    marginBottom: hp(0.8),
+  inputContainer: {
+    marginBottom: hp(2),
   },
   label: {
-    fontSize: rf(14),
+    fontSize: rf(16),
     fontWeight: '600',
-    color: '#fff',
-  },
-  requiredIndicator: {
-    fontSize: rf(11),
-    color: '#ff4444',
-    fontWeight: '500',
-    fontStyle: 'italic',
+    marginBottom: hp(0.5),
+    color: '#FFFFFF',
   },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: rs(10),
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(4),
+    borderColor: '#2A3441',
+    borderRadius: rs(8),
+    padding: hp(1.2),
+    backgroundColor: '#1A1F2E',
+    color: '#FFFFFF',
     fontSize: rf(15),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    color: '#fff',
-    minHeight: hp(5.5),
-    marginBottom: hp(1),
   },
-  disabledInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  disabled: {
+    backgroundColor: '#1A1F2E',
     color: '#999',
   },
   textArea: {
@@ -1385,22 +1429,10 @@ const styles = StyleSheet.create({
   socialRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(1.2),
-    marginTop: hp(0.5),
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: rs(10),
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.8),
+    gap: wp(2),
   },
   socialIcon: {
     marginRight: wp(2.5),
-  },
-  socialInput: {
-    flex: 1,
-    borderWidth: 0,
-    fontSize: rf(14),
-    color: '#fff',
-    paddingVertical: hp(1),
   },
   bioContainer: {
     marginTop: hp(1),

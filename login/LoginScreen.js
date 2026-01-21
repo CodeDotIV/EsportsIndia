@@ -11,9 +11,6 @@ import {
   SafeAreaView,
   ScrollView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import MaskedView from "@react-native-masked-view/masked-view";
-import { useVideoPlayer, VideoView } from "expo-video";
 import { login } from "../services/authService";
 import { sendOtp } from "../services/otpService";
 import { wp, hp, rf, rs, isTablet, isSmallDevice } from "../utils/responsive";
@@ -22,12 +19,6 @@ import { setItem } from "../utils/storageHelper";
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const player = useVideoPlayer(require("../assets/vedios/intro.mp4"), (player) => {
-    player.loop = true;
-    player.muted = true;
-    player.play();
-  });
 
   const handleEmailLogin = async () => {
     if (!email || !password) {
@@ -107,17 +98,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.videoContainer}>
-        <VideoView
-          player={player}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          nativeControls={false}
-        />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0, 0, 0, 0.80)" }]} />
-      </View>
-
-      <LinearGradient colors={["#1a1a2eaa", "#16213eaa", "#0f3460aa"]} style={styles.container}>
+      <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.innerContainer}
@@ -128,38 +109,36 @@ export default function LoginScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.header}>
-              <MaskedView maskElement={<Text style={styles.title}>EsportsIndia</Text>}>
-                <LinearGradient
-                  colors={["#FF9933", "#FFFFFF", "#138808"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={[styles.title, { opacity: 0 }]}>EsportsIndia</Text>
-                </LinearGradient>
-              </MaskedView>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>EsportsIndia</Text>
               <Text style={styles.subtitle}>Level Up Your Gaming Journey</Text>
             </View>
 
             <View style={styles.form}>
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor="#aaa"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                style={styles.input}
-              />
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  placeholder="Enter email"
+                  placeholderTextColor="#999"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={styles.input}
+                />
+              </View>
 
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="#aaa"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-                style={styles.input}
-              />
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <TextInput
+                  placeholder="Enter password"
+                  placeholderTextColor="#999"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                  style={styles.input}
+                />
+              </View>
 
               <TouchableOpacity onPress={handleEmailLogin} style={styles.loginBtn}>
                 <Text style={styles.loginText}>Login</Text>
@@ -180,7 +159,7 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.footer}>© 2025 EsportsIndia. All Rights Reserved.</Text>
           </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -188,27 +167,24 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-  },
-  videoContainer: {
-    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#141E30',
   },
   container: {
     flex: 1,
-    paddingHorizontal: wp(8),
-    justifyContent: "center",
+    backgroundColor: '#141E30',
   },
   innerContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: wp(5),
     paddingVertical: hp(3),
   },
-  header: {
+  titleContainer: {
     alignItems: "center",
-    marginTop: hp(8),
     marginBottom: hp(4),
   },
   title: {
@@ -230,32 +206,41 @@ const styles = StyleSheet.create({
     maxWidth: wp(90),
     alignItems: "center",
   },
-  input: {
+  inputContainer: {
+    marginBottom: hp(2),
     width: "100%",
-    backgroundColor: "#ffffff22",
-    paddingVertical: hp(1.7),
-    paddingHorizontal: wp(4),
-    borderRadius: rs(12),
-    marginVertical: hp(1),
-    color: "white",
+  },
+  label: {
     fontSize: rf(16),
+    fontWeight: '600',
+    marginBottom: hp(0.5),
+    color: '#FFFFFF',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: rs(8),
+    padding: hp(1.2),
+    backgroundColor: '#1A1F2E',
+    color: '#FFFFFF',
+    fontSize: rf(15),
   },
   loginBtn: {
-    backgroundColor: "#e94560",
+    backgroundColor: "#FFD700",
     width: "100%",
     paddingVertical: hp(2),
-    borderRadius: rs(14),
+    borderRadius: rs(8),
     marginTop: hp(1.2),
     alignItems: "center",
   },
   loginText: {
-    color: "white",
+    color: "#000",
     fontSize: rf(20),
     fontWeight: "bold",
     letterSpacing: 1,
   },
   link: {
-    color: "#e94560",
+    color: "#FFD700",
     marginTop: hp(1.2),
     fontSize: rf(16),
   },
@@ -270,7 +255,7 @@ const styles = StyleSheet.create({
     fontSize: rf(16),
   },
   signupText: {
-    color: "#e94560",
+    color: "#FFD700",
     fontWeight: "bold",
     fontSize: rf(16),
   },

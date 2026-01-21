@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,10 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../utils/responsive';
+import { getItem } from '../../utils/storageHelper';
 
 const { width } = Dimensions.get('window');
 
@@ -63,6 +64,39 @@ const gameData = [
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [greeting] = useState(getGreeting());
+  const [userGender, setUserGender] = useState(null);
+
+  const loadUserGender = async () => {
+    try {
+      const userData = await getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setUserGender(user.gender || null);
+      }
+    } catch (error) {
+      console.error('Failed to load user gender:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadUserGender();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserGender();
+    }, [])
+  );
+
+  const getProfileIcon = () => {
+    if (userGender === 'Male') {
+      return 'person'; // Classic filled person icon for male
+    } else if (userGender === 'Female') {
+      return 'person-outline'; // Classic outline person icon for female
+    } else {
+      return 'person-outline'; // Default outline icon
+    }
+  };
 
   const handleGamePress = (game) => {
     if (game.navigation) {
@@ -121,23 +155,30 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       {/* Classic Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
+        <View style={styles.logoContainer}>
           <Image 
             source={require('../../assets/images/logo.png')} 
             style={styles.logo} 
           />
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.greeting}>{greeting}!</Text>
-            <Text style={styles.headerTitle}>EsportsIndia</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => navigation.navigate('Profile')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="person" size={rs(28)} color="#FFD700" />
-          </TouchableOpacity>
         </View>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.greeting}>{greeting}!</Text>
+          <Text style={styles.headerTitle}>EsportsIndia</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate('Profile')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.profileIconContainer}>
+            <Ionicons 
+              name={getProfileIcon()} 
+              size={24} 
+              color="white"
+              style={userGender === 'Male' ? styles.maleIcon : styles.femaleIcon}
+            />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Classic Divider */}
@@ -224,6 +265,16 @@ export default function HomeScreen() {
               <Text style={styles.actionTitle}>Winners</Text>
               <Text style={styles.actionSubtitle}>Leaderboard</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('Live')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.actionIcon}>📺</Text>
+              <Text style={styles.actionTitle}>Live</Text>
+              <Text style={styles.actionSubtitle}>Watch Streams</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -283,51 +334,49 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F1419',
+    backgroundColor: '#141E30',
   },
   header: {
-    backgroundColor: '#1A1F2E',
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    borderBottomWidth: 2,
-    borderBottomColor: '#2A3441',
-    elevation: 4,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 3 },
-    //shadowOpacity: 0.3,
-    //shadowRadius: 5,
-  },
-  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '',
+    padding: 20,
+  },
+  logoContainer: {
+    marginRight: wp(3),
+    paddingTop: 40,
   },
   logo: {
     width: rs(50),
     height: rs(50),
     borderRadius: rs(25),
-    marginRight: wp(3),
     borderWidth: 2,
     borderColor: '#FFD700',
   },
   headerTextContainer: {
     flex: 1,
     marginRight: wp(2),
+    paddingTop: 40,
   },
   profileButton: {
-    width: rs(44),
-    height: rs(44),
-    borderRadius: rs(22),
-    backgroundColor: '#2A3441',
+    marginRight: 10,
+    paddingTop: 40,
+  },
+  profileIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FFD700',
-    elevation: 2,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.2,
-    //shadowRadius: 3,
+    borderColor: 'white',
+  },
+  maleIcon: {
+    // Classic filled silhouette style for male
+  },
+  femaleIcon: {
+    // Classic outline silhouette style for female
   },
   greeting: {
     fontSize: rf(12),
@@ -335,10 +384,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerTitle: {
-    fontSize: rf(22),
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: hp(0.3),
+    color: 'white',
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
   },
   divider: {
     height: 3,
@@ -456,7 +516,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1A1F2E',
     borderRadius: rs(10),
-    padding: wp(3),
+    padding: wp(2),
+    paddingVertical: hp(1.5),
     marginHorizontal: wp(1),
     alignItems: 'center',
     elevation: 3,
@@ -472,14 +533,18 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
   },
   actionTitle: {
-    fontSize: rf(14),
+    fontSize: rf(8),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(0.5),
+    marginBottom: hp(0.2),
+    textAlign: 'center',
+    width: '100%',
   },
   actionSubtitle: {
-    fontSize: rf(11),
+    fontSize: rf(8),
     color: '#9CA3AF',
+    textAlign: 'center',
+    width: '100%',
   },
   infoSection: {
     backgroundColor: '#1A1F2E',

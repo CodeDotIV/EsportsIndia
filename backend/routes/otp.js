@@ -152,4 +152,66 @@ router.post('/verify', [
   }
 });
 
+// Reset Password after OTP Verification
+router.post('/reset-password', [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation failed', 
+        errors: errors.array() 
+      });
+    }
+
+    const { email, password } = req.body;
+
+    // Check if there's a verified OTP for password reset
+    const otpDoc = await Otp.findOne({ 
+      email, 
+      purpose: 'password_reset',
+      verified: true,
+      expiresAt: { $gt: Date.now() - 600000 } // OTP verified within last 10 minutes
+    }).sort({ createdAt: -1 });
+
+    if (!otpDoc) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No verified OTP found. Please verify OTP first.' 
+      });
+    }
+
+    // Find user and update password
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    // Update password
+    user.password = password;
+    await user.save();
+
+    // Delete the used OTP
+    await Otp.deleteOne({ _id: otpDoc._id });
+
+    res.json({ 
+      success: true, 
+      message: 'Password reset successful' 
+    });
+  } catch (error) {
+    console.error('Reset password with OTP error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      error: error.message 
+    });
+  }
+});
+
 export default router;

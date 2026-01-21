@@ -31,10 +31,12 @@ router.post('/signup', [
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    
+    // If user exists and is verified, reject signup
+    if (existingUser && existingUser.isEmailVerified) {
       return res.status(400).json({ 
         success: false, 
-        message: 'User with this email already exists' 
+        message: 'User with this email already exists. Please login instead.' 
       });
     }
 
@@ -52,47 +54,71 @@ router.post('/signup', [
     const gameModes = ['Solo', 'Duo', 'Squad', 'Tournament', 'All'];
     const genders = ['Male', 'Female', 'Other', 'Prefer not to say'];
     
-    // Generate userId explicitly to avoid validation errors
-    // Handle potential userId collisions by retrying
     let user;
-    let retries = 0;
-    const maxRetries = 5;
     
-    while (retries < maxRetries) {
-      try {
-        // Generate userId explicitly before creating user
-        const userId = await generateUserId(User);
-        
-        user = new User({
-          userId, // Set userId explicitly
-          name,
-          email,
-          password,
-          emailVerificationToken: crypto.randomBytes(32).toString('hex'),
-          avatar: randomAvatar,
-          gamingPlatform: gamingPlatforms[Math.floor(Math.random() * gamingPlatforms.length)],
-          skillLevel: skillLevels[Math.floor(Math.random() * skillLevels.length)],
-          preferredGameMode: gameModes[Math.floor(Math.random() * gameModes.length)],
-          gender: genders[Math.floor(Math.random() * genders.length)],
-          language: 'English'
-        });
-        
-        await user.save();
-        break; // Success, exit loop
-      } catch (error) {
-        // If userId collision (duplicate key error), wait and retry
-        if (error.code === 11000 && error.keyPattern?.userId) {
-          retries++;
-          if (retries >= maxRetries) {
-            throw new Error('Failed to generate unique user ID. Please try again.');
+    // If user exists but not verified, update their info and resend OTP
+    if (existingUser && !existingUser.isEmailVerified) {
+      // Update existing unverified user
+      existingUser.name = name;
+      existingUser.password = password; // Update password (will be hashed by pre-save hook)
+      existingUser.emailVerificationToken = crypto.randomBytes(32).toString('hex');
+      existingUser.avatar = randomAvatar;
+      existingUser.gamingPlatform = gamingPlatforms[Math.floor(Math.random() * gamingPlatforms.length)];
+      existingUser.skillLevel = skillLevels[Math.floor(Math.random() * skillLevels.length)];
+      existingUser.preferredGameMode = gameModes[Math.floor(Math.random() * gameModes.length)];
+      existingUser.gender = genders[Math.floor(Math.random() * genders.length)];
+      existingUser.language = 'English';
+      
+      await existingUser.save();
+      user = existingUser;
+    } else {
+      // Create new user
+      let retries = 0;
+      const maxRetries = 5;
+      
+      while (retries < maxRetries) {
+        try {
+          // Generate userId explicitly before creating user
+          const userId = await generateUserId(User);
+          
+          user = new User({
+            userId, // Set userId explicitly
+            name,
+            email,
+            password,
+            emailVerificationToken: crypto.randomBytes(32).toString('hex'),
+            avatar: randomAvatar,
+            gamingPlatform: gamingPlatforms[Math.floor(Math.random() * gamingPlatforms.length)],
+            skillLevel: skillLevels[Math.floor(Math.random() * skillLevels.length)],
+            preferredGameMode: gameModes[Math.floor(Math.random() * gameModes.length)],
+            gender: genders[Math.floor(Math.random() * genders.length)],
+            language: 'English'
+          });
+          
+          await user.save();
+          break; // Success, exit loop
+        } catch (error) {
+          // If userId collision (duplicate key error), wait and retry
+          if (error.code === 11000 && error.keyPattern?.userId) {
+            retries++;
+            if (retries >= maxRetries) {
+              throw new Error('Failed to generate unique user ID. Please try again.');
+            }
+            // Wait 1 second before retry (to get new timestamp)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } else {
+            throw error; // Re-throw if it's a different error
           }
-          // Wait 1 second before retry (to get new timestamp)
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } else {
-          throw error; // Re-throw if it's a different error
         }
       }
     }
+
+    // Delete any existing unverified OTPs for this email
+    await Otp.deleteMany({ 
+      email, 
+      purpose: 'email_verification',
+      verified: false 
+    });
 
     // Generate and send OTP for email verification
     const otp = generateOtp();
@@ -112,9 +138,14 @@ router.post('/signup', [
       // Still return success but note email sending failed
     }
 
+    const isExistingUser = existingUser && !existingUser.isEmailVerified;
+    const message = isExistingUser 
+      ? 'OTP resent to your email. Please verify your email with the new OTP.'
+      : 'User created successfully. Please verify your email with OTP.';
+
     res.status(201).json({
       success: true,
-      message: 'User created successfully. Please verify your email with OTP.',
+      message: message,
       requiresVerification: true,
       user: {
         id: user.userId || user._id.toString(),

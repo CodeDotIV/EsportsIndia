@@ -8,20 +8,16 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
+  ScrollView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import MaskedView from "@react-native-masked-view/masked-view";
-import { useVideoPlayer, VideoView } from "expo-video";
-import { forgotPassword } from "../services/authService";
+import { Ionicons } from "@expo/vector-icons";
+import { sendOtp } from "../services/otpService";
+import { wp, hp, rf, rs } from "../utils/responsive";
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState("");
-
-  const player = useVideoPlayer(require("../assets/vedios/intro.mp4"), (player) => {
-    player.loop = true;
-    player.muted = true;
-    player.play();
-  });
+  const [loading, setLoading] = useState(false);
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -29,58 +25,69 @@ export default function ForgotPasswordScreen({ navigation }) {
       return;
     }
 
-    const res = await forgotPassword(email);
-    if (res.success) {
-      Alert.alert("Success", "Password reset link sent to your email.");
-      navigation.goBack();
-    } else {
-      Alert.alert("Failed", res.error);
+    setLoading(true);
+    try {
+      console.log("📧 Sending OTP to:", email);
+      const res = await sendOtp(email, 'password_reset');
+      console.log("📧 OTP Response:", res);
+      if (res.success) {
+        console.log("✅ OTP sent successfully, navigating to VerifyOtpScreen");
+        // Navigate immediately to VerifyOtpScreen
+        navigation.replace("VerifyOtpScreen", { 
+          email, 
+          purpose: 'password_reset' 
+        });
+      } else {
+        console.log("❌ OTP send failed:", res.error);
+        Alert.alert("Failed", res.error);
+      }
+    } catch (error) {
+      console.error("❌ Error sending OTP:", error);
+      Alert.alert("Error", error.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <VideoView
-        player={player}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        nativeControls={false}
-      />
-
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.80)" }]} />
-
-      <LinearGradient colors={["#1a1a2eaa", "#16213eaa", "#0f3460aa"]} style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.innerContainer}
         >
-          <View style={styles.header}>
-            <MaskedView maskElement={<Text style={styles.title}>Forgot Password</Text>}>
-              <LinearGradient
-                colors={["#FF9933", "#FFFFFF", "#138808"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <Text style={[styles.title, { opacity: 0 }]}>Forgot Password</Text>
-              </LinearGradient>
-            </MaskedView>
-
-            <Text style={styles.subtitle}>Enter your registered email</Text>
-          </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>Forgot Password</Text>
+              <Text style={styles.subtitle}>Enter your registered email</Text>
+            </View>
 
           <View style={styles.form}>
-            <TextInput
-              placeholder="Email"
-              placeholderTextColor="#aaa"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                placeholder="Enter email"
+                placeholderTextColor="#999"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
+              />
+            </View>
 
-            <TouchableOpacity style={styles.resetBtn} onPress={handleForgotPassword}>
-              <Text style={styles.resetText}>Send Reset Link</Text>
+            <TouchableOpacity 
+              style={[styles.resetBtn, loading && styles.resetBtnDisabled]} 
+              onPress={handleForgotPassword}
+              disabled={loading}
+            >
+              <Text style={styles.resetText}>
+                {loading ? "Sending..." : "Send OTP Code"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -88,73 +95,101 @@ export default function ForgotPasswordScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.footer}>© 2025 EsportsIndia. All Rights Reserved.</Text>
+            <Text style={styles.footer}>© 2025 EsportsIndia. All Rights Reserved.</Text>
+          </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#141E30',
+  },
   container: {
     flex: 1,
-    paddingHorizontal: 30,
-    justifyContent: "center",
+    backgroundColor: '#141E30',
   },
   innerContainer: {
     flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
   },
-  header: {
-    marginTop: 120,
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(3),
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginBottom: hp(4),
   },
   title: {
-    fontSize: 42,
+    fontSize: rf(42),
     fontWeight: "bold",
     color: "white",
     letterSpacing: 1,
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: rf(16),
     color: "#ddd",
-    marginTop: 10,
+    marginTop: hp(1.2),
+    textAlign: "center",
   },
   form: {
     width: "100%",
+    maxWidth: wp(90),
     alignItems: "center",
+  },
+  inputContainer: {
+    marginBottom: hp(2),
+    width: "100%",
+  },
+  label: {
+    fontSize: rf(16),
+    fontWeight: '600',
+    marginBottom: hp(0.5),
+    color: '#FFFFFF',
   },
   input: {
-    width: "100%",
-    backgroundColor: "#ffffff22",
-    padding: 14,
-    borderRadius: 12,
-    marginVertical: 10,
-    color: "white",
-    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: rs(8),
+    padding: hp(1.2),
+    backgroundColor: '#1A1F2E',
+    color: '#FFFFFF',
+    fontSize: rf(15),
   },
   resetBtn: {
-    backgroundColor: "#e94560",
+    backgroundColor: "#FFD700",
     width: "100%",
-    padding: 15,
-    borderRadius: 14,
+    padding: hp(1.5),
+    borderRadius: rs(8),
     alignItems: "center",
-    marginTop: 10,
+    marginTop: hp(1.2),
+  },
+  resetBtnDisabled: {
+    backgroundColor: "#666",
+    opacity: 0.6,
   },
   resetText: {
-    color: "white",
-    fontSize: 20,
+    color: "#000",
+    fontSize: rf(18),
     fontWeight: "bold",
   },
   backText: {
-    color: "#e94560",
-    marginTop: 15,
-    fontSize: 16,
+    color: "#FFD700",
+    marginTop: hp(1.5),
+    fontSize: rf(16),
   },
   footer: {
-    marginBottom: 40,
+    marginTop: hp(3),
+    marginBottom: hp(5),
     color: "white",
-    fontSize: 14,
+    fontSize: rf(14),
+    textAlign: "center",
   },
 });

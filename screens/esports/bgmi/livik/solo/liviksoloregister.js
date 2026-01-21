@@ -171,10 +171,11 @@ const RegistrationForm = ({ route }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="black" />
+          <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.title}>Register</Text>
+        <Text style={styles.headerText}>Register</Text>
       </View>
+      <View style={styles.headerLine} />
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
         {/* Mode & Slot */}
@@ -331,7 +332,7 @@ const RegistrationForm = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#141E30",
     alignItems: "center",
   },
   upiContainer: {
@@ -356,18 +357,27 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5a623",
-    paddingVertical: 50,
-    paddingHorizontal: 20,
+    backgroundColor: "",
+    padding: 20,
   },
   backButton: {
+    color: "white",
     marginRight: 10,
+    paddingTop: 40,
   },
-  title: {
-    fontSize: 28,
+  headerText: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#000",
-    textAlign: "center",
+    color: "white",
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#FFD700",
+    marginVertical: 5,
+  },
+  scrollView: {
     flex: 1,
   },
   form: {

@@ -76,11 +76,12 @@ export default function LiveScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Ionicons name="radio" size={rs(28)} color="#FFD700" />
-          <Text style={styles.headerTitle}>Live & Streams</Text>
+        <View style={styles.backButton}>
+          <Ionicons name="radio" size={24} color="white" />
         </View>
+        <Text style={styles.headerText}>Live & Streams</Text>
       </View>
+      <View style={styles.headerLine} />
 
       {/* Section Switch Bar */}
       <View style={styles.switchBar}>
@@ -208,27 +209,44 @@ export default function LiveScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F1419',
+    backgroundColor: '#141E30',
   },
   header: {
-    backgroundColor: '#1A1F2E',
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    borderBottomWidth: 2,
-    borderBottomColor: '#2A3441',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '',
+    padding: 20,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  backButton: {
+    color: 'white',
+    marginRight: 10,
+    paddingTop: 40,
+  },
   headerTitle: {
-    fontSize: rf(24),
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: 'white',
+    paddingTop: 38,
     marginLeft: wp(2),
   },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
+  },
   switchBar: {
-    backgroundColor: '#1A1F2E',
+    backgroundColor: '#141E30',
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
     borderBottomWidth: 1,

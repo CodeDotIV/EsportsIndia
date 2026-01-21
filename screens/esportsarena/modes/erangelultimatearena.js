@@ -29,16 +29,12 @@ const Erangelultimatearena = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
-          </Pressable>
-          <View style={styles.headerTitleContainer}>
-            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
-            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
-          </View>
-        </View>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="white" />
+        </Pressable>
+        <Text style={styles.headerText}>BGMI</Text>
       </View>
+      <View style={styles.headerLine} />
 
       <View style={styles.titleContainer}>
         <Ionicons name="trophy" size={rs(20)} color="#FFD700" />
@@ -77,33 +73,30 @@ const Erangelultimatearena = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F1419',
+    backgroundColor: '#141E30',
   },
   header: {
-    backgroundColor: '#1A1F2E',
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    borderBottomWidth: 2,
-    borderBottomColor: '#2A3441',
-  },
-  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '',
+    padding: 20,
   },
   backButton: {
-    marginRight: wp(3),
-    padding: wp(1),
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    color: 'white',
+    marginRight: 10,
+    paddingTop: 40,
   },
   headerText: {
-    fontSize: rf(20),
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginLeft: wp(2),
-    flexShrink: 1,
+    color: 'white',
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
   },
   titleContainer: {
     flexDirection: "row",

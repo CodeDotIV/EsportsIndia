@@ -1,5 +1,5 @@
 // login/VerifyOtpScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  BackHandler,
+  SafeAreaView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { verifyOtp, sendOtp } from "../services/otpService";
 import { setItem } from "../utils/storageHelper";
 
@@ -17,6 +20,29 @@ export default function VerifyOtpScreen({ route, navigation }) {
   const { email, purpose = 'email_verification' } = route.params || {};
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleGoBack();
+      return true; // Prevent default back behavior
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
+  // Handle back button press
+  const handleGoBack = () => {
+    if (loading) return; // Prevent navigation during loading
+    
+    // Navigate back to the previous screen (SignUpScreen or LoginScreen)
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Fallback: navigate to LoginScreen if no previous screen
+      navigation.replace("LoginScreen");
+    }
+  };
 
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
@@ -41,23 +67,29 @@ export default function VerifyOtpScreen({ route, navigation }) {
           // Navigate directly to Main screen
           navigation.replace("Main");
         } else {
-          // For other purposes, show success message
-          Alert.alert(
-            "Success", 
-            "OTP verified successfully!",
-            [
-              {
-                text: "OK",
-                onPress: () => {
-                  if (purpose === 'email_verification') {
-                    navigation.replace("LoginScreen");
-                  } else {
-                    navigation.replace("Main");
+          // Handle password reset purpose
+          if (purpose === 'password_reset') {
+            // Navigate to reset password screen
+            navigation.replace("ResetPasswordScreen", { email });
+          } else {
+            // For other purposes, show success message
+            Alert.alert(
+              "Success", 
+              "OTP verified successfully!",
+              [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    if (purpose === 'email_verification') {
+                      navigation.replace("LoginScreen");
+                    } else {
+                      navigation.replace("Main");
+                    }
                   }
                 }
-              }
-            ]
-          );
+              ]
+            );
+          }
         }
       } else {
         Alert.alert("Verification Failed", res.error);
@@ -86,18 +118,33 @@ export default function VerifyOtpScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.container}>
-        <Text style={styles.title}>OTP Verification</Text>
-        <Text style={styles.subtitle}>Code sent to:</Text>
-        <Text style={styles.emailText}>{email}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {/* Header with Back Button */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={handleGoBack} 
+            style={styles.backButton}
+            disabled={loading}
+          >
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>OTP Verification</Text>
+        </View>
+        <View style={styles.headerLine} />
+
+        <View style={styles.container}>
+          <Text style={styles.title}>Enter Verification Code</Text>
+          <Text style={styles.subtitle}>Code sent to:</Text>
+          <Text style={styles.emailText}>{email}</Text>
 
         <TextInput
           style={styles.otpInput}
-          placeholder="Enter 6-digit OTP"
+          placeholder="XXXXXX"
+          placeholderTextColor="#999"
           value={otp}
           onChangeText={setOtp}
           keyboardType="numeric"
@@ -124,12 +171,50 @@ export default function VerifyOtpScreen({ route, navigation }) {
             Resend OTP
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.backToLoginButton}
+          onPress={handleGoBack}
+          disabled={loading}
+        >
+          <Text style={[styles.backToLoginText, loading && styles.backToLoginTextDisabled]}>
+            ← Back to {purpose === 'email_verification' ? 'Login' : 'Previous'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#141E30",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "",
+    padding: 20,
+  },
+  backButton: {
+    color: "white",
+    marginRight: 10,
+    paddingTop: 40,
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#FFD700",
+    marginVertical: 5,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -140,33 +225,36 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
     marginBottom: 10,
+    color: "white",
   },
   subtitle: {
     textAlign: "center",
     fontSize: 14,
-    color: "#777",
+    color: "#ccc",
   },
   emailText: {
     textAlign: "center",
     fontSize: 16,
     marginBottom: 25,
     fontWeight: "600",
-    color: "#000",
+    color: "#FFD700",
   },
   otpInput: {
     height: 55,
     fontSize: 20,
     textAlign: "center",
-    backgroundColor: "#f9f9f9",
-    borderWidth: 1.5,
-    borderColor: "#bbb",
+    backgroundColor: "#1A1F2E",
+    borderWidth: 1,
+    borderColor: "#2A3441",
     borderRadius: 12,
     marginBottom: 20,
     fontWeight: "bold",
     letterSpacing: 10,
+    color: "white",
+    paddingHorizontal: 10,
   },
   verifyButton: {
-    backgroundColor: "#ff7f00",
+    backgroundColor: "#FFD700",
     padding: 15,
     borderRadius: 12,
     alignItems: "center",
@@ -177,7 +265,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   verifyButtonText: {
-    color: "#fff",
+    color: "#000",
     fontWeight: "bold",
     fontSize: 16,
   },
@@ -187,9 +275,21 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#007bff",
+    color: "#FFD700",
   },
   resendTextDisabled: {
-    color: "#ccc",
+    color: "#666",
+  },
+  backToLoginButton: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+  backToLoginText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#FFD700",
+  },
+  backToLoginTextDisabled: {
+    color: "#666",
   },
 });

@@ -47,17 +47,55 @@ if (__DEV__) {
   console.log(`💡 For local dev, set EXPO_PUBLIC_API_IP in .env or it will auto-detect from Expo`);
 }
 
+// Helper function to wake up Render free tier service (ping health endpoint)
+const wakeUpService = async () => {
+  try {
+    // Ping health endpoint to wake up the service (non-blocking)
+    // BASE_URL format: https://domain.com/api, so health is at /api/health
+    const healthUrl = `${BASE_URL}/health`;
+    axios.get(healthUrl, { timeout: 5000 }).catch(() => {
+      // Ignore errors - this is just to wake up the service
+    });
+  } catch (e) {
+    // Ignore errors
+  }
+};
+
+// Helper function to retry requests (for Render free tier cold starts)
+const retryRequest = async (requestFn, maxRetries = 2, delay = 2000) => {
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      // If it's a network error and we have retries left, wait and retry
+      if (i < maxRetries && (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED' || error.message.includes('Network Error'))) {
+        console.log(`⚠️ Network error, retrying... (${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1))); // Exponential backoff
+        continue;
+      }
+      throw error; // Re-throw if no retries left or different error
+    }
+  }
+};
+
 // Signup with Email & Password
 export const signUp = async (name, email, password) => {
   try {
     console.log(`🌐 Connecting to API at: ${BASE_URL}`);
-    const response = await axios.post(`${BASE_URL}/auth/signup`, {
-      name,
-      email,
-      password
-    }, {
-      timeout: 15000 // 15 second timeout for signup (may need to send email)
-    });
+    
+    // Wake up Render free tier service if needed (non-blocking)
+    wakeUpService();
+    
+    // Retry logic for Render free tier cold starts
+    const response = await retryRequest(async () => {
+      return await axios.post(`${BASE_URL}/auth/signup`, {
+        name,
+        email,
+        password
+      }, {
+        timeout: 30000 // 30 second timeout (Render free tier can take 20-60s to wake up)
+      });
+    }, 3, 3000); // 3 retries with 3s delay
     return { 
       success: true, 
       user: response.data.user,
@@ -87,9 +125,9 @@ export const signUp = async (name, email, password) => {
         errorMessage = `${errorMessage}: ${validationErrors}`;
       }
     } else if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-      errorMessage = `Cannot connect to server at ${BASE_URL}. Please check your connection.`;
+      errorMessage = `Cannot connect to server. The server may be waking up (free tier services sleep after inactivity). Please wait a moment and try again.`;
     } else if (error.code === 'ECONNABORTED') {
-      errorMessage = 'Request timed out. Please try again.';
+      errorMessage = 'Request timed out. The server may be waking up. Please try again in a few seconds.';
     } else {
       errorMessage = error.message || 'An unexpected error occurred';
     }
@@ -105,12 +143,19 @@ export const signUp = async (name, email, password) => {
 export const login = async (email, password) => {
   try {
     console.log(`🌐 Connecting to API at: ${BASE_URL}`);
-    const response = await axios.post(`${BASE_URL}/auth/login`, {
-      email,
-      password
-    }, {
-      timeout: 10000 // 10 second timeout
-    });
+    
+    // Wake up Render free tier service if needed (non-blocking)
+    wakeUpService();
+    
+    // Retry logic for Render free tier cold starts
+    const response = await retryRequest(async () => {
+      return await axios.post(`${BASE_URL}/auth/login`, {
+        email,
+        password
+      }, {
+        timeout: 30000 // 30 second timeout (Render free tier can take 20-60s to wake up)
+      });
+    }, 3, 3000); // 3 retries with 3s delay
     return { 
       success: true, 
       user: response.data.user,
@@ -130,7 +175,7 @@ export const login = async (email, password) => {
     if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
       return { 
         success: false, 
-        error: `Cannot connect to server at ${BASE_URL}. Please check:\n1. Backend server is running\n2. Your device and computer are on the same network\n3. Update LOCAL_IP in authService.js to your computer's IP address`,
+        error: `Cannot connect to server. The server may be waking up (free tier services sleep after inactivity). Please wait a moment and try again.`,
         requiresVerification: false,
         email: email
       };
@@ -218,12 +263,19 @@ export const getCurrentUser = async (token) => {
 export const updateProfile = async (token, profileData) => {
   try {
     console.log('📤 Sending profile update:', profileData);
-    const response = await axios.put(`${BASE_URL}/auth/profile`, profileData, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      timeout: 15000
-    });
+    
+    // Wake up Render free tier service if needed (non-blocking)
+    wakeUpService();
+    
+    // Retry logic for Render free tier cold starts
+    const response = await retryRequest(async () => {
+      return await axios.put(`${BASE_URL}/auth/profile`, profileData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        timeout: 30000 // 30 second timeout
+      });
+    }, 3, 3000); // 3 retries with 3s delay
     return { 
       success: true, 
       user: response.data.user,

@@ -109,20 +109,16 @@ export default function EsportsScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
-            <Text style={styles.title}>Esports</Text>
-          </View>
-        </View>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={styles.backButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Esports</Text>
       </View>
+      <View style={styles.headerLine} />
 
       {/* Game Grid */}
       <FlatList
@@ -143,32 +139,44 @@ export default function EsportsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F1419',
+    backgroundColor: '#141E30',
   },
   header: {
-    backgroundColor: '#1A1F2E',
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    borderBottomWidth: 2,
-    borderBottomColor: '#2A3441',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '',
+    padding: 20,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   backButton: {
-    marginRight: wp(3),
-    padding: wp(1),
+    marginRight: 10,
+    paddingTop: 40,
   },
   headerTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    fontSize: rf(24),
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: 'white',
+    paddingTop: 38,
     marginLeft: wp(2),
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
   },
   flatList: {
     flex: 1,
