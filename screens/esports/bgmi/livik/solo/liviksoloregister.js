@@ -12,7 +12,6 @@ import {
   Platform,
   Modal,
   FlatList,
-  Image,
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -240,42 +239,6 @@ const RegistrationForm = ({ route }) => {
           </View>
         ))}
 
-        {/* Payment Label */}
-        <View style={styles.inputContainer}>
-  <Text style={styles.label}>Payment Options</Text>
-  <View style={styles.upiContainer}>
-    {[
-      {
-        name: "Google Pay",
-        icon:  require('../../../../../assets/images/gpay.png'),
-       
-      },
-      {
-        name: "PhonePe",
-        icon:  require('../../../../../assets/images/phonepe.png'),
-      },
-      {
-        name: "Paytm",
-        icon:  require('../../../../../assets/images/paytm.png'),
-      },
-      {
-        name: "BHIM",
-        icon:  require('../../../../../assets/images/bhim.png'),
-      },
-    ].map((app) => (
-      <TouchableOpacity
-        key={app.name}
-        onPress={initiateUPIPayment}
-        style={styles.upiIconContainer}
-      >
-        <Image source={app.icon} style={styles.upiIcon} />
-        <Text style={styles.upiText}>{app.name}</Text>
-      </TouchableOpacity>
-    ))}
-  </View>
-</View>
-
-
         {/* Submit Button */}
         {loading ? (
           <ActivityIndicator size="large" color="#f5a623" />
@@ -334,25 +297,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#141E30",
     alignItems: "center",
-  },
-  upiContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 10,
-  },
-  upiIconContainer: {
-    alignItems: "center",
-    marginHorizontal: 5,
-  },
-  upiIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-  },
-  upiText: {
-    marginTop: 5,
-    fontSize: 12,
-    fontWeight: "600",
   },
   header: {
     flexDirection: "row",

@@ -31,7 +31,7 @@ const gameData = [
     id: 1,
     title: "BGMI",
     fullTitle: "BGMI",
-    image: require('../../assets/images/bgmilogo.png'),
+    image: require('../../assets/images/bgmi.png'),
     navigation: 'Aboutbgmi',
     description: "Experience intense battle action with realistic mechanics and immersive environments.",
   },
@@ -39,7 +39,7 @@ const gameData = [
     id: 2,
     title: "Free Fire",
     fullTitle: "Free Fire",
-    image: require('../../assets/images/freefirelogo.png'),
+    image: require('../../assets/images/freefire.png'),
     navigation: 'Aboutfreefire',
     description: "Fast-paced survival shooter with quick matches and diverse maps.",
   },
@@ -157,7 +157,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image 
-            source={require('../../assets/images/logo.png')} 
+            source={require('../../assets/images/applogo.png')} 
             style={styles.logo} 
           />
         </View>

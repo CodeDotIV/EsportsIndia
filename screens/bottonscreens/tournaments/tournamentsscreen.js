@@ -14,8 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../../utils/responsive';
 
 const games = [
-  { id: '1', name: 'BGMI', image: require('../../../assets/images/bgmilogo.png') },
-  { id: '2', name: 'Freefire', image: require('../../../assets/images/freefirelogo.png'), screen: 'Freefire' },
+  { id: '1', name: 'BGMI', image: require('../../../assets/images/bgmi.png') },
+  { id: '2', name: 'Freefire', image: require('../../../assets/images/freefire.png'), screen: 'Freefire' },
   { id: '3', name: 'Call of Duty', image: require('../../../assets/images/callofduty.png'), screen: 'Callofduty' },
   { id: '4', name: 'Valorant', image: require('../../../assets/images/valorant.png'), screen: 'Valorant' },
 ];
