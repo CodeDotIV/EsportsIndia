@@ -56,7 +56,7 @@ const gameData = [
     title: "Valorant",
     fullTitle: "Valorant",
     image: require('../../assets/images/valorant.png'),
-    navigation: null,
+    navigation: 'Aboutvalorant',
     description: "Tactical 5v5 shooter blending precision gunplay with unique agent abilities.",
   },
 ];

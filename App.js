@@ -38,6 +38,7 @@ import Shanoksquadregister from './screens/esports/bgmi/shanok/squad/shanoksquad
 import Aboutbgmi from './screens/aboutbgmi.js';
 import Aboutfreefire from './screens/aboutfreefire.js';
 import Aboutcallofduty from './screens/aboutcallofduty.js';
+import Aboutvalorant from './screens/aboutvalorant.js';
 import Esportsarena from './screens/esportsarena/esportsarena.js';
 import Inventory from './screens/esportsarena/modes/inventory.js';
 import Library from './screens/esportsarena/modes/library.js';
@@ -72,6 +73,7 @@ export default function App() {
         <Stack.Screen name="Aboutbgmi" component={Aboutbgmi} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutfreefire" component={Aboutfreefire} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutcallofduty" component={Aboutcallofduty} options={{ headerShown: false }} />
+        <Stack.Screen name="Aboutvalorant" component={Aboutvalorant} options={{ headerShown: false }} />
         <Stack.Screen name="Bgmi" component={Bgmi} options={{ headerShown: false }} />
         <Stack.Screen name="Freefire" component={Freefire} options={{ headerShown: false }} />
         <Stack.Screen name="Callofduty" component={Callofduty} options={{ headerShown: false }} />

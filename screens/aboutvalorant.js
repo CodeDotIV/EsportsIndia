@@ -14,13 +14,13 @@ const LearnScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Call of Duty</Text>
+        <Text style={styles.headerText}>Valorant</Text>
       </View>
       <View style={styles.headerLine} />
 
       {/* Scrollable Content */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Rules & Regulations Card */}
+        {/* Note Section */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Note: <Text style={styles.required}>*</Text>
@@ -43,7 +43,7 @@ const LearnScreen = () => {
           <Text style={styles.point}>• No cheating, hacking, or exploiting bugs.</Text>
           <Text style={styles.point}>• Players must use registered accounts.</Text>
           <Text style={styles.point}>• Toxic behavior will result in penalties.</Text>
-          <Text style={styles.point}>• Teamwork is essential in squad-based games.</Text>
+          <Text style={styles.point}>• Teamwork is essential in 5v5 matches.</Text>
           <Text style={styles.point}>• Do not engage in account boosting.</Text>
           <Text style={styles.point}>• Keep language clean and respectful.</Text>
           <Text style={styles.point}>• Respect all opponents and teammates.</Text>

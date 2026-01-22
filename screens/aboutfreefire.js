@@ -1,23 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { wp, hp, rf, rs } from '../utils/responsive';
 
 const LearnScreen = () => {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header Section with Back Button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
+          <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerText}> FreeFire</Text>
+        <Text style={styles.headerText}>Free Fire</Text>
       </View>
+      <View style={styles.headerLine} />
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Rules & Regulations Card */}
         <View style={styles.card}>
           <Text style={styles.label}>
@@ -65,63 +67,74 @@ const LearnScreen = () => {
           <Text style={styles.point}>• Maintain sportsmanship even in tough situations.</Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    backgroundColor: '#f5f5f5', 
-    paddingHorizontal: 1,  // Add padding for consistent spacing
+    flex: 1,
+    backgroundColor: '#141E30',
   },
   header: {
-    backgroundColor: '#f5a623', 
-    paddingTop: 40,   // Adjust padding for header to make space for the back button
-    paddingBottom: 20, 
-    alignItems: 'flex-start',  // Change to 'flex-start' for proper alignment
-    flexDirection: 'row',  // Ensure the text and button are horizontally aligned
-    justifyContent: 'flex-start', 
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '',
+    padding: 20,
   },
   backButton: {
-    paddingLeft: 10,  // Adjusted padding for proper alignment
-    marginTop:23,
+    color: 'white',
+    marginRight: 10,
+    paddingTop: 40,
   },
   headerText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
-    marginTop:20,
-    marginLeft: 10,  // Add margin to prevent the header text from being too close to the back button
+    color: 'white',
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
   },
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: hp(4),
+  },
   card: {
-    backgroundColor: '#FFF',
-    marginBottom: 15,
-    padding: 20,
-    margin:15,
-    borderRadius: 10,
-    //shadowColor: '#000',  // Add shadow effect for card elevation - deprecated for web
-    
+    backgroundColor: '#1A1F2E',
+    marginBottom: hp(2),
+    padding: hp(2.5),
+    marginHorizontal: wp(4),
+    borderRadius: rs(12),
+    borderWidth: 1,
+    borderColor: '#2A3441',
   },
   label: {
-    fontSize: 16,
+    fontSize: rf(18),
     fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: hp(1),
   },
   required: {
-    color: 'red',
+    color: '#FF6B6B',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: rf(18),
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: hp(1),
+    color: '#FFD700',
   },
   point: {
-    fontSize: 15,
-    marginLeft: 10,
-    marginTop: 5,
+    fontSize: rf(15),
+    marginLeft: wp(2),
+    marginTop: hp(0.5),
+    color: '#FFFFFF',
+    lineHeight: rf(22),
   },
 });
 

@@ -11,20 +11,16 @@ const LearnScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header Section with Back Button */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={rs(28)} color="#FFD700" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Ionicons name="game-controller" size={rs(24)} color="#FFD700" />
-            <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
-          </View>
-        </View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>BGMI</Text>
       </View>
+      <View style={styles.headerLine} />
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Rules & Regulations Card */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Note Section */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Note: <Text style={styles.required}>*</Text>
@@ -77,53 +73,52 @@ const LearnScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    backgroundColor: '#0F1419',
+    flex: 1,
+    backgroundColor: '#141E30',
   },
   header: {
-    backgroundColor: '#1A1F2E',
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    borderBottomWidth: 2,
-    borderBottomColor: '#2A3441',
-  },
-  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '',
+    padding: 20,
   },
   backButton: {
-    marginRight: wp(3),
-    padding: wp(1),
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    color: 'white',
+    marginRight: 10,
+    paddingTop: 40,
   },
   headerText: {
-    fontSize: rf(20),
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginLeft: wp(2),
-    flexShrink: 1,
+    color: 'white',
+    paddingTop: 38,
+  },
+  headerLine: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#FFD700',
+    marginVertical: 5,
   },
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: hp(4),
+  },
   card: {
+    backgroundColor: '#1A1F2E',
     marginBottom: hp(2),
     padding: hp(2.5),
     marginHorizontal: wp(4),
     borderRadius: rs(12),
-    elevation: 4,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.3,
-    //shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#2A3441',
   },
   label: {
     fontSize: rf(18),
     fontWeight: 'bold',
     color: '#FFFFFF',
+    marginBottom: hp(1),
   },
   required: {
     color: '#FF6B6B',
@@ -139,6 +134,7 @@ const styles = StyleSheet.create({
     marginLeft: wp(2),
     marginTop: hp(0.5),
     color: '#FFFFFF',
+    lineHeight: rf(22),
   },
 });
 
