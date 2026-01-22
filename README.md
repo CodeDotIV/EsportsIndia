@@ -10,8 +10,12 @@ EsportsIndia is a feature-rich mobile application that connects gamers and facil
 
 ### 🏠 Home Screen
 - Personalized greeting based on time of day
+- Gender-based profile icons
 - Game showcase with interactive banners
 - Featured games: BGMI, Free Fire, Call of Duty, Valorant
+- View Details navigation to game information screens
+- Quick Actions section
+- Social media links
 - Smooth animations and transitions
 
 ### 🎯 Esports
@@ -19,6 +23,7 @@ EsportsIndia is a feature-rich mobile application that connects gamers and facil
 - Detailed game information and features
 - Multiple gaming modes (Solo, Duo, Squad)
 - Game-specific tournament options
+- Game details screens with rules and guidelines (BGMI, Free Fire, Call of Duty, Valorant)
 
 ### 🏆 Tournaments
 - Tournament registration system
@@ -38,11 +43,12 @@ EsportsIndia is a feature-rich mobile application that connects gamers and facil
 - Logout functionality
 
 ### 🔐 Authentication
-- Email/Password authentication via Firebase
-- Sign up with email verification
-- Password reset functionality
+- Email/Password authentication via custom backend API
+- Sign up with OTP email verification
+- Password reset via OTP
 - Secure token-based session management
-- OTP verification support
+- OTP verification for email and password reset
+- Forgot password flow with OTP code
 
 ## 🛠️ Tech Stack
 
@@ -53,13 +59,14 @@ EsportsIndia is a feature-rich mobile application that connects gamers and facil
 - **React Navigation** `^7.0.14` - Navigation library
 
 ### Key Libraries
-- **Firebase** `^11.10.0` - Authentication and backend services
 - **Axios** `^1.10.0` - HTTP client for API calls
-- **Expo AV** `~16.0.7` - Video playback
+- **Expo Video** `~3.0.15` - Video playback
 - **Expo Linear Gradient** `~15.0.7` - Gradient effects
 - **React Native Vector Icons** `^10.2.0` - Icon library
+- **@expo/vector-icons** `^15.0.2` - Icon library
 - **AsyncStorage** `2.2.0` - Local data persistence
 - **React Native Reanimated** `~4.1.0` - Animations
+- **React Navigation** `^7.0.14` - Navigation library
 
 ### Development Tools
 - **TypeScript** `~5.9.2` - Type safety
@@ -98,50 +105,47 @@ Before you begin, ensure you have the following installed:
 
 ## ⚙️ Configuration
 
-### Firebase Setup
+### Backend API Setup
 
-1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Enable Authentication (Email/Password)
-3. Update `firebaseConfig.js` with your Firebase credentials:
-   ```javascript
-   const firebaseConfig = {
-     apiKey: "YOUR_API_KEY",
-     authDomain: "YOUR_AUTH_DOMAIN",
-     projectId: "YOUR_PROJECT_ID",
-     storageBucket: "YOUR_STORAGE_BUCKET",
-     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-     appId: "YOUR_APP_ID",
-     measurementId: "YOUR_MEASUREMENT_ID"
-   };
+The app uses a custom backend API deployed at `https://esportsindia-hh3x.onrender.com/api`
+
+**For Production Builds:**
+- The app automatically uses the deployed backend URL
+- No configuration needed for production builds
+
+**For Local Development:**
+
+1. **Option 1: Use Deployed Backend (Recommended)**
+   - No configuration needed - works out of the box
+   - Default behavior for production and development
+
+2. **Option 2: Use Local Backend**
+   - Create a `.env` file in the root directory:
+   ```env
+   EXPO_PUBLIC_API_IP=192.168.1.100  # Your local machine IP
+   ```
+   - Or set explicit API URL:
+   ```env
+   EXPO_PUBLIC_API_URL=http://your-backend-url:5000/api
    ```
 
-### API Configuration
-
-Update the API base URL in `utils/api.js`:
-
-```javascript
-// For iOS Simulator
-return 'http://localhost:5000/api';
-
-// For Android Emulator (use your machine's IP)
-return 'http://YOUR_LOCAL_IP:5000/api';
-
-// For Android Emulator alternative
-return 'http://10.0.2.2:5000/api';
-```
-
 **To find your local IP:**
-- **macOS/Linux**: `ifconfig | grep "inet "`
-- **Windows**: `ipconfig`
+- **macOS/Linux**: `ifconfig | grep "inet " | grep -v 127.0.0.1`
+- **Windows**: `ipconfig` (look for IPv4 Address)
 
 ### Environment Variables
 
-Create a `.env` file (if needed) for sensitive configuration:
+Create a `.env` file in the root directory (optional, for local development):
+
+```env
+# For deployed backend (default - no config needed)
+# EXPO_PUBLIC_API_URL=https://esportsindia-hh3x.onrender.com/api
+
+# OR for local development
+EXPO_PUBLIC_API_IP=192.168.1.100
 ```
-FIREBASE_API_KEY=your_api_key
-FIREBASE_AUTH_DOMAIN=your_auth_domain
-API_BASE_URL=http://your-api-url:5000/api
-```
+
+**Note:** After changing `.env`, restart your Expo dev server.
 
 ## 🏃 Running the App
 
@@ -176,15 +180,43 @@ API_BASE_URL=http://your-api-url:5000/api
 
 ### Production Build
 
+**Prerequisites:**
+1. Install EAS CLI: `npm install -g eas-cli`
+2. Login to Expo: `eas login`
+3. Ensure backend is deployed and accessible
+
+**Build Commands:**
+
 1. **Build for iOS**
    ```bash
-   eas build --platform ios
+   eas build --platform ios --profile production
+   ```
+   - Requires Apple Developer Account ($99/year)
+   - First time: Run `eas credentials` to configure Apple certificates
+
+2. **Build for Android (APK - for testing)**
+   ```bash
+   eas build --platform android --profile production
    ```
 
-2. **Build for Android**
+3. **Build for Android (AAB - for Play Store)**
    ```bash
-   eas build --platform android
+   eas build --platform android --profile production --type app-bundle
    ```
+
+4. **Build for Both Platforms**
+   ```bash
+   eas build --platform all --profile production
+   ```
+
+**Build Configuration:**
+- EAS configuration is in `eas.json`
+- Project ID: `3d595d0e-f1cd-4953-aec1-d6db77214b68`
+- Auto-increment version enabled for production builds
+
+**Monitor Builds:**
+- Check build status: `eas build:list`
+- View build details: `eas build:view [build-id]`
 
 ## 📁 Project Structure
 
@@ -192,39 +224,52 @@ API_BASE_URL=http://your-api-url:5000/api
 app/
 ├── assets/                 # Images, videos, fonts
 │   ├── images/            # Game logos and UI images
+│   │   ├── bgmi.png       # BGMI logo
+│   │   ├── freefire.png   # Free Fire logo
+│   │   ├── callofduty.png # Call of Duty logo
+│   │   ├── valorant.png  # Valorant logo
+│   │   └── applogo.png   # App logo
 │   ├── vedios/           # Video assets
 │   └── fonts/            # Custom fonts
 ├── components/            # Reusable components
 ├── constants/            # App constants
 ├── login/                # Authentication screens
-│   ├── LoginScreen.js
-│   ├── SignUpScreen.js
-│   ├── ForgotPasswordScreen.js
-│   ├── ResetPasswordScreen.js
-│   └── VerifyOtpScreen.js
+│   ├── LoginScreen.js    # Login with email/password
+│   ├── SignUpScreen.js   # User registration
+│   ├── ForgotPasswordScreen.js  # Password reset initiation
+│   ├── ResetPasswordScreen.js    # Password reset completion
+│   └── VerifyOtpScreen.js        # OTP verification
 ├── screens/              # App screens
 │   ├── bottonscreens/   # Bottom tab screens
 │   │   ├── HomeScreen.js
 │   │   ├── EsportsScreen.js
 │   │   ├── TournamentsScreen.js
 │   │   ├── WinnersScreen.js
+│   │   ├── LiveScreen.js
 │   │   └── ProfileScreen.js
+│   ├── aboutbgmi.js      # BGMI game details
+│   ├── aboutfreefire.js  # Free Fire game details
+│   ├── aboutcallofduty.js # Call of Duty game details
+│   ├── aboutvalorant.js  # Valorant game details
 │   ├── esports/         # Game-specific screens
 │   │   ├── bgmi.js
 │   │   ├── freefire.js
 │   │   └── callofduty.js
 │   └── esportsarena/    # Arena mode screens
 ├── services/            # API services
-│   ├── authService.js
-│   └── otpService.js
+│   ├── authService.js   # Authentication API calls
+│   └── otpService.js    # OTP API calls
 ├── utils/               # Utility functions
-│   ├── api.js          # API configuration
-│   ├── responsive.js   # Responsive utilities
+│   ├── api.js          # API configuration & base URL
+│   ├── responsive.js   # Responsive utilities (wp, hp, rf, rs)
 │   └── storageHelper.js # AsyncStorage helpers
-├── backend/             # Backend functions
-├── App.js              # Main app component
-├── firebaseConfig.js   # Firebase configuration
+├── backend/             # Backend server code
+│   ├── routes/         # API routes
+│   ├── models/         # Database models
+│   └── server.js       # Express server
+├── App.js              # Main app component & navigation
 ├── app.json            # Expo configuration
+├── eas.json            # EAS Build configuration
 └── package.json        # Dependencies
 ```
 
@@ -232,20 +277,33 @@ app/
 
 ### Navigation Flow
 1. **Entry Screen** → Checks authentication status
-2. **Login/SignUp** → User authentication
+2. **Login/SignUp** → User authentication with OTP verification
 3. **Main (Bottom Tabs)** → Home, Esports, Tournaments, Winners, Profile
+4. **Game Details** → View rules and guidelines for each game
+
+### Authentication Flow
+1. **Sign Up** → Enter details → OTP sent to email → Verify OTP → Account created
+2. **Login** → Email/Password → If email not verified, option to resend OTP
+3. **Forgot Password** → Enter email → OTP sent → Verify OTP → Reset password
 
 ### Tournament Registration
 - Select game (BGMI, Free Fire, Call of Duty)
 - Choose map (Erangel, Livik, Nusa, Shanok)
 - Select mode (Solo, Duo, Squad)
-- Fill player details
+- Fill player details (Name, Game ID, Mobile, Email, Aadhaar)
 - Submit registration
+
+### Game Details Screens
+- **BGMI** → Rules, Guidelines, and Notes
+- **Free Fire** → Rules, Guidelines, and Notes
+- **Call of Duty** → Rules, Guidelines, and Notes
+- **Valorant** → Rules, Guidelines, and Notes
+- All screens follow consistent styling with dark theme (#141E30 background)
 
 ### Data Persistence
 - User data stored in AsyncStorage
-- Firebase Authentication for secure login
 - Token-based session management
+- Backend API for authentication and data storage
 
 ## 🐛 Troubleshooting
 
@@ -253,30 +311,38 @@ app/
 
 1. **App not opening/rendering**
    - Check console logs for errors
-   - Verify Firebase configuration
-   - Ensure video assets exist at `assets/vedios/intro.mp4`
+   - Verify backend API is accessible
    - Clear cache: `expo start -c`
 
 2. **API connection errors**
-   - Verify backend server is running
-   - Check API base URL in `utils/api.js`
-   - Ensure correct IP address for Android emulator
+   - Verify backend server is running (https://esportsindia-hh3x.onrender.com)
+   - Check API base URL in `services/authService.js` and `services/otpService.js`
+   - For local development, set `EXPO_PUBLIC_API_IP` in `.env`
+   - Check network connectivity
+   - Backend may take 20-60 seconds to wake up (free tier)
+
+3. **Authentication errors**
+   - Verify backend API is accessible
+   - Check email service configuration in backend
+   - Ensure OTP service is working
    - Check network connectivity
 
-3. **Firebase authentication errors**
-   - Verify Firebase credentials in `firebaseConfig.js`
-   - Ensure Email/Password authentication is enabled in Firebase Console
-   - Check Firebase project settings
-
-4. **Video not loading**
-   - Verify video file exists and is in correct format
-   - Check file path: `assets/vedios/intro.mp4`
-   - Ensure video file size is reasonable
+4. **OTP not received**
+   - Check email service configuration in backend
+   - Verify email address is correct
+   - Check spam folder
+   - Ensure backend email service is properly configured
 
 5. **Navigation issues**
    - Check screen names match exactly in `App.js`
    - Verify navigation stack configuration
-   - Clear AsyncStorage if stuck on entry screen
+   - Clear AsyncStorage if stuck on entry screen: `AsyncStorage.clear()`
+
+6. **Production build issues**
+   - Ensure `otpService.js` uses deployed backend URL (already configured)
+   - Verify all environment variables are set correctly
+   - Check EAS build logs for specific errors
+   - Run `eas build:configure` to validate configuration
 
 ### Debug Commands
 
@@ -306,11 +372,14 @@ cd ..
 
 ## 🔒 Security
 
-- Firebase Authentication for secure user management
+- Custom backend API with JWT token authentication
 - Token-based session management
-- Secure API communication
+- Secure API communication (HTTPS in production)
 - Input validation on forms
-- Password encryption via Firebase
+- Password hashing via bcrypt on backend
+- OTP-based email verification
+- OTP-based password reset
+- Secure token storage in AsyncStorage
 
 ## 🧪 Testing
 
@@ -345,21 +414,42 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- Firebase for authentication services
 - Expo team for the amazing development platform
 - React Native community for excellent libraries and support
+- Render for backend hosting
+- MongoDB Atlas for database services
 
 ## 📞 Support
 
 For support, email support@esportsindia.com or create an issue in the repository.
 
+## 🎨 Design & Styling
+
+### Color Scheme
+- **Background**: `#141E30` (Dark blue)
+- **Accent**: `#FFD700` (Gold)
+- **Cards**: `#1A1F2E` (Dark card background)
+- **Borders**: `#2A3441` (Subtle borders)
+- **Text**: `#FFFFFF` (White)
+
+### Consistent Styling
+- All screens follow WinnersScreen header pattern
+- Standardized header with back button and gold line
+- Responsive design using `wp`, `hp`, `rf`, `rs` utilities
+- Dark theme throughout the app
+
 ## 🔄 Version History
 
-- **v1.0.0** - Initial release
-  - User authentication
+- **v1.0.0** - Current version
+  - OTP-based authentication system
+  - Email verification via OTP
+  - Password reset via OTP
+  - Game details screens (BGMI, Free Fire, Call of Duty, Valorant)
   - Tournament registration
-  - Game information screens
-  - Profile management
+  - Profile management with gender-based icons
+  - Standardized dark theme styling
+  - Production-ready build configuration
+  - Deployed backend API integration
 
 ---
 
