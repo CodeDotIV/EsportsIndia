@@ -4,7 +4,7 @@ A comprehensive mobile esports platform built with React Native and Expo, design
 
 ## 📱 Overview
 
-EsportsIndia is a feature-rich mobile application that connects gamers and facilitates esports tournaments for popular games like BGMI (Battlegrounds Mobile India), Free Fire, Call of Duty, and Valorant. The app provides a seamless experience for tournament registration, game information, and user profile management.
+EsportsIndia is a comprehensive esports platform available on mobile and web, designed to connect gamers and facilitate esports tournaments for popular games like BGMI (Battlegrounds Mobile India), Free Fire, Call of Duty, and Valorant. The platform provides a seamless experience for tournament registration, game information, and user profile management across all devices.
 
 ## ✨ Features
 
@@ -41,6 +41,20 @@ EsportsIndia is a feature-rich mobile application that connects gamers and facil
 - Edit personal information
 - View account details
 - Logout functionality
+
+### 🌐 Web Landing Page
+- **Production-ready responsive design** - Fully responsive across desktop, tablet, and mobile devices
+- **Hero Section** - Eye-catching hero with gaming arena background, animated navbar, and call-to-action
+- **Tournament Features** - Showcase of tournament types (Tournament Excellence, Quick Match, Multi-Mode, Strategic Team Play, Ranked Leagues, Championship Series)
+- **Notice Board** - Tournament schedule information (Friday-Sunday tournaments, registration deadlines, prize distribution, team requirements)
+- **How It Works** - Interactive timeline showing the tournament participation process
+- **Why Choose Us** - Feature cards highlighting platform benefits (Tournaments, Community, Track Progress, Multiple Games)
+- **Game Modes & Tournaments** - Detailed information about arena modes, classic tournaments, and game-specific features
+- **Stats Section** - Animated counters showing platform statistics (Tournaments, Players, Games, Winners)
+- **Smooth Animations** - Scroll-triggered animations, fade effects, and interactive transitions
+- **SEO Optimized** - Comprehensive meta tags, Open Graph, and Twitter Card support
+- **Smart Navigation** - Auto-hide/show navbar on scroll with highlight and zoom effects on navigation items
+- **Modern Design** - Gaming-themed UI with neon gradients, bold typography, and professional styling
 
 ### 🔐 Authentication
 - Email/Password authentication via custom backend API
@@ -173,6 +187,13 @@ EXPO_PUBLIC_API_IP=192.168.1.100
    npm run web
    # or press 'w' in the Expo CLI
    ```
+   
+   **Web Landing Page Features:**
+   - Fully responsive design (desktop, tablet, mobile)
+   - SEO optimized with meta tags
+   - Smooth scroll animations
+   - Interactive navigation with highlight effects
+   - Production-ready styling
 
 5. **Run on Physical Device**
    - Install Expo Go from App Store (iOS) or Play Store (Android)
@@ -255,7 +276,9 @@ app/
 │   │   ├── bgmi.js
 │   │   ├── freefire.js
 │   │   └── callofduty.js
-│   └── esportsarena/    # Arena mode screens
+│   ├── esportsarena/    # Arena mode screens
+│   └── web/             # Web-specific screens
+│       └── WebLandingPage.js  # Production web landing page
 ├── services/            # API services
 │   ├── authService.js   # Authentication API calls
 │   └── otpService.js    # OTP API calls
@@ -270,7 +293,10 @@ app/
 ├── App.js              # Main app component & navigation
 ├── app.json            # Expo configuration
 ├── eas.json            # EAS Build configuration
-└── package.json        # Dependencies
+├── package.json        # Dependencies
+└── app/                # Expo Router app directory
+    ├── +html.tsx       # Root HTML template (SEO meta tags)
+    └── (tabs)/         # Tab-based navigation
 ```
 
 ## 🔑 Key Features Explained
@@ -368,7 +394,11 @@ cd ..
 
 - ✅ iOS (13.0+)
 - ✅ Android (API 21+)
-- ✅ Web (limited support)
+- ✅ Web (Full support with production-ready landing page)
+  - Responsive design (Desktop ≥1024px, Tablet 768-1023px, Mobile <768px)
+  - SEO optimized
+  - Modern animations and interactions
+  - Cross-browser compatible
 
 ## 🔒 Security
 
@@ -431,6 +461,8 @@ For support, email support@esportsindia.com or create an issue in the repository
 - **Cards**: `#1A1F2E` (Dark card background)
 - **Borders**: `#2A3441` (Subtle borders)
 - **Text**: `#FFFFFF` (White)
+- **Web Neon Theme**: `#0A0A1A`, `#1A0A2A`, `#2A0A3A` (Dark gradients)
+- **Web Accents**: `#FF00FF` (Magenta), `#00FFFF` (Cyan)
 
 ### Consistent Styling
 - All screens follow WinnersScreen header pattern
@@ -438,9 +470,34 @@ For support, email support@esportsindia.com or create an issue in the repository
 - Responsive design using `wp`, `hp`, `rf`, `rs` utilities
 - Dark theme throughout the app
 
+### Web Landing Page Design
+- **Gaming Arcade Theme** - Bold typography, vibrant neon colors
+- **Responsive Breakpoints**:
+  - Desktop: ≥1024px (full navigation, multi-column layouts)
+  - Tablet: 768-1023px (adapted layouts, optimized spacing)
+  - Mobile: <768px (hamburger menu, single column, touch-optimized)
+- **Animations**: Scroll-triggered animations, fade effects, smooth transitions
+- **Interactive Elements**: Hover effects, zoom animations, highlight states
+- **SEO**: Comprehensive meta tags, Open Graph, Twitter Cards
+
 ## 🔄 Version History
 
-- **v1.0.0** - Current version
+- **v1.1.0** - Current version
+  - **Web Landing Page** - Production-ready responsive web landing page
+    - Hero section with gaming arena background
+    - Tournament features showcase
+    - Notice board with tournament information
+    - How It Works & Why Choose Us combined section
+    - Game Modes & Tournaments timeline
+    - Stats section with animated counters
+    - SEO optimization (meta tags, Open Graph, Twitter Cards)
+    - Smart navigation (auto-hide/show on scroll, highlight effects)
+    - Fully responsive (desktop, tablet, mobile)
+    - Smooth animations and transitions
+  - Enhanced responsive design across all platforms
+  - Improved mobile navigation experience
+
+- **v1.0.0**
   - OTP-based authentication system
   - Email verification via OTP
   - Password reset via OTP
