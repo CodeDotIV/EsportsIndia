@@ -3,7 +3,6 @@ import { Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import BottomTabNavigator from './screens/bottonscreens/BottomTabNavigator.js';
-import WebLandingPage from './screens/web/WebLandingPage.js';
 import Freefire from './screens/esports/freefire.js';
 import Bgmi from './screens/esports/bgmi.js';
 import Callofduty from './screens/esports/callofduty.js';
@@ -62,11 +61,6 @@ import ProfileScreen from './screens/bottonscreens/ProfileScreen.js';
 const Stack = createStackNavigator();
 
 export default function App() {
-  // Show web landing page only on web platform
-  if (Platform.OS === 'web') {
-    return <WebLandingPage />;
-  }
-
   // iOS and Android app navigation
   return (
     <NavigationContainer>
