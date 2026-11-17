@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -20,44 +21,77 @@ const { width } = Dimensions.get('window');
 
 const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "Good Morning";
-  if (hour >= 12 && hour < 17) return "Good Afternoon";
-  if (hour >= 17 && hour < 24) return "Good Evening";
-  return "Good Night";
+  if (hour >= 5 && hour < 12) return 'Good Morning';
+  if (hour >= 12 && hour < 17) return 'Good Afternoon';
+  if (hour >= 17 && hour < 24) return 'Good Evening';
+  return 'Good Night';
 };
 
 const gameData = [
   {
     id: 1,
-    title: "BGMI",
-    fullTitle: "BGMI",
+    title: 'BGMI',
     image: require('../../assets/images/bgmi.png'),
     navigation: 'Aboutbgmi',
-    description: "Experience intense battle action with realistic mechanics and immersive environments.",
+    description: 'Experience intense battle action with realistic mechanics and immersive environments.',
   },
   {
     id: 2,
-    title: "Free Fire",
-    fullTitle: "Free Fire",
+    title: 'Free Fire',
     image: require('../../assets/images/freefire.png'),
     navigation: 'Aboutfreefire',
-    description: "Fast-paced survival shooter with quick matches and diverse maps.",
+    description: 'Fast-paced survival shooter with quick matches and diverse maps.',
   },
   {
     id: 3,
-    title: "Call of Duty",
-    fullTitle: "Call of Duty",
+    title: 'Call of Duty',
     image: require('../../assets/images/callofduty.png'),
     navigation: 'Aboutcallofduty',
-    description: "Iconic FPS gameplay with multiple modes and realistic action.",
+    description: 'Iconic FPS gameplay with multiple modes and realistic action.',
   },
   {
     id: 4,
-    title: "Valorant",
-    fullTitle: "Valorant",
+    title: 'Valorant',
     image: require('../../assets/images/valorant.png'),
     navigation: 'Aboutvalorant',
-    description: "Tactical 5v5 shooter blending precision gunplay with unique agent abilities.",
+    description: 'Tactical 5v5 shooter blending precision gunplay with unique agent abilities.',
+  },
+];
+
+const latestUpdates = [
+  {
+    id: 1,
+    title: 'Tournament updates',
+    description: 'Check the Esports section for upcoming tournament announcements.',
+  },
+  {
+    id: 2,
+    title: 'Community news',
+    description: 'Follow EsportsIndia to stay connected with the gaming community.',
+  },
+];
+
+const membershipPlans = [
+  {
+    id: 'free',
+    name: 'FREE',
+    subtitle: 'Get started',
+    icon: 'person-outline',
+    color: '#9CA3AF',
+  },
+  {
+    id: 'pro',
+    name: 'PRO',
+    subtitle: 'More customisation',
+    icon: 'flash-outline',
+    color: '#38BDF8',
+  },
+  {
+    id: 'elite',
+    name: 'ELITE',
+    subtitle: 'Premium experience',
+    icon: 'diamond-outline',
+    color: '#FFD700',
   },
 ];
 
@@ -66,51 +100,67 @@ export default function HomeScreen() {
   const [greeting] = useState(getGreeting());
   const [userGender, setUserGender] = useState(null);
 
-  const loadUserGender = async () => {
+  const loadUserGender = useCallback(async () => {
     try {
       const userData = await getItem('user');
+
       if (userData) {
-        const user = JSON.parse(userData);
-        setUserGender(user.gender || null);
+        const user =
+          typeof userData === 'string'
+            ? JSON.parse(userData)
+            : userData;
+
+        setUserGender(user?.gender || null);
       }
     } catch (error) {
       console.error('Failed to load user gender:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadUserGender();
-  }, []);
+  }, [loadUserGender]);
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       loadUserGender();
-    }, [])
+    }, [loadUserGender])
   );
 
   const getProfileIcon = () => {
     if (userGender === 'Male') {
-      return 'person'; // Classic filled person icon for male
-    } else if (userGender === 'Female') {
-      return 'person-outline'; // Classic outline person icon for female
+      return 'person';
+    }
+
+    return 'person-outline';
+  };
+
+  const navigateTo = (routeName) => {
+    const routeExists = navigation
+      .getState()
+      ?.routeNames?.includes(routeName);
+
+    if (routeExists) {
+      navigation.navigate(routeName);
     } else {
-      return 'person-outline'; // Default outline icon
+      Alert.alert(
+        'Coming soon',
+        `${routeName} screen is not connected yet. Add this screen to your navigator to enable this option.`
+      );
     }
   };
 
   const handleGamePress = (game) => {
-    if (game.navigation) {
-      navigation.navigate(game.navigation);
-    }
+    navigateTo(game.navigation);
   };
 
-  const handleSocialMediaPress = (platform, url) => {
-    if (url) {
-      const formattedUrl = url.startsWith('http') ? url : `https://${platform}.com/${url.replace('@', '')}`;
-      Linking.openURL(formattedUrl).catch(() => {
-        Alert.alert('Error', `Could not open ${platform}`);
-      });
-    }
+  const handleSocialMediaPress = (url, platform) => {
+    Linking.openURL(url).catch(() => {
+      Alert.alert(
+        'Error',
+        `Could not open ${platform}. Please try again.`
+      );
+    });
   };
 
   const socialMediaLinks = [
@@ -153,55 +203,136 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Classic Header */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../assets/images/applogo.png')} 
-            style={styles.logo} 
+          <Image
+            source={require('../../assets/images/applogo.png')}
+            style={styles.logo}
           />
         </View>
+
         <View style={styles.headerTextContainer}>
-          <Text style={styles.greeting}>{greeting}!</Text>
-          <Text style={styles.headerTitle}>EsportsIndia</Text>
+          <Text style={styles.greeting}>
+            {greeting}!
+          </Text>
+
+          <Text style={styles.headerTitle}>
+            EsportsIndia
+          </Text>
         </View>
+
         <TouchableOpacity
           style={styles.profileButton}
-          onPress={() => navigation.navigate('Profile')}
+          onPress={() => navigateTo('Profile')}
           activeOpacity={0.7}
         >
           <View style={styles.profileIconContainer}>
-            <Ionicons 
-              name={getProfileIcon()} 
-              size={24} 
+            <Ionicons
+              name={getProfileIcon()}
+              size={24}
               color="white"
-              style={userGender === 'Male' ? styles.maleIcon : styles.femaleIcon}
             />
           </View>
         </TouchableOpacity>
       </View>
 
-      {/* Classic Divider */}
       <View style={styles.divider} />
 
-      {/* Main Content */}
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome to EsportsIndia</Text>
+          <Text style={styles.welcomeTitle}>
+            Welcome to EsportsIndia
+          </Text>
+
           <Text style={styles.welcomeSubtitle}>
-            Your ultimate destination for esports tournaments and gaming excellence
+            Your ultimate destination for esports tournaments
+            and gaming excellence.
           </Text>
         </View>
 
-        {/* Featured Games Section */}
+        {/* Featured Tournament */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Featured Games</Text>
-          
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              Featured Tournament
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => navigateTo('Tournaments')}
+            >
+              <Text style={styles.seeAllText}>
+                View all
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.tournamentCard}
+            onPress={() => navigateTo('Tournaments')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.tournamentTopRow}>
+              <View style={styles.tournamentTag}>
+                <Text style={styles.tournamentTagText}>
+                  FEATURED
+                </Text>
+              </View>
+
+              <Text style={styles.tournamentGame}>
+                BGMI
+              </Text>
+            </View>
+
+            <Text style={styles.tournamentTitle}>
+              BGMI Championship
+            </Text>
+
+            <View style={styles.prizeRow}>
+              <View>
+                <Text style={styles.metaLabel}>
+                  Prize pool
+                </Text>
+
+                <Text style={styles.prizeValue}>
+                  Prize details
+                </Text>
+              </View>
+
+              <View style={styles.registrationStatus}>
+                <Text style={styles.registrationStatusText}>
+                  Explore tournaments
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.tournamentHint}>
+              Tap to view tournament details and registration.
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Featured Games */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              Featured Games
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => navigateTo('Esports')}
+            >
+              <Text style={styles.seeAllText}>
+                View all
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.gamesGrid}>
             {gameData.map((game) => (
               <TouchableOpacity
@@ -211,19 +342,29 @@ export default function HomeScreen() {
                 activeOpacity={0.8}
               >
                 <View style={styles.gameImageContainer}>
-                  <Image 
-                    source={game.image} 
+                  <Image
+                    source={game.image}
                     style={styles.gameImage}
                     resizeMode="contain"
                   />
                 </View>
+
                 <View style={styles.gameCardContent}>
-                  <Text style={styles.gameCardTitle}>{game.title}</Text>
-                  <Text style={styles.gameCardDescription} numberOfLines={2}>
+                  <Text style={styles.gameCardTitle}>
+                    {game.title}
+                  </Text>
+
+                  <Text
+                    style={styles.gameCardDescription}
+                    numberOfLines={2}
+                  >
                     {game.description}
                   </Text>
+
                   <View style={styles.gameCardFooter}>
-                    <Text style={styles.viewMoreText}>View Details →</Text>
+                    <Text style={styles.viewMoreText}>
+                      View Details →
+                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -231,97 +372,243 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Quick Actions Section */}
+        {/* Explore */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          
-          <View style={styles.actionsRow}>
-            <TouchableOpacity 
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('Esports')}
+          <Text style={styles.sectionTitle}>
+            Explore
+          </Text>
+
+          <View style={styles.exploreGrid}>
+            <TouchableOpacity
+              style={styles.exploreCard}
+              onPress={() => navigateTo('Esports')}
               activeOpacity={0.8}
             >
-              <Text style={styles.actionIcon}>🎮</Text>
-              <Text style={styles.actionTitle}>Esports</Text>
-              <Text style={styles.actionSubtitle}>Browse Games</Text>
+              <View
+                style={[
+                  styles.exploreIcon,
+                  { backgroundColor: '#2563EB22' },
+                ]}
+              >
+                <Ionicons
+                  name="game-controller"
+                  size={27}
+                  color="#60A5FA"
+                />
+              </View>
+
+              <Text style={styles.exploreTitle}>
+                Esports
+              </Text>
+
+              <Text style={styles.exploreSubtitle}>
+                Games and tournaments
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('Tournaments')}
+            <TouchableOpacity
+              style={styles.exploreCard}
+              onPress={() => navigateTo('WatchEarn')}
               activeOpacity={0.8}
             >
-              <Text style={styles.actionIcon}>🏆</Text>
-              <Text style={styles.actionTitle}>Tournaments</Text>
-              <Text style={styles.actionSubtitle}>Join Now</Text>
+              <View
+                style={[
+                  styles.exploreIcon,
+                  { backgroundColor: '#16A34A22' },
+                ]}
+              >
+                <Ionicons
+                  name="play-circle"
+                  size={27}
+                  color="#4ADE80"
+                />
+              </View>
+
+              <Text style={styles.exploreTitle}>
+                Watch & Earn
+              </Text>
+
+              <Text style={styles.exploreSubtitle}>
+                Earn reward coins
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('Winners')}
+            <TouchableOpacity
+              style={styles.exploreCard}
+              onPress={() => navigateTo('MembershipPlans')}
               activeOpacity={0.8}
             >
-              <Text style={styles.actionIcon}>🥇</Text>
-              <Text style={styles.actionTitle}>Winners</Text>
-              <Text style={styles.actionSubtitle}>Leaderboard</Text>
-            </TouchableOpacity>
+              <View
+                style={[
+                  styles.exploreIcon,
+                  { backgroundColor: '#D9770622' },
+                ]}
+              >
+                <Ionicons
+                  name="diamond"
+                  size={27}
+                  color="#FBBF24"
+                />
+              </View>
 
-            <TouchableOpacity 
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('Live')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.actionIcon}>📺</Text>
-              <Text style={styles.actionTitle}>Live</Text>
-              <Text style={styles.actionSubtitle}>Watch Streams</Text>
+              <Text style={styles.exploreTitle}>
+                Membership Plans
+              </Text>
+
+              <Text style={styles.exploreSubtitle}>
+                Find your plan
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Info Section */}
+        {/* Membership Plans */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              Choose Your Plan
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => navigateTo('MembershipPlans')}
+            >
+              <Text style={styles.seeAllText}>
+                View plans
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.plansRow}>
+            {membershipPlans.map((plan) => (
+              <TouchableOpacity
+                key={plan.id}
+                style={styles.planCard}
+                onPress={() => navigateTo('MembershipPlans')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={plan.icon}
+                  size={23}
+                  color={plan.color}
+                />
+
+                <Text
+                  style={[
+                    styles.planName,
+                    { color: plan.color },
+                  ]}
+                >
+                  {plan.name}
+                </Text>
+
+                <Text style={styles.planSubtitle}>
+                  {plan.subtitle}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Latest Updates */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Latest Updates
+          </Text>
+
+          <View style={styles.updatesCard}>
+            {latestUpdates.map((item, index) => (
+              <View
+                key={item.id}
+                style={[
+                  styles.updateItem,
+                  index > 0 && styles.updateDivider,
+                ]}
+              >
+                <View style={styles.updateIcon}>
+                  <Ionicons
+                    name="notifications-outline"
+                    size={19}
+                    color="#FFD700"
+                  />
+                </View>
+
+                <View style={styles.updateTextContainer}>
+                  <Text style={styles.updateTitle}>
+                    {item.title}
+                  </Text>
+
+                  <Text style={styles.updateDescription}>
+                    {item.description}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Why Choose EsportsIndia */}
         <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>Why Choose EsportsIndia?</Text>
-          <View style={styles.infoList}>
-            <View style={styles.infoItem}>
+          <Text style={styles.infoTitle}>
+            Why Choose EsportsIndia?
+          </Text>
+
+          {[
+            'Premium esports tournaments',
+            'Multiple gaming modes (Solo, Duo, Squad)',
+            'Leaderboards and player rankings',
+            'Fair play and transparent tournament rules',
+          ].map((item) => (
+            <View key={item} style={styles.infoItem}>
               <Text style={styles.infoBullet}>•</Text>
-              <Text style={styles.infoText}>Premium esports tournaments</Text>
+
+              <Text style={styles.infoText}>
+                {item}
+              </Text>
             </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoBullet}>•</Text>
-              <Text style={styles.infoText}>Multiple gaming modes (Solo, Duo, Squad)</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoBullet}>•</Text>
-              <Text style={styles.infoText}>Real-time leaderboards and rankings</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoBullet}>•</Text>
-              <Text style={styles.infoText}>Secure and fair gameplay</Text>
-            </View>
-          </View>
+          ))}
         </View>
 
-        {/* Social Media Section */}
+        {/* Social Media */}
         <View style={styles.socialSection}>
-          <Text style={styles.socialTitle}>Follow Us</Text>
-          <Text style={styles.socialSubtitle}>Stay connected with EsportsIndia on social media</Text>
-          
+          <Text style={styles.socialTitle}>
+            Follow Us
+          </Text>
+
+          <Text style={styles.socialSubtitle}>
+            Stay connected with EsportsIndia on social media.
+          </Text>
+
           <View style={styles.socialIconsContainer}>
             {socialMediaLinks.map((social) => (
               <TouchableOpacity
                 key={social.id}
                 style={styles.socialIconButton}
-                onPress={() => handleSocialMediaPress(social.name.toLowerCase(), social.url)}
+                onPress={() =>
+                  handleSocialMediaPress(
+                    social.url,
+                    social.name
+                  )
+                }
                 activeOpacity={0.7}
               >
-                <View style={[styles.socialIconWrapper, { backgroundColor: `${social.color}15` }]}>
-                  <Ionicons 
-                    name={social.icon} 
-                    size={rs(28)} 
+                <View
+                  style={[
+                    styles.socialIconWrapper,
+                    {
+                      backgroundColor: `${social.color}15`,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={social.icon}
+                    size={rs(25)}
                     color={social.color}
                   />
                 </View>
-                <Text style={styles.socialIconLabel}>{social.name}</Text>
+
+                <Text style={styles.socialIconLabel}>
+                  {social.name}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -336,16 +623,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#141E30',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
-    padding: 20,
+    paddingHorizontal: wp(4),
+    paddingTop: hp(1.5),
+    paddingBottom: hp(1.5),
   },
+
   logoContainer: {
     marginRight: wp(3),
-    paddingTop: 40,
   },
+
   logo: {
     width: rs(50),
     height: rs(50),
@@ -353,291 +643,445 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFD700',
   },
+
   headerTextContainer: {
     flex: 1,
-    marginRight: wp(2),
-    paddingTop: 40,
   },
+
   profileButton: {
-    marginRight: 10,
-    paddingTop: 40,
+    padding: 4,
   },
+
   profileIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: 'white',
   },
-  maleIcon: {
-    // Classic filled silhouette style for male
-  },
-  femaleIcon: {
-    // Classic outline silhouette style for female
-  },
+
   greeting: {
     fontSize: rf(12),
     color: '#9CA3AF',
     fontWeight: '500',
   },
+
   headerTitle: {
-    fontSize: 18,
+    fontSize: rf(19),
     fontWeight: 'bold',
     color: 'white',
   },
-  headerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
-  },
+
   divider: {
-    height: 3,
+    height: 2,
     backgroundColor: '#FFD700',
     width: '100%',
   },
+
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: hp(4),
-  },
+
   scrollContent: {
     paddingBottom: hp(4),
   },
+
   welcomeSection: {
     backgroundColor: '#1A1F2E',
-    paddingVertical: hp(3),
+    paddingVertical: hp(2.5),
     paddingHorizontal: wp(5),
-    marginBottom: hp(2),
     marginTop: hp(2),
+    marginBottom: hp(2),
     marginHorizontal: wp(4),
     borderRadius: rs(12),
     borderWidth: 1,
     borderColor: '#2A3441',
   },
+
   welcomeTitle: {
-    fontSize: rf(24),
+    fontSize: rf(22),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(1),
+    marginBottom: hp(0.8),
     textAlign: 'center',
   },
+
   welcomeSubtitle: {
-    fontSize: rf(14),
+    fontSize: rf(13),
     color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: rf(20),
+    lineHeight: rf(19),
   },
+
   section: {
     marginBottom: hp(2.5),
     paddingHorizontal: wp(4),
   },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(1.5),
+  },
+
   sectionTitle: {
-    fontSize: rf(20),
+    fontSize: rf(19),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(2),
+    marginBottom: hp(1.5),
     paddingLeft: wp(1),
   },
+
+  seeAllText: {
+    color: '#FFD700',
+    fontSize: rf(12),
+    fontWeight: '600',
+    marginBottom: hp(1.5),
+  },
+
+  tournamentCard: {
+    backgroundColor: '#1A1F2E',
+    padding: wp(4),
+    borderRadius: rs(12),
+    borderWidth: 1,
+    borderColor: '#4B5563',
+  },
+
+  tournamentTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(1),
+  },
+
+  tournamentTag: {
+    backgroundColor: '#854D0E',
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.5),
+    borderRadius: rs(5),
+  },
+
+  tournamentTagText: {
+    color: '#FDE68A',
+    fontSize: rf(9),
+    fontWeight: 'bold',
+  },
+
+  tournamentGame: {
+    color: '#9CA3AF',
+    fontSize: rf(11),
+    fontWeight: '600',
+  },
+
+  tournamentTitle: {
+    color: '#FFFFFF',
+    fontSize: rf(19),
+    fontWeight: 'bold',
+    marginBottom: hp(1.5),
+  },
+
+  prizeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  metaLabel: {
+    color: '#9CA3AF',
+    fontSize: rf(11),
+    marginBottom: 3,
+  },
+
+  prizeValue: {
+    color: '#FFD700',
+    fontSize: rf(16),
+    fontWeight: 'bold',
+  },
+
+  registrationStatus: {
+    backgroundColor: '#1D4ED8',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderRadius: rs(7),
+  },
+
+  registrationStatusText: {
+    color: '#FFFFFF',
+    fontSize: rf(10),
+    fontWeight: '600',
+  },
+
+  tournamentHint: {
+    color: '#9CA3AF',
+    fontSize: rf(11),
+    marginTop: hp(1.5),
+  },
+
   gamesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
+
   gameCard: {
     width: (width - wp(12)) / 2,
     backgroundColor: '#1A1F2E',
     borderRadius: rs(12),
-    marginBottom: hp(2),
+    marginBottom: hp(1.8),
     overflow: 'hidden',
-    elevation: 4,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 3 },
-    //shadowOpacity: 0.3,
-    //shadowRadius: 5,
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#2A3441',
   },
+
   gameImageContainer: {
     width: '100%',
-    height: hp(15),
+    height: hp(14),
     backgroundColor: '#0F1419',
     justifyContent: 'center',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#2A3441',
   },
+
   gameImage: {
     width: '80%',
     height: '80%',
   },
+
   gameCardContent: {
     padding: wp(3),
   },
+
   gameCardTitle: {
-    fontSize: rf(16),
+    fontSize: rf(15),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(0.8),
+    marginBottom: hp(0.6),
   },
+
   gameCardDescription: {
-    fontSize: rf(12),
+    fontSize: rf(11),
     color: '#9CA3AF',
-    lineHeight: rf(16),
+    lineHeight: rf(15),
     marginBottom: hp(1),
   },
+
   gameCardFooter: {
     borderTopWidth: 1,
     borderTopColor: '#2A3441',
-    paddingTop: hp(1),
+    paddingTop: hp(0.8),
   },
+
   viewMoreText: {
-    fontSize: rf(12),
+    fontSize: rf(11),
     color: '#FFD700',
     fontWeight: '600',
   },
-  actionsRow: {
+
+  exploreGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: hp(1),
   },
-  actionCard: {
-    flex: 1,
+
+  exploreCard: {
+    width: '31.5%',
     backgroundColor: '#1A1F2E',
     borderRadius: rs(10),
-    padding: wp(2),
-    paddingVertical: hp(1.5),
-    marginHorizontal: wp(1),
+    paddingVertical: hp(1.7),
+    paddingHorizontal: wp(2),
     alignItems: 'center',
-    elevation: 3,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.25,
-    //shadowRadius: 3,
     borderWidth: 1,
     borderColor: '#2A3441',
   },
-  actionIcon: {
-    fontSize: rf(32),
+
+  exploreIcon: {
+    width: rs(48),
+    height: rs(48),
+    borderRadius: rs(24),
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: hp(1),
   },
-  actionTitle: {
-    fontSize: rf(8),
-    fontWeight: 'bold',
+
+  exploreTitle: {
     color: '#FFFFFF',
-    marginBottom: hp(0.2),
+    fontSize: rf(11),
+    fontWeight: 'bold',
     textAlign: 'center',
-    width: '100%',
   },
-  actionSubtitle: {
-    fontSize: rf(8),
+
+  exploreSubtitle: {
     color: '#9CA3AF',
+    fontSize: rf(9),
     textAlign: 'center',
-    width: '100%',
+    marginTop: hp(0.5),
   },
+
+  plansRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  planCard: {
+    width: '31.5%',
+    backgroundColor: '#1A1F2E',
+    borderRadius: rs(10),
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(2),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+  },
+
+  planName: {
+    fontSize: rf(13),
+    fontWeight: 'bold',
+    marginTop: hp(0.6),
+  },
+
+  planSubtitle: {
+    color: '#9CA3AF',
+    fontSize: rf(9),
+    textAlign: 'center',
+    marginTop: hp(0.4),
+  },
+
+  updatesCard: {
+    backgroundColor: '#1A1F2E',
+    borderRadius: rs(10),
+    paddingHorizontal: wp(3),
+    borderWidth: 1,
+    borderColor: '#2A3441',
+  },
+
+  updateItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: hp(1.5),
+  },
+
+  updateDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#2A3441',
+  },
+
+  updateIcon: {
+    width: rs(34),
+    height: rs(34),
+    borderRadius: rs(17),
+    backgroundColor: '#FFD70018',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(3),
+  },
+
+  updateTextContainer: {
+    flex: 1,
+  },
+
+  updateTitle: {
+    color: '#FFFFFF',
+    fontSize: rf(13),
+    fontWeight: 'bold',
+    marginBottom: hp(0.3),
+  },
+
+  updateDescription: {
+    color: '#9CA3AF',
+    fontSize: rf(11),
+    lineHeight: rf(16),
+  },
+
   infoSection: {
     backgroundColor: '#1A1F2E',
     marginHorizontal: wp(4),
-    marginTop: hp(1),
+    marginTop: hp(0.5),
+    marginBottom: hp(2),
     padding: wp(5),
     borderRadius: rs(10),
     borderWidth: 1,
     borderColor: '#2A3441',
-    elevation: 3,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.25,
-    //shadowRadius: 3,
   },
+
   infoTitle: {
-    fontSize: rf(18),
+    fontSize: rf(17),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(2),
+    marginBottom: hp(1.5),
   },
-  infoList: {
-    marginTop: hp(0.5),
-  },
+
   infoItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: hp(1.2),
+    marginBottom: hp(1),
   },
+
   infoBullet: {
     fontSize: rf(16),
     color: '#FFD700',
     fontWeight: 'bold',
     marginRight: wp(2),
-    marginTop: hp(0.2),
   },
+
   infoText: {
     flex: 1,
-    fontSize: rf(14),
+    fontSize: rf(13),
     color: '#D1D5DB',
-    lineHeight: rf(20),
+    lineHeight: rf(19),
   },
+
   socialSection: {
     backgroundColor: '#1A1F2E',
     marginHorizontal: wp(4),
-    marginTop: hp(1),
-    padding: wp(5),
+    padding: wp(4),
     borderRadius: rs(10),
     borderWidth: 1,
     borderColor: '#2A3441',
-    elevation: 3,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.25,
-    //shadowRadius: 3,
   },
+
   socialTitle: {
-    fontSize: rf(18),
+    fontSize: rf(17),
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: hp(0.5),
     textAlign: 'center',
   },
+
   socialSubtitle: {
-    fontSize: rf(12),
+    fontSize: rf(11),
     color: '#9CA3AF',
     textAlign: 'center',
-    marginBottom: hp(2.5),
+    marginBottom: hp(2),
   },
+
   socialIconsContainer: {
     flexDirection: 'row',
-    flexWrap: 'nowrap',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: wp(2),
   },
+
   socialIconButton: {
     alignItems: 'center',
     flex: 1,
     minWidth: 0,
   },
+
   socialIconWrapper: {
-    width: rs(60),
-    height: rs(60),
-    borderRadius: rs(30),
+    width: rs(48),
+    height: rs(48),
+    borderRadius: rs(24),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(0.8),
-    borderWidth: 2,
-    borderColor: 'transparent',
+    marginBottom: hp(0.6),
   },
+
   socialIconLabel: {
-    fontSize: rf(11),
+    fontSize: rf(9),
     color: '#D1D5DB',
     fontWeight: '500',
     textAlign: 'center',

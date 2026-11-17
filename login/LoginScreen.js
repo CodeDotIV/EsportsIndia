@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -10,15 +10,147 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
+import { makeRedirectUri } from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
 import { login } from "../services/authService";
 import { sendOtp } from "../services/otpService";
+import { supabase } from "../services/supabase";
 import { wp, hp, rf, rs, isTablet, isSmallDevice } from "../utils/responsive";
 import { setItem } from "../utils/storageHelper";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const enteredRef = useRef(false);
+
+  const enterApp = async (session) => {
+    if (!session?.user || enteredRef.current) return;
+    enteredRef.current = true;
+
+    const user = session.user;
+    const userData = {
+      email: user.email,
+      name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+      id: user.id,
+      isEmailVerified: Boolean(user.email_confirmed_at || user.email),
+    };
+
+    try {
+      await setItem("user", JSON.stringify(userData));
+      await setItem("userToken", session.access_token);
+    } catch (storageError) {
+      console.error("Failed to save Google session:", storageError);
+    }
+
+    navigation.replace("Main");
+  };
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        enterApp(session);
+      }
+    });
+
+    return () => data.subscription.unsubscribe();
+  }, [navigation]);
+
+  const showLoginError = (message) => {
+    if (Platform.OS === "web") {
+      window.alert(`Login failed: ${message}`);
+    } else {
+      Alert.alert("Login failed", message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (googleLoading) return;
+
+    try {
+      setGoogleLoading(true);
+
+      if (Platform.OS === "web") {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: true,
+            queryParams: { prompt: "select_account" },
+          },
+        });
+
+        if (error) throw error;
+        if (!data?.url) throw new Error("Google authorization URL not received");
+
+        window.location.assign(data.url);
+        return;
+      }
+
+      const redirectTo = makeRedirectUri({
+        scheme: "myapp",
+        path: "auth/callback",
+      });
+
+      console.log("Google redirect URL:", redirectTo);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.url) throw new Error("Google authorization URL not received");
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+      if (result.type === "cancel" || result.type === "dismiss") {
+        return;
+      }
+
+      if (result.type !== "success" || !result.url) {
+        throw new Error("Google authentication did not return successfully");
+      }
+
+      const callbackUrl = new URL(result.url);
+      const authError =
+        callbackUrl.searchParams.get("error_description") ||
+        callbackUrl.searchParams.get("error");
+
+      if (authError) {
+        throw new Error(decodeURIComponent(authError.replace(/\+/g, " ")));
+      }
+
+      const code = callbackUrl.searchParams.get("code");
+      if (!code) {
+        throw new Error("Authentication code not received from Google");
+      }
+
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.exchangeCodeForSession(code);
+
+      if (sessionError) throw sessionError;
+      if (!sessionData.session) {
+        throw new Error("Supabase session was not created");
+      }
+
+      await enterApp(sessionData.session);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
+      console.error("Google login error:", message);
+      showLoginError(message);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleEmailLogin = async () => {
     if (!email || !password) {
@@ -144,6 +276,24 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.loginText}>Login</Text>
               </TouchableOpacity>
 
+              <Text style={styles.orText}>or</Text>
+
+              <TouchableOpacity
+                style={[styles.googleButton, googleLoading && styles.disabledButton]}
+                onPress={handleGoogleSignIn}
+                disabled={googleLoading}
+                activeOpacity={0.8}
+              >
+                {googleLoading ? (
+                  <ActivityIndicator color="#111827" />
+                ) : (
+                  <>
+                    <Text style={styles.googleMark}>G</Text>
+                    <Text style={styles.googleButtonText}>Continue with Google</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
               <TouchableOpacity onPress={() => navigation.navigate("ForgotPasswordScreen")}>
                 <Text style={styles.link}>Forgot Password?</Text>
               </TouchableOpacity>
@@ -238,6 +388,35 @@ const styles = StyleSheet.create({
     fontSize: rf(20),
     fontWeight: "bold",
     letterSpacing: 1,
+  },
+  orText: {
+    color: "#A0A7BD",
+    marginTop: hp(2),
+    fontSize: rf(14),
+  },
+  googleButton: {
+    backgroundColor: "#FFFFFF",
+    width: "100%",
+    height: 55,
+    borderRadius: rs(12),
+    marginTop: hp(1.5),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  googleMark: {
+    color: "#4285F4",
+    fontSize: rf(22),
+    fontWeight: "900",
+    marginRight: 12,
+  },
+  googleButtonText: {
+    color: "#111827",
+    fontSize: rf(15),
+    fontWeight: "700",
   },
   link: {
     color: "#FFD700",

@@ -7,6 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { getItem, setItem, removeItem } from '../../utils/storageHelper';
 import { logout, updateProfile, getCurrentUser } from '../../services/authService';
+import { supabase } from '../../services/supabase';
 import { wp, hp, rf, rs, isTablet } from '../../utils/responsive';
 
 // Country data with timezones
@@ -342,6 +343,7 @@ const ProfileScreen = () => {
     try {
       console.log('🚪 Starting logout process...');
       
+      await supabase.auth.signOut().catch(() => {});
       await removeItem('user');
       await removeItem('userToken');
       console.log('✅ Storage cleared');

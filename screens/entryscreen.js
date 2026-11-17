@@ -48,7 +48,7 @@ const EntryScreen = () => {
             // Verify token is valid by checking if user data exists
             if (userData && userData.email) {
           console.log('✅ User is logged in, navigating to Main');
-          navigation.replace('Main');
+          navigation.replace('LoginScreen');
               return;
             }
           } catch (parseError) {

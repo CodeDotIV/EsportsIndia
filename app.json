@@ -6,25 +6,32 @@
     "orientation": "portrait",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.jeevan12.MyNewApp"
+      "bundleIdentifier": "com.jeevan12.mynewapp"
     },
+
     "android": {
-      "package": "com.jeevan12.MyNewApp"
+      "package": "com.jeevan12.mynewapp"
     },
+
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-video",
+      "expo-web-browser"
     ],
+
     "experiments": {
       "typedRoutes": true
     },
+
     "extra": {
       "router": {
         "origin": false
