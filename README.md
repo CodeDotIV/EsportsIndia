@@ -33,7 +33,7 @@ npx expo start --dev-client
 
 ## Production Android and iOS builds
 
-Add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the Expo project's **production** environment. Keep the Supabase Site URL set to your deployed HTTPS website and allow `myapp://auth/callback` in the redirect URLs.
+The `preview` and `production` EAS build profiles use the Expo project's **production** environment, so preview builds connect to production Supabase and use production data. Add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to that environment. Keep the Supabase Site URL set to your deployed HTTPS website and allow `myapp://auth/callback` in the redirect URLs.
 
 Install and sign in to EAS CLI, then create both store-ready builds:
 
