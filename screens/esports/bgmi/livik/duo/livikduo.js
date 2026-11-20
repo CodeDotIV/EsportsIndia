@@ -58,7 +58,7 @@ const Livik = () => {
           <Pressable onPress={() => handleSlotPress(item)} style={styles.gridItemWrapper}>
             <View style={styles.card}>
               <ImageBackground 
-                source={require('../../../../../assets/images/livik.png')} 
+                source={require('../../../../../assets/images/livik.jpg')}
                 style={styles.gridItem}
                 imageStyle={{ borderRadius: rs(8) }}
               >

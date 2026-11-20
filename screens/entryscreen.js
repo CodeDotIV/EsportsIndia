@@ -85,7 +85,7 @@ const EntryScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         <ImageBackground
-          source={require('../assets/images/applogo.png')}
+          source={require('../assets/images/applogo.jpg')}
           style={styles.background}
           resizeMode="cover"
         >

@@ -18,7 +18,7 @@ const classicStream = {
   id: 1,
   title: "Tournament's Live",
   game: 'Esports India',
-  thumbnail: require('../../assets/images/bgmi.png'),
+  thumbnail: require('../../assets/images/bgmi.jpg'),
   streamUrl: 'https://youtube.com/live/V3gOwW93VoA?feature=share',
   platform: 'youtube',
 };

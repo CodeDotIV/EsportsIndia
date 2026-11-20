@@ -6,7 +6,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 
 // Import the Livik image
-const livik = require('../../assets/images/livik.png');
+const livik = require('../../assets/images/livik.jpg');
 
 const GameScreen = () => {
   const navigation = useNavigation();

@@ -13,9 +13,9 @@ const Hangertdm = () => {
   const { mode } = route.params || {};
 
   const items = [
-    { id: '1', name: 'Solo', image: require('../../../assets/images/livik.png'), screen: 'Register' },
-    { id: '2', name: 'Duo', image: require('../../../assets/images/livik.png'), screen: 'Register' },
-    { id: '3', name: 'Squad', image: require('../../../assets/images/livik.png'), screen: 'Register' },
+    { id: '1', name: 'Solo', image: require('../../../assets/images/livik.jpg'), screen: 'Register' },
+    { id: '2', name: 'Duo', image: require('../../../assets/images/livik.jpg'), screen: 'Register' },
+    { id: '3', name: 'Squad', image: require('../../../assets/images/livik.jpg'), screen: 'Register' },
   ];
 
   const handlePress = () => {

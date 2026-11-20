@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 
-const livik = require('../../assets/images/livik.png');
+const livik = require('../../assets/images/livik.jpg');
 
 const GameScreen = () => {
   const navigation = useNavigation();

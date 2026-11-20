@@ -14,10 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../../utils/responsive';
 
 const games = [
-  { id: '1', name: 'BGMI', image: require('../../../assets/images/bgmi.png') },
-  { id: '2', name: 'Freefire', image: require('../../../assets/images/freefire.png'), screen: 'Freefire' },
-  { id: '3', name: 'Call of Duty', image: require('../../../assets/images/callofduty.png'), screen: 'Callofduty' },
-  { id: '4', name: 'Valorant', image: require('../../../assets/images/valorant.png'), screen: 'Valorant' },
+  { id: '1', name: 'BGMI', image: require('../../../assets/images/bgmi.jpg') },
+  { id: '2', name: 'Freefire', image: require('../../../assets/images/freefire.jpg'), screen: 'Freefire' },
+  { id: '3', name: 'Call of Duty', image: require('../../../assets/images/callofduty.jpg'), screen: 'Callofduty' },
+  { id: '4', name: 'Valorant', image: require('../../../assets/images/valorant.jpg'), screen: 'Valorant' },
 ];
 
 const bgmiCategories = [

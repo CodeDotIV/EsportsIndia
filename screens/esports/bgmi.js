@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 
 // Import the Livik image
-const livik = require('../../assets/images/livik.png');
+const livik = require('../../assets/images/livik.jpg');
 
 const GameScreen = () => {
   const navigation = useNavigation();

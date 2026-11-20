@@ -30,28 +30,28 @@ const gameData = [
   {
     id: 1,
     title: 'BGMI',
-    image: require('../../assets/images/bgmi.png'),
+    image: require('../../assets/images/bgmi.jpg'),
     navigation: 'Aboutbgmi',
     description: 'Experience intense battle action with realistic mechanics and immersive environments.',
   },
   {
     id: 2,
     title: 'Free Fire',
-    image: require('../../assets/images/freefire.png'),
+    image: require('../../assets/images/freefire.jpg'),
     navigation: 'Aboutfreefire',
     description: 'Fast-paced survival shooter with quick matches and diverse maps.',
   },
   {
     id: 3,
     title: 'Call of Duty',
-    image: require('../../assets/images/callofduty.png'),
+    image: require('../../assets/images/callofduty.jpg'),
     navigation: 'Aboutcallofduty',
     description: 'Iconic FPS gameplay with multiple modes and realistic action.',
   },
   {
     id: 4,
     title: 'Valorant',
-    image: require('../../assets/images/valorant.png'),
+    image: require('../../assets/images/valorant.jpg'),
     navigation: 'Aboutvalorant',
     description: 'Tactical 5v5 shooter blending precision gunplay with unique agent abilities.',
   },
@@ -152,7 +152,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image
-            source={require('../../assets/images/applogo.png')}
+            source={require('../../assets/images/applogo.jpg')}
             style={styles.logo}
           />
         </View>

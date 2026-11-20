@@ -8,9 +8,9 @@ const Livik = () => {
   const navigation = useNavigation();  // Navigation hook
 
   const items = [
-    { id: '1', name: 'Solo', image: require('../../../../assets/images/livik.png'), screen: 'Nusasolo' },  
-    { id: '2', name: 'Duo', image: require('../../../../assets/images/livik.png'), screen: 'Nusaduo' },  
-    { id: '3', name: 'Squad', image: require('../../../../assets/images/livik.png'), screen: 'Nusasquad' },  
+    { id: '1', name: 'Solo', image: require('../../../../assets/images/livik.jpg'), screen: 'Nusasolo' },
+    { id: '2', name: 'Duo', image: require('../../../../assets/images/livik.jpg'), screen: 'Nusaduo' },
+    { id: '3', name: 'Squad', image: require('../../../../assets/images/livik.jpg'), screen: 'Nusasquad' },
   ];
 
   const handlePress = () => {
