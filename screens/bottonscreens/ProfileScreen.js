@@ -5,8 +5,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { getItem, setItem, removeItem } from '../../utils/storageHelper';
-import { signOut } from '../../services/supabaseAuth';
+import { getItem, setItem } from '../../utils/storageHelper';
 import { getOrCreatePlayerId } from '../../utils/playerId';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 
@@ -120,9 +119,8 @@ const ProfileScreen = () => {
     youtube: '',
     twitch: '',
   });
-  const [isEditing, setIsEditing] = useState(false);
+  const isEditing = true;
   const [loading, setLoading] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState(0);
@@ -138,24 +136,34 @@ const ProfileScreen = () => {
       return undefined;
     }
 
-    const blinkAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(upgradeOpacity, {
-          toValue: 0.45,
-          duration: 850,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.timing(upgradeOpacity, {
-          toValue: 1,
-          duration: 850,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ])
-    );
+    let active = true;
+    let blinkAnimation;
+    getItem('settings.reduceAnimations')
+      .then((value) => {
+        if (!active || value === 'true') return;
+        blinkAnimation = Animated.loop(
+          Animated.sequence([
+            Animated.timing(upgradeOpacity, {
+              toValue: 0.45,
+              duration: 850,
+              useNativeDriver: Platform.OS !== 'web',
+            }),
+            Animated.timing(upgradeOpacity, {
+              toValue: 1,
+              duration: 850,
+              useNativeDriver: Platform.OS !== 'web',
+            }),
+          ])
+        );
+        blinkAnimation.start();
+      })
+      .catch((error) => {
+        console.error('Failed to load animation preference:', error);
+      });
 
-    blinkAnimation.start();
     return () => {
-      blinkAnimation.stop();
+      active = false;
+      blinkAnimation?.stop();
       upgradeOpacity.setValue(1);
     };
   }, [isFocused, upgradeOpacity]);
@@ -310,40 +318,12 @@ const ProfileScreen = () => {
 
       await setItem('user', JSON.stringify(profileData));
       setUser(profileData);
-      setIsEditing(false);
       Alert.alert('Success', 'Profile saved locally!');
     } catch (error) {
       console.error('Failed to save local profile:', error);
       Alert.alert('Error', 'Failed to save profile locally.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    if (signingOut) return;
-
-    setSigningOut(true);
-    try {
-      await signOut();
-      await removeItem('user');
-
-      const rootNavigation =
-        navigation.getParent()?.getParent() || navigation.getParent() || navigation;
-      rootNavigation.reset({
-        index: 0,
-        routes: [{ name: 'LoginScreen' }],
-      });
-    } catch (error) {
-      console.error('Failed to sign out:', error);
-      const message = error instanceof Error ? error.message : 'Please try again.';
-      if (Platform.OS === 'web') {
-        window.alert(`Sign out failed: ${message}`);
-      } else {
-        Alert.alert('Sign out failed', message);
-      }
-    } finally {
-      setSigningOut(false);
     }
   };
 
@@ -354,11 +334,14 @@ const ProfileScreen = () => {
         <View style={styles.header}>
           <Text style={styles.headerText}>My Profile</Text>
           <View style={styles.headerRight}>
-            {!isEditing ? (
-              <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.editIconButton}>
-                <Ionicons name="create-outline" size={22} color="white" />
-              </TouchableOpacity>
-            ) : null}
+            <TouchableOpacity
+              onPress={() => navigation.getParent()?.navigate('Settings')}
+              style={styles.settingsButton}
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+            >
+              <Ionicons name="settings-outline" size={22} color="white" />
+            </TouchableOpacity>
           </View>
         </View>
         <ScrollView 
@@ -400,31 +383,6 @@ const ProfileScreen = () => {
                   </View>
                 ) : null}
 
-                {isEditing ? (
-                  <View style={styles.profileBioInput}>
-                    <Text style={styles.label}>Bio</Text>
-                    <TextInput
-                      style={[styles.input, { minHeight: hp(12), textAlignVertical: 'top', paddingTop: hp(1.2) }]}
-                      placeholder="Tell us about yourself..."
-                      placeholderTextColor="#999"
-                      value={user.bio || ''}
-                      onChangeText={(text) => {
-                        if (text.length <= 500) {
-                          setUser({ ...user, bio: text });
-                        }
-                      }}
-                      editable={isEditing}
-                      multiline
-                      numberOfLines={3}
-                      maxLength={500}
-                    />
-                    <Text style={styles.charCount}>{(user.bio || '').length}/500</Text>
-                  </View>
-                ) : user.bio ? (
-                  <View style={styles.bioContainer}>
-                    <Text style={styles.bioText}>{user.bio}</Text>
-                  </View>
-                ) : null}
               </View>
         </View>
       
@@ -723,311 +681,17 @@ const ProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Social Media</Text>
-                
-                {!isEditing ? (
-                  <View style={styles.socialIconsContainer}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (user.instagram) {
-                          const url = user.instagram.startsWith('http') ? user.instagram : `https://instagram.com/${user.instagram.replace('@', '')}`;
-                          Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Instagram'));
-                        }
-                      }}
-                      disabled={!user.instagram}
-                      style={styles.socialIconButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Instagram ${user.instagram ? 'linked' : 'not linked'}`}
-                    >
-                      <Ionicons
-                        name="logo-instagram"
-                        size={rs(22)}
-                        color={user.instagram ? '#E4405F' : '#64748B'}
-                      />
-                      <Text style={styles.socialTileName}>Instagram</Text>
-                      <Text style={styles.socialTileStatus}>{user.instagram ? 'Linked' : 'Not linked'}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (user.twitter) {
-                          const url = user.twitter.startsWith('http') ? user.twitter : `https://twitter.com/${user.twitter.replace('@', '')}`;
-                          Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitter'));
-                        }
-                      }}
-                      disabled={!user.twitter}
-                      style={styles.socialIconButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Twitter ${user.twitter ? 'linked' : 'not linked'}`}
-                    >
-                      <Ionicons
-                        name="logo-twitter"
-                        size={rs(22)}
-                        color={user.twitter ? '#1DA1F2' : '#64748B'}
-                      />
-                      <Text style={styles.socialTileName}>Twitter</Text>
-                      <Text style={styles.socialTileStatus}>{user.twitter ? 'Linked' : 'Not linked'}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (user.discord) {
-                          Alert.alert('Discord', `Discord: ${user.discord}\n\nCopy this to add as friend on Discord.`);
-                        }
-                      }}
-                      disabled={!user.discord}
-                      style={styles.socialIconButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Discord ${user.discord ? 'linked' : 'not linked'}`}
-                    >
-                      <Ionicons
-                        name="logo-discord"
-                        size={rs(22)}
-                        color={user.discord ? '#5865F2' : '#64748B'}
-                      />
-                      <Text style={styles.socialTileName}>Discord</Text>
-                      <Text style={styles.socialTileStatus}>{user.discord ? 'Linked' : 'Not linked'}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (user.youtube) {
-                          const url = user.youtube.startsWith('http') ? user.youtube : `https://youtube.com/@${user.youtube.replace('@', '').replace(/ /g, '')}`;
-                          Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open YouTube'));
-                        }
-                      }}
-                      disabled={!user.youtube}
-                      style={styles.socialIconButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={`YouTube ${user.youtube ? 'linked' : 'not linked'}`}
-                    >
-                      <Ionicons
-                        name="logo-youtube"
-                        size={rs(22)}
-                        color={user.youtube ? '#FF0000' : '#64748B'}
-                      />
-                      <Text style={styles.socialTileName}>YouTube</Text>
-                      <Text style={styles.socialTileStatus}>{user.youtube ? 'Linked' : 'Not linked'}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (user.twitch) {
-                          const url = user.twitch.startsWith('http') ? user.twitch : `https://twitch.tv/${user.twitch.replace('@', '').replace(/ /g, '')}`;
-                          Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitch'));
-                        }
-                      }}
-                      disabled={!user.twitch}
-                      style={styles.socialIconButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Twitch ${user.twitch ? 'linked' : 'not linked'}`}
-                    >
-                      <Ionicons
-                        name="logo-twitch"
-                        size={rs(22)}
-                        color={user.twitch ? '#9146FF' : '#64748B'}
-                      />
-                      <Text style={styles.socialTileName}>Twitch</Text>
-                      <Text style={styles.socialTileStatus}>{user.twitch ? 'Linked' : 'Not linked'}</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <>
-                    <Text style={styles.sectionSubtitle}>Paste your profile links. Click icons to open profiles.</Text>
-                    
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.label}>Instagram</Text>
-                      <View style={styles.socialRow}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (user.instagram) {
-                              const url = user.instagram.startsWith('http') ? user.instagram : `https://instagram.com/${user.instagram.replace('@', '')}`;
-                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Instagram'));
-                            }
-                          }}
-                          disabled={!user.instagram}
-                        >
-                          <Ionicons 
-                            name="logo-instagram" 
-                            size={rs(24)} 
-                            color={user.instagram ? "#E4405F" : "#666"} 
-                            style={styles.socialIcon} 
-                          />
-                        </TouchableOpacity>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Instagram profile URL or @username"
-                          placeholderTextColor="#999"
-                          value={user.instagram}
-                          onChangeText={(text) => setUser({ ...user, instagram: text })}
-                          editable={isEditing}
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.label}>Twitter</Text>
-                      <View style={styles.socialRow}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (user.twitter) {
-                              const url = user.twitter.startsWith('http') ? user.twitter : `https://twitter.com/${user.twitter.replace('@', '')}`;
-                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitter'));
-                            }
-                          }}
-                          disabled={!user.twitter}
-                        >
-                          <Ionicons 
-                            name="logo-twitter" 
-                            size={rs(24)} 
-                            color={user.twitter ? "#1DA1F2" : "#666"} 
-                            style={styles.socialIcon} 
-                          />
-                        </TouchableOpacity>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Twitter profile URL or @username"
-                          placeholderTextColor="#999"
-                          value={user.twitter}
-                          onChangeText={(text) => setUser({ ...user, twitter: text })}
-                          editable={isEditing}
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.label}>Discord</Text>
-                      <View style={styles.socialRow}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (user.discord) {
-                              Alert.alert('Discord', `Discord: ${user.discord}\n\nCopy this to add as friend on Discord.`);
-                            }
-                          }}
-                          disabled={!user.discord}
-                        >
-                          <Ionicons 
-                            name="logo-discord" 
-                            size={rs(24)} 
-                            color={user.discord ? "#5865F2" : "#666"} 
-                            style={styles.socialIcon} 
-                          />
-                        </TouchableOpacity>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Discord username#1234"
-                          placeholderTextColor="#999"
-                          value={user.discord}
-                          onChangeText={(text) => setUser({ ...user, discord: text })}
-                          editable={isEditing}
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.label}>YouTube</Text>
-                      <View style={styles.socialRow}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (user.youtube) {
-                              const url = user.youtube.startsWith('http') ? user.youtube : `https://youtube.com/@${user.youtube.replace('@', '').replace(/ /g, '')}`;
-                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open YouTube'));
-                            }
-                          }}
-                          disabled={!user.youtube}
-                        >
-                          <Ionicons 
-                            name="logo-youtube" 
-                            size={rs(24)} 
-                            color={user.youtube ? "#FF0000" : "#666"} 
-                            style={styles.socialIcon} 
-                          />
-                        </TouchableOpacity>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="YouTube channel URL or channel name"
-                          placeholderTextColor="#999"
-                          value={user.youtube}
-                          onChangeText={(text) => setUser({ ...user, youtube: text })}
-                          editable={isEditing}
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.label}>Twitch</Text>
-                      <View style={styles.socialRow}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (user.twitch) {
-                              const url = user.twitch.startsWith('http') ? user.twitch : `https://twitch.tv/${user.twitch.replace('@', '').replace(/ /g, '')}`;
-                              Linking.openURL(url).catch(err => Alert.alert('Error', 'Could not open Twitch'));
-                            }
-                          }}
-                          disabled={!user.twitch}
-                        >
-                          <Ionicons 
-                            name="logo-twitch" 
-                            size={rs(24)} 
-                            color={user.twitch ? "#9146FF" : "#666"} 
-                            style={styles.socialIcon} 
-                          />
-                        </TouchableOpacity>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Twitch channel URL or username"
-                          placeholderTextColor="#999"
-                          value={user.twitch}
-                          onChangeText={(text) => setUser({ ...user, twitch: text })}
-                          editable={isEditing}
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-                  </>
-                )}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.saveButton, loading && styles.buttonDisabled]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {loading ? 'Saving...' : 'Save Profile'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-
-
-              {isEditing ? (
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity 
-                    style={[styles.saveButton, loading && styles.buttonDisabled]} 
-                    onPress={handleSave}
-                    disabled={loading}
-                  >
-                    <Text style={styles.saveButtonText}>
-                      {loading ? 'Saving...' : 'Save Profile'}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.cancelButton} 
-                    onPress={() => {
-                      setIsEditing(false);
-                      loadUserProfile(); // Reload to discard changes
-                    }}
-                    disabled={loading}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-              <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleSignOut}
-                disabled={signingOut}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="log-out-outline" size={rs(20)} color="#ff4444" />
-                <Text style={styles.logoutText}>
-                  {signingOut ? 'Signing out...' : 'Sign out'}
-                </Text>
-              </TouchableOpacity>
             </View>
 
           </ScrollView>
@@ -1179,10 +843,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerRight: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
   },
-  editIconButton: {
-    padding: 0,
+  settingsButton: {
+    padding: wp(1),
   },
   scrollContainer: {
     flex: 1,
@@ -1262,10 +928,6 @@ const styles = StyleSheet.create({
     color: '#D1D5DB',
     textAlign: 'left',
     flexShrink: 1,
-  },
-  profileBioInput: {
-    width: '100%',
-    marginTop: hp(1),
   },
   membershipCard: {
     backgroundColor: '#1A1F2E',
@@ -1411,17 +1073,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1F2E',
     color: '#999',
   },
-  textArea: {
-    minHeight: hp(12),
-    textAlignVertical: 'top',
-    paddingTop: hp(1.2),
-  },
-  charCount: {
-    fontSize: rf(12),
-    color: '#999',
-    textAlign: 'right',
-    marginTop: hp(0.5),
-  },
   helperText: {
     fontSize: rf(11),
     color: '#999',
@@ -1475,38 +1126,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#000',
     fontSize: rf(16),
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(5),
-    borderRadius: rs(10),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: rf(16),
-    fontWeight: '600',
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: hp(2.5),
-    paddingVertical: hp(1.5),
-    backgroundColor: 'rgba(255, 68, 68, 0.2)',
-    borderRadius: rs(10),
-    borderWidth: 1,
-    borderColor: 'rgba(255, 68, 68, 0.5)',
-    minHeight: 44,
-  },
-  logoutText: {
-    fontSize: rf(16),
-    color: '#ff4444',
-    marginLeft: wp(2),
     fontWeight: 'bold',
   },
   optionsContainer: {
@@ -1578,31 +1197,6 @@ const styles = StyleSheet.create({
   },
   socialIcon: {
     marginRight: wp(2.5),
-  },
-  bioContainer: {
-    alignSelf: 'stretch',
-    marginTop: hp(0.5),
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(1),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: rs(10),
-  },
-  bioText: {
-    fontSize: rf(16),
-    color: '#fff',
-    lineHeight: rf(24),
-    textAlign: 'left',
-  },
-  bioEditContainer: {
-    marginTop: hp(1.5),
-    marginBottom: hp(1),
-    width: '100%',
-    paddingHorizontal: wp(2),
-  },
-  bioInput: {
-    minHeight: hp(8),
-    textAlignVertical: 'top',
-    paddingTop: hp(1.2),
   },
   timezoneDisplay: {
     fontSize: rf(12),

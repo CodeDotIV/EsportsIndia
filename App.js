@@ -53,6 +53,19 @@ import  Hangerarenatraining from './screens/esportsarena/modes/hangerarenatraini
 import  Hangertdm from './screens/esportsarena/modes/hangertdm.js';
 import  Hangertgm from './screens/esportsarena/modes/hangertgm.js';
 import TournamentRegister from './screens/bottonscreens/tournaments/tournamentregister.js';
+import {
+  SettingsAboutScreen,
+  SettingsAccountScreen,
+  SettingsAdvancedScreen,
+  SettingsDiagnosticsScreen,
+  SettingsHomeScreen,
+  SettingsLegalScreen,
+  SettingsMembershipScreen,
+  SettingsPreferencesScreen,
+  SettingsPrivacyScreen,
+  SettingsSupportScreen,
+  SettingsTournamentsScreen,
+} from './screens/bottonscreens/settings/SettingsScreens.js';
 import LoginScreen from './login/LoginScreen.js';
 
 const Stack = createStackNavigator();
@@ -125,6 +138,17 @@ export default function App() {
         <Stack.Screen name="Hangertdm" component={Hangertdm} options={{headerShown: false}} />
         <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
         <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
+        <Stack.Screen name="Settings" component={SettingsHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsAccount" component={SettingsAccountScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsMembership" component={SettingsMembershipScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsPrivacy" component={SettingsPrivacyScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsTournaments" component={SettingsTournamentsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsSupport" component={SettingsSupportScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsLegal" component={SettingsLegalScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsAbout" component={SettingsAboutScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsAdvanced" component={SettingsAdvancedScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SettingsDiagnostics" component={SettingsDiagnosticsScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

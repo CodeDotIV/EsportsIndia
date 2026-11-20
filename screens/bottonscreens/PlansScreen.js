@@ -124,6 +124,16 @@ export default function PlansScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Important platform rules</Text>
+          {platformRules.map((rule) => (
+            <View key={rule} style={styles.platformRule}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.ruleValue}>{rule}</Text>
+            </View>
+          ))}
+        </View>
+
         {plans.map((plan) => (
           <View key={plan.name} style={[styles.planCard, plan.popular && styles.popularCard]}>
             {plan.popular ? (
@@ -168,15 +178,6 @@ export default function PlansScreen() {
           </View>
         ))}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Important platform rules</Text>
-          {platformRules.map((rule) => (
-            <View key={rule} style={styles.platformRule}>
-              <Text style={styles.bullet}>•</Text>
-              <Text style={styles.ruleValue}>{rule}</Text>
-            </View>
-          ))}
-        </View>
       </ScrollView>
 
       <Modal
