@@ -7,7 +7,7 @@ import TournamentsScreen from './tournaments/tournamentsscreen';
 import PlansScreen from './PlansScreen';
 import ProfileScreen from './ProfileScreen';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -23,9 +23,14 @@ export default function BottomTabNavigator() {
           else if (route.name === 'Tournaments') iconName = 'emoji-events';
           else if (route.name === 'Plans') iconName = 'card-membership';
           else if (route.name === 'Profile') iconName = 'person';
-          return <Icon name={iconName} size={26} color={color} />;
+          return <Icon name={iconName} size={22} color={color} />;
         },
-        tabBarInactiveTintColor: '#ccc',
+        tabBarActiveTintColor: '#FFD700',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
         tabBarStyle: {
           height: 90,
           paddingBottom: 10,

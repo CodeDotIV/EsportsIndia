@@ -93,7 +93,6 @@ const RegistrationForm = () => {
     let payload = {
       mode: form.mode,
       team: form.team,
-
       firstPlayer_name: form.firstPlayer.name,
       firstPlayer_gameId: form.firstPlayer.gameId,
       firstPlayer_mobile: form.firstPlayer.mobile,
@@ -117,7 +116,6 @@ const RegistrationForm = () => {
         thirdPlayer_gameId: form.thirdPlayer.gameId,
         thirdPlayer_mobile: form.thirdPlayer.mobile,
         thirdPlayer_email: form.thirdPlayer.email,
-
         fourthPlayer_name: form.fourthPlayer.name,
         fourthPlayer_gameId: form.fourthPlayer.gameId,
         fourthPlayer_mobile: form.fourthPlayer.mobile,
@@ -235,7 +233,6 @@ const RegistrationForm = () => {
           </TouchableOpacity>
           <Text style={styles.headerText}>Register</Text>
         </View>
-        <View style={styles.headerLine} />
   
         {/* SCROLL */}
         <ScrollView
@@ -279,44 +276,31 @@ export default RegistrationForm;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#141E30' },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
     padding: 20,
   },
   backButton: {
     color: 'white',
     marginRight: 10,
-    paddingTop: 40,
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   scrollView: {
     flex: 1,
   },
-
   form: { flex: 1 },
 
   // 🔥 This is the MAIN scroll fix
   scrollContent: {
     paddingBottom: hp(15),
   },
-
   inputContainer: { marginBottom: hp(2) },
   label: { fontSize: rf(16), fontWeight: '600', marginBottom: hp(0.5), color: '#FFFFFF' },
-
   input: {
     borderWidth: 1,
     borderColor: '#2A3441',
@@ -327,10 +311,8 @@ const styles = StyleSheet.create({
     fontSize: rf(15),
   },
   disabled: { backgroundColor: '#1A1F2E', color: '#999' },
-
   section: { marginTop: hp(2) },
   sectionTitle: { fontSize: rf(18), fontWeight: 'bold', marginBottom: hp(1), color: '#FFD700' },
-
   submitButton: {
     backgroundColor: '#FFD700',
     padding: hp(2),

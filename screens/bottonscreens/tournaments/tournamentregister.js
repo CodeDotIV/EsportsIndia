@@ -114,7 +114,6 @@ export default function TournamentRegister() {
         </TouchableOpacity>
         <Text style={styles.headerText}>Tournament Register</Text>
       </View>
-      <View style={styles.headerLine} />
 
       <ScrollView 
         style={styles.scrollView}
@@ -181,25 +180,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
     padding: 20,
   },
   backButton: {
     color: 'white',
     marginRight: 10,
-    paddingTop: 40,
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   scrollView: {
     flex: 1,

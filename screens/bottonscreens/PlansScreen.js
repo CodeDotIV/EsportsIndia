@@ -111,10 +111,19 @@ export default function PlansScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>EsportsIndia Membership Plans</Text>
-        <Text style={styles.subtitle}>Choose a plan to customize your player profile.</Text>
+      <View style={styles.stickyHeader}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Membership Plans</Text>
+          <Ionicons name="sparkles-outline" size={rs(20)} color="#FFD700" />
+        </View>
+        <Text style={styles.subtitle}>Find your style. Make your profile stand out.</Text>
+      </View>
 
+      <ScrollView
+        style={styles.plansScrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {plans.map((plan) => (
           <View key={plan.name} style={[styles.planCard, plan.popular && styles.popularCard]}>
             {plan.popular ? (
@@ -239,22 +248,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#141E30',
   },
+  stickyHeader: {
+    paddingHorizontal: wp(5),
+    paddingTop: hp(3),
+    paddingBottom: hp(1.5),
+    backgroundColor: '#141E30',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A3441',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+  },
+  plansScrollView: {
+    flex: 1,
+  },
   content: {
     flexGrow: 1,
     paddingHorizontal: wp(5),
-    paddingTop: hp(3),
+    paddingTop: hp(1.5),
     paddingBottom: hp(4),
   },
   title: {
     color: '#FFFFFF',
-    fontSize: rf(26),
+    fontSize: rf(24),
     fontWeight: 'bold',
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: rf(14),
-    marginTop: hp(0.7),
-    marginBottom: hp(2.5),
+    color: '#D1D5DB',
+    fontSize: rf(13),
+    marginTop: hp(0.6),
   },
   planCard: {
     backgroundColor: '#1A1F2E',

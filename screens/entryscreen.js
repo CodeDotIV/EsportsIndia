@@ -9,7 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { wp, hp, rf, getScreenDimensions } from '../utils/responsive';
+import { wp, hp, rf } from '../utils/responsive';
 import { supabase } from '../services/supabase';
 import { getItem, setItem } from '../utils/storageHelper';
 import { getOrCreatePlayerId } from '../utils/playerId';
@@ -79,8 +79,6 @@ const EntryScreen = () => {
     return () => clearTimeout(timer);
   }, [navigation, fadeAnim, slideAnim]);
 
-  const { height } = getScreenDimensions();
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -89,12 +87,14 @@ const EntryScreen = () => {
           style={styles.background}
           resizeMode="cover"
         >
-          <Animated.Text
-            style={[styles.title, { transform: [{ translateY: slideAnim }] }]}
-          >
-            Welcome to EsportsIndia
-          </Animated.Text>
-          <ActivityIndicator size="small" color="#fff" style={styles.loader} />
+          <View style={styles.splashOverlay}>
+            <Animated.Text
+              style={[styles.title, { transform: [{ translateY: slideAnim }] }]}
+            >
+              Welcome to EsportsIndia
+            </Animated.Text>
+            <ActivityIndicator size="small" color="#fff" style={styles.loader} />
+          </View>
         </ImageBackground>
       </Animated.View>
     </SafeAreaView>
@@ -114,23 +114,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   background: {
-    width: wp(100),
-    height: hp(100),
-    justifyContent: 'center',
+    flex: 1,
+    width: '100%',
+  },
+  splashOverlay: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(10),
+    backgroundColor: 'rgba(0, 0, 0, 0.18)',
   },
   title: {
     fontSize: rf(28),
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginTop: hp(60),
-    paddingHorizontal: wp(5),
-    //textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    //textShadowOffset: { width: 0, height: 2 },
-    //textShadowRadius: 4,
+    marginBottom: hp(1),
   },
   loader: {
-    marginTop: hp(2),
+    marginTop: hp(1),
   },
 });

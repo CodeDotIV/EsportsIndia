@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
 import { 
   View, Text, FlatList, TouchableOpacity, 
-  StyleSheet, Image, StatusBar 
+  StyleSheet, Image, SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { wp, hp, rf, rs } from '../../utils/responsive';
 
 // Import the Livik image
 const livik = require('../../assets/images/livik.jpg');
@@ -55,7 +56,7 @@ const GameScreen = () => {
   const renderItem = ({ item }) => (
     <View style={styles.cardContainer}>
       <TouchableOpacity style={styles.card} onPress={() => handlePress(item.screen)}>
-        <Image source={item.image} style={styles.cardImage} />
+        <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
       </TouchableOpacity>
       <Text style={styles.cardText}>{item.name}</Text>
     </View>
@@ -66,10 +67,9 @@ const GameScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText} numberOfLines={1}>BGMI</Text>
+        <Text style={styles.headerText} numberOfLines={1}>Free Fire</Text>
       </View>
 
       {/* FlatList for sections */}
@@ -95,65 +95,70 @@ const GameScreen = () => {
         nestedScrollEnabled={true}
         bounces={true}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, backgroundColor: '#f5f5f5', padding: 0,
+    flex: 1,
+    backgroundColor: '#0F1419',
   },
   header: {
-    backgroundColor: '#f5a623', paddingTop: 50, alignItems: 'center',
+    backgroundColor: '#1A1F2E',
+    paddingVertical: hp(1.8),
+    paddingHorizontal: wp(5),
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A3441',
   },
   headerText: {
-    fontSize: 24,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    paddingTop:30,
-    color: '#000',
-    marginBottom:30,
+    color: '#FFFFFF',
     flexShrink: 1,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: rf(20),
     fontWeight: 'bold',
-    marginTop: 30,
-    marginLeft: 26,
-    color: '#333',
+    marginTop: hp(2),
+    marginHorizontal: wp(5),
+    marginBottom: hp(1),
+    color: '#FFFFFF',
   },
   flatList: {
     flex: 1,
   },
   listContainer: {
-    paddingBottom: 20,
-    paddingHorizontal: 10,
+    paddingBottom: hp(4),
+    paddingHorizontal: wp(3),
   },
   grid: {
-    gap: 10,
-    paddingTop: 10,
+    paddingTop: hp(1),
   },
   cardContainer: {
     flex: 1,
     alignItems: 'center',
-    margin: 10,
+    margin: wp(2),
   },
   card: {
-    width: 150,
-    height: 100,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    width: '100%',
+    aspectRatio: 1.55,
+    backgroundColor: '#1A1F2E',
+    borderRadius: rs(12),
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#2A3441',
   },
   cardImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   cardText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 5,
+    fontSize: rf(13),
+    fontWeight: '600',
+    marginTop: hp(0.7),
     textAlign: 'center',
+    color: '#FFFFFF',
   },
 });
 

@@ -47,7 +47,7 @@ const GameScreen = () => {
   const renderItem = ({ item }) => (
     <View style={styles.cardContainer}>
       <TouchableOpacity style={styles.card} onPress={() => handlePress(item.screen)}>
-        <Image source={item.image} style={styles.cardImage} />
+        <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
       </TouchableOpacity>
       <Text style={styles.cardText}>{item.name}</Text>
     </View>
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
     margin: wp(2),
   },
   card: {
-    width: 150,
-    height: 100,
+    width: '100%',
+    aspectRatio: 1.55,
     borderRadius: rs(12),
     overflow: 'hidden',
     elevation: 4,
@@ -172,7 +172,6 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   cardText: {
     fontSize: rf(13),

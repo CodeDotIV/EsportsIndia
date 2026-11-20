@@ -170,7 +170,6 @@ const RegistrationForm = ({ route }) => {
         </TouchableOpacity>
         <Text style={styles.headerText}>Register</Text>
       </View>
-      <View style={styles.headerLine} />
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
         {/* Mode & Slot */}
@@ -296,19 +295,11 @@ const styles = StyleSheet.create({
   backButton: { 
     color: "white",
     marginRight: 10,
-    paddingTop: 40 
   },
   headerText: { 
     fontSize: 18, 
     fontWeight: "bold", 
     color: "white", 
-    paddingTop: 38 
-  },
-  headerLine: {
-    height: 1,
-    width: "100%",
-    backgroundColor: "#FFD700",
-    marginVertical: 5,
   },
   scrollView: {
     flex: 1,
@@ -409,7 +400,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     elevation: 5,
-    
   },
   option: {
     padding: 12,

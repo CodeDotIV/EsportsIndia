@@ -361,7 +361,6 @@ const ProfileScreen = () => {
             ) : null}
           </View>
         </View>
-        <View style={styles.headerLine} />
         <ScrollView 
           style={styles.scrollContainer} 
           contentContainerStyle={styles.scrollContent}
@@ -1178,11 +1177,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     flex: 1,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
   },
   headerRight: {
     alignItems: 'flex-end',

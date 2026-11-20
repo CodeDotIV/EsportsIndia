@@ -23,7 +23,6 @@ const RegistrationForm = ({ route }) => {
       <View style={styles.header}> 
         <Text style={styles.headerText}>Register</Text>
       </View>
-      <View style={styles.headerLine} />
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
         <View style={styles.inputContainer}>
@@ -96,9 +95,8 @@ const RegistrationForm = ({ route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#141E30' },
-  header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '', padding: 20 },
-  headerText: { fontSize: 18, fontWeight: 'bold', color: 'white', paddingTop: 38 },
-  headerLine: { height: 1, width: '100%', backgroundColor: '#FFD700', marginVertical: 5 },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20 },
+  headerText: { fontSize: 18, fontWeight: 'bold', color: 'white',},
   scrollView: { flex: 1 },
   form: { flex: 1, paddingHorizontal: 20, marginTop: 10 },
   inputContainer: { marginBottom: 20 },

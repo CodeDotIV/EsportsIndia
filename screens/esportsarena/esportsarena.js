@@ -67,7 +67,6 @@ const GameScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerText}>BGMI</Text>
       </View>
-      <View style={styles.headerLine} />
 
       {/* Section Header */}
       <View style={styles.sectionHeader}>
@@ -102,25 +101,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
     padding: 20,
   },
   backButton: {
     color: 'white',
     marginRight: 10,
-    paddingTop: 40,
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   sectionHeader: {
     flexDirection: 'row',

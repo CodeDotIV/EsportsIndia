@@ -79,26 +79,9 @@ export default function EsportsScreen() {
                 <Text style={styles.comingSoonText}>Coming Soon</Text>
               </View>
             )}
-            {item.available && (
-              <View style={styles.availableBadge}>
-                <View style={styles.availableDot} />
-                <Text style={styles.availableText}>Available</Text>
-              </View>
-            )}
           </View>
           <View style={styles.gameCardInfo}>
             <Text style={styles.gameName}>{item.name}</Text>
-            <View style={styles.gameCardFooter}>
-              <View style={styles.gameTag}>
-                <Ionicons name="trophy" size={rs(14)} color="#FFD700" />
-                <Text style={styles.gameTagText}>Esports</Text>
-              </View>
-              <Ionicons 
-                name={item.available ? "arrow-forward-circle" : "lock-closed"} 
-                size={rs(20)} 
-                color={item.available ? "#FFD700" : "#9CA3AF"} 
-              />
-            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -118,7 +101,6 @@ export default function EsportsScreen() {
         </TouchableOpacity>
         <Text style={styles.headerText}>Esports</Text>
       </View>
-      <View style={styles.headerLine} />
 
       {/* Game Grid */}
       <FlatList
@@ -144,7 +126,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
     padding: 20,
   },
   headerContent: {
@@ -153,7 +134,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 10,
-    paddingTop: 40,
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -163,20 +143,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
     marginLeft: wp(2),
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   flatList: {
     flex: 1,
@@ -194,7 +166,6 @@ const styles = StyleSheet.create({
   gameCard: {
     width: '48%',
     marginBottom: hp(2),
-    height: hp(28), // Fixed height for all cards
   },
   gameCardInner: {
     backgroundColor: '#1A1F2E',
@@ -207,12 +178,10 @@ const styles = StyleSheet.create({
     //shadowOffset: { width: 0, height: 2 },
     //shadowOpacity: 0.3,
     //shadowRadius: 4,
-    height: '100%', // Ensure inner card takes full height
-    flexDirection: 'column',
   },
   gameImageContainer: {
     width: '100%',
-    aspectRatio: 16 / 9,
+    aspectRatio: 1.55,
     backgroundColor: '#0F1419',
     position: 'relative',
     justifyContent: 'center',
@@ -242,60 +211,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  availableBadge: {
-    position: 'absolute',
-    top: wp(2),
-    right: wp(2),
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.9)',
-    paddingHorizontal: wp(2),
-    paddingVertical: hp(0.4),
-    borderRadius: rs(6),
-  },
-  availableDot: {
-    width: rs(6),
-    height: rs(6),
-    borderRadius: rs(3),
-    backgroundColor: '#FFFFFF',
-    marginRight: wp(1),
-  },
-  availableText: {
-    fontSize: rf(9),
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
   gameCardInfo: {
-    padding: wp(3),
-    flex: 1, // Take remaining space
-    justifyContent: 'space-between', // Distribute content evenly
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1.2),
   },
   gameName: {
     fontSize: rf(14),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(1),
     textAlign: 'left',
-    minHeight: hp(4), // Fixed minimum height for name
-  },
-  gameCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 'auto', // Push footer to bottom
-  },
-  gameTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2A3441',
-    paddingVertical: hp(0.4),
-    paddingHorizontal: wp(2),
-    borderRadius: rs(6),
-  },
-  gameTagText: {
-    fontSize: rf(10),
-    color: '#FFD700',
-    fontWeight: '600',
-    marginLeft: wp(1),
   },
 });

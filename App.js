@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
 import BottomTabNavigator from './screens/bottonscreens/BottomTabNavigator.js';
 import Freefire from './screens/esports/freefire.js';
@@ -72,6 +73,7 @@ export default function App() {
   // iOS and Android app navigation
   return (
     <NavigationContainer linking={linking}>
+      <StatusBar style="light" backgroundColor="#141E30" />
       <Stack.Navigator initialRouteName="Entryscreen">
         <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />

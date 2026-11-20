@@ -34,7 +34,6 @@ const Ruins = () => {
         </Pressable>
         <Text style={styles.headerText}>BGMI</Text>
       </View>
-      <View style={styles.headerLine} />
 
       <View style={styles.titleContainer}>
         <Ionicons name="trophy" size={rs(20)} color="#FFD700" />
@@ -78,25 +77,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
     padding: 20,
   },
   backButton: {
     color: 'white',
     marginRight: 10,
-    paddingTop: 40,
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   titleContainer: {
     flexDirection: "row",

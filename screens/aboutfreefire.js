@@ -16,7 +16,6 @@ const LearnScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerText}>Free Fire</Text>
       </View>
-      <View style={styles.headerLine} />
 
       {/* Scrollable Content */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -79,25 +78,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
     padding: 20,
   },
   backButton: {
     color: 'white',
     marginRight: 10,
-    paddingTop: 40,
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
-  },
-  headerLine: {
-    height: 1,
-    width: '100%',
-    backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   scrollView: {
     flex: 1,

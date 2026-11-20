@@ -17,6 +17,11 @@
     "android": {
       "package": "com.jeevan12.mynewapp"
     },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#141E30",
+      "translucent": false
+    },
     "plugins": [
       "expo-router",
       "expo-font",

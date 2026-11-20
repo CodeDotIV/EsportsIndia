@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,13 @@ import {
   Image,
   ScrollView,
   SafeAreaView,
-  Dimensions,
   Linking,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { wp, hp, rf, rs } from '../../utils/responsive';
-
-const { width } = Dimensions.get('window');
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -72,7 +70,6 @@ const latestUpdates = [
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const [greeting] = useState(getGreeting());
 
   const navigateTo = (routeName) => {
     let currentNavigation = navigation;
@@ -148,27 +145,15 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Image
-            source={require('../../assets/images/applogo.jpg')}
-            style={styles.logo}
-          />
+          <Ionicons name="game-controller" size={rs(25)} color="#FFD700" />
         </View>
-
         <View style={styles.headerTextContainer}>
-          <Text style={styles.greeting}>
-            {greeting}!
-          </Text>
-
-          <Text style={styles.headerTitle}>
-            EsportsIndia
-          </Text>
+          <Text style={styles.greeting}>{getGreeting()}</Text>
+          <Text style={styles.headerTitle}>EsportsIndia</Text>
         </View>
-
       </View>
-
       <View style={styles.divider} />
 
       <ScrollView
@@ -176,9 +161,58 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Featured Games */}
+        <LinearGradient
+          colors={['#263C59', '#1A2638', '#182131']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroCard}
+        >
+          <View style={styles.heroEyebrow}>
+            <Ionicons name="sparkles" size={rs(14)} color="#FFD700" />
+            <Text style={styles.heroEyebrowText}>YOUR ESPORTS HUB</Text>
+          </View>
+          <Text style={styles.heroTitle}>Ready to compete?</Text>
+          <Text style={styles.heroDescription}>
+            Discover your favorite games and find your next arena.
+          </Text>
+          <View style={styles.heroActions}>
+            <TouchableOpacity
+              style={styles.primaryAction}
+              onPress={() => navigateTo('Esports')}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Text style={styles.primaryActionText}>Explore games</Text>
+              <Ionicons name="arrow-forward" size={rs(17)} color="#141E30" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryAction}
+              onPress={() => navigateTo('Tournaments')}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Ionicons name="trophy-outline" size={rs(17)} color="#FFD700" />
+              <Text style={styles.secondaryActionText}>Tournaments</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Featured Games</Text>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Featured games</Text>
+              <Text style={styles.sectionSubtitle}>Pick your next battleground</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.seeAllButton}
+              onPress={() => navigateTo('Esports')}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+            >
+              <Text style={styles.seeAllText}>See all</Text>
+              <Ionicons name="chevron-forward" size={rs(15)} color="#FFD700" />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.gamesGrid}>
             {gameData.map((game) => (
@@ -187,31 +221,27 @@ export default function HomeScreen() {
                 style={styles.gameCard}
                 onPress={() => handleGamePress(game)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${game.title} details`}
               >
                 <View style={styles.gameImageContainer}>
                   <Image
                     source={game.image}
                     style={styles.gameImage}
-                    resizeMode="contain"
+                    resizeMode="cover"
                   />
                 </View>
 
                 <View style={styles.gameCardContent}>
-                  <Text style={styles.gameCardTitle}>
+                  <Text style={styles.gameCardTitle} numberOfLines={1}>
                     {game.title}
                   </Text>
-
-                  <Text
-                    style={styles.gameCardDescription}
-                    numberOfLines={2}
-                  >
+                  <Text style={styles.gameCardDescription} numberOfLines={2}>
                     {game.description}
                   </Text>
-
                   <View style={styles.gameCardFooter}>
-                    <Text style={styles.viewMoreText}>
-                      View Details →
-                    </Text>
+                    <Text style={styles.viewMoreText}>View details</Text>
+                    <Ionicons name="arrow-forward" size={rs(15)} color="#FFD700" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -219,11 +249,13 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Latest Updates */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Latest Updates
-          </Text>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Latest updates</Text>
+              <Text style={styles.sectionSubtitle}>The community at a glance</Text>
+            </View>
+          </View>
 
           <View style={styles.updatesCard}>
             {latestUpdates.map((item, index) => (
@@ -256,15 +288,16 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Social Media */}
         <View style={styles.socialSection}>
-          <Text style={styles.socialTitle}>
-            Follow Us
-          </Text>
-
-          <Text style={styles.socialSubtitle}>
-            Stay connected with EsportsIndia on social media.
-          </Text>
+          <View style={styles.socialHeading}>
+            <View style={styles.socialTitleIcon}>
+              <Ionicons name="people-outline" size={rs(19)} color="#FFD700" />
+            </View>
+            <View style={styles.socialHeadingText}>
+              <Text style={styles.socialTitle}>Join the community</Text>
+              <Text style={styles.socialSubtitle}>Follow EsportsIndia for the latest.</Text>
+            </View>
+          </View>
 
           <View style={styles.socialIconsContainer}>
             {socialMediaLinks.map((social) => (
@@ -311,87 +344,173 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#141E30',
   },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: wp(4),
-    paddingTop: hp(1.5),
-    paddingBottom: hp(1.5),
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1.4),
   },
-
   logoContainer: {
+    width: rs(46),
+    height: rs(46),
+    borderRadius: rs(15),
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: wp(3),
+    backgroundColor: '#202D42',
+    borderWidth: 1,
+    borderColor: '#34445C',
   },
-
-  logo: {
-    width: rs(50),
-    height: rs(50),
-    borderRadius: rs(25),
-    borderWidth: 2,
-    borderColor: '#FFD700',
-  },
-
   headerTextContainer: {
     flex: 1,
   },
-
   greeting: {
-    fontSize: rf(12),
+    fontSize: rf(13),
     color: '#9CA3AF',
     fontWeight: '500',
+    marginBottom: 2,
   },
-
   headerTitle: {
-    fontSize: rf(19),
+    fontSize: rf(20),
     fontWeight: 'bold',
     color: 'white',
   },
-
   divider: {
-    height: 2,
-    backgroundColor: '#FFD700',
+    height: 1,
+    backgroundColor: '#2A3441',
     width: '100%',
   },
-
   scrollView: {
     flex: 1,
   },
-
   scrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingTop: hp(2),
     paddingBottom: hp(4),
   },
-
-  section: {
-    marginBottom: hp(2.5),
-    paddingHorizontal: wp(4),
+  heroCard: {
+    width: '100%',
+    maxWidth: 760,
+    borderRadius: rs(18),
+    borderWidth: 1,
+    borderColor: '#354761',
+    padding: wp(5),
+    marginBottom: hp(3),
+    overflow: 'hidden',
   },
-
+  heroEyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  heroEyebrowText: {
+    color: '#FFD700',
+    fontSize: rf(11),
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginLeft: wp(1.5),
+  },
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: rf(27),
+    fontWeight: '800',
+    marginBottom: hp(0.6),
+  },
+  heroDescription: {
+    color: '#C4CEDB',
+    fontSize: rf(14),
+    lineHeight: rf(20),
+    maxWidth: 420,
+    marginBottom: hp(2),
+  },
+  heroActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  primaryAction: {
+    minHeight: rs(44),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFD700',
+    borderRadius: rs(10),
+    paddingHorizontal: wp(4),
+    marginRight: wp(2.5),
+    marginBottom: hp(0.5),
+  },
+  primaryActionText: {
+    color: '#141E30',
+    fontSize: rf(13),
+    fontWeight: '700',
+    marginRight: wp(2),
+  },
+  secondaryAction: {
+    minHeight: rs(44),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: rs(10),
+    borderWidth: 1,
+    borderColor: '#64748B',
+    paddingHorizontal: wp(3.5),
+    marginBottom: hp(0.5),
+  },
+  secondaryActionText: {
+    color: '#FFFFFF',
+    fontSize: rf(12),
+    fontWeight: '600',
+    marginLeft: wp(1.5),
+  },
+  section: {
+    width: '100%',
+    maxWidth: 760,
+    marginBottom: hp(2.7),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(1.5),
+  },
   sectionTitle: {
     fontSize: rf(19),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(1.5),
-    paddingLeft: wp(1),
+    marginBottom: hp(0.3),
   },
-
+  sectionSubtitle: {
+    fontSize: rf(12),
+    color: '#9CA3AF',
+  },
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(0.8),
+    paddingLeft: wp(2),
+  },
+  seeAllText: {
+    color: '#FFD700',
+    fontSize: rf(12),
+    fontWeight: '600',
+    marginRight: wp(0.5),
+  },
   gamesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-
   gameCard: {
-    width: (width - wp(12)) / 2,
+    width: '48.5%',
     backgroundColor: '#1A1F2E',
-    borderRadius: rs(12),
-    marginBottom: hp(1.8),
+    borderRadius: rs(14),
+    marginBottom: hp(1.7),
     overflow: 'hidden',
-    elevation: 3,
+    elevation: 2,
     borderWidth: 1,
     borderColor: '#2A3441',
   },
-
   gameImageContainer: {
     width: '100%',
     aspectRatio: 16 / 9,
@@ -401,135 +520,140 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#2A3441',
   },
-
   gameImage: {
     width: '100%',
     height: '100%',
   },
-
   gameCardContent: {
-    padding: wp(3),
+    padding: wp(2.8),
+    minHeight: rs(116),
   },
-
   gameCardTitle: {
     fontSize: rf(15),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(0.6),
+    marginBottom: hp(0.5),
   },
-
   gameCardDescription: {
-    fontSize: rf(11),
+    fontSize: rf(12),
     color: '#9CA3AF',
-    lineHeight: rf(15),
-    marginBottom: hp(1),
+    lineHeight: rf(16),
+    minHeight: rf(32),
   },
-
   gameCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderTopWidth: 1,
     borderTopColor: '#2A3441',
     paddingTop: hp(0.8),
+    marginTop: hp(0.8),
   },
-
   viewMoreText: {
-    fontSize: rf(11),
+    fontSize: rf(12),
     color: '#FFD700',
     fontWeight: '600',
   },
-
   updatesCard: {
     backgroundColor: '#1A1F2E',
-    borderRadius: rs(10),
-    paddingHorizontal: wp(3),
+    borderRadius: rs(14),
+    paddingHorizontal: wp(3.5),
     borderWidth: 1,
     borderColor: '#2A3441',
   },
-
   updateItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: hp(1.5),
+    paddingVertical: hp(1.7),
   },
-
   updateDivider: {
     borderTopWidth: 1,
     borderTopColor: '#2A3441',
   },
-
   updateIcon: {
-    width: rs(34),
-    height: rs(34),
-    borderRadius: rs(17),
+    width: rs(38),
+    height: rs(38),
+    borderRadius: rs(12),
     backgroundColor: '#FFD70018',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3),
   },
-
   updateTextContainer: {
     flex: 1,
+    paddingTop: hp(0.2),
   },
-
   updateTitle: {
     color: '#FFFFFF',
-    fontSize: rf(13),
+    fontSize: rf(14),
     fontWeight: 'bold',
     marginBottom: hp(0.3),
   },
-
   updateDescription: {
     color: '#9CA3AF',
-    fontSize: rf(11),
+    fontSize: rf(12),
     lineHeight: rf(16),
   },
-
   socialSection: {
+    width: '100%',
+    maxWidth: 760,
     backgroundColor: '#1A1F2E',
-    marginHorizontal: wp(4),
     padding: wp(4),
-    borderRadius: rs(10),
+    borderRadius: rs(14),
     borderWidth: 1,
     borderColor: '#2A3441',
+    marginBottom: hp(1),
   },
-
+  socialHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1.7),
+  },
+  socialTitleIcon: {
+    width: rs(42),
+    height: rs(42),
+    borderRadius: rs(13),
+    backgroundColor: '#FFD70018',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: wp(3),
+  },
+  socialHeadingText: {
+    flex: 1,
+  },
   socialTitle: {
-    fontSize: rf(17),
+    fontSize: rf(16),
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: hp(0.5),
-    textAlign: 'center',
+    marginBottom: hp(0.3),
   },
-
   socialSubtitle: {
-    fontSize: rf(11),
+    fontSize: rf(12),
     color: '#9CA3AF',
-    textAlign: 'center',
-    marginBottom: hp(2),
   },
-
   socialIconsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: hp(1.5),
+    borderTopWidth: 1,
+    borderTopColor: '#2A3441',
   },
-
   socialIconButton: {
     alignItems: 'center',
     flex: 1,
     minWidth: 0,
   },
-
   socialIconWrapper: {
-    width: rs(48),
-    height: rs(48),
-    borderRadius: rs(24),
+    width: rs(42),
+    height: rs(42),
+    borderRadius: rs(14),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: hp(0.6),
+    marginBottom: hp(0.7),
   },
-
   socialIconLabel: {
-    fontSize: rf(9),
+    fontSize: rf(11),
     color: '#D1D5DB',
     fontWeight: '500',
     textAlign: 'center',
