@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as Linking from 'expo-linking';
 import BottomTabNavigator from './screens/bottonscreens/BottomTabNavigator.js';
 import Freefire from './screens/esports/freefire.js';
 import Bgmi from './screens/esports/bgmi.js';
@@ -52,25 +53,29 @@ import  Hangertdm from './screens/esportsarena/modes/hangertdm.js';
 import  Hangertgm from './screens/esportsarena/modes/hangertgm.js';
 import TournamentRegister from './screens/bottonscreens/tournaments/tournamentregister.js';
 import LoginScreen from './login/LoginScreen.js';
-import VerifyOtpScreen from './login/VerifyOtpScreen.js';
-import ForgotPasswordScreen from './login/ForgotPasswordScreen.js';
-import ResetPasswordScreen from './login/ResetPasswordScreen.js';
-import SignUpScreen from './login/SignUpScreen.js';
-import ProfileScreen from './screens/bottonscreens/ProfileScreen.js';
 
 const Stack = createStackNavigator();
+
+const prefix = Linking.createURL('/');
+const linking = {
+  prefixes: [prefix, 'myapp://'],
+  config: {
+    screens: {
+      Entryscreen: '',
+      LoginScreen: 'login',
+      Main: 'main',
+    },
+  },
+};
 
 export default function App() {
   // iOS and Android app navigation
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator initialRouteName="Entryscreen">
         <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
-        <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} options={{ headerShown: false }} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="Livik" component={Livik} options={{ headerShown: false }} />
         <Stack.Screen name="Aboutbgmi" component={Aboutbgmi} options={{ headerShown: false }}/>
         <Stack.Screen name="Aboutfreefire" component={Aboutfreefire} options={{ headerShown: false }}/>
@@ -118,8 +123,6 @@ export default function App() {
         <Stack.Screen name="Hangertdm" component={Hangertdm} options={{headerShown: false}} />
         <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
         <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
-        <Stack.Screen name="VerifyOtpScreen" component={VerifyOtpScreen}  options={{headerShown: false}} />
-        <Stack.Screen name="Profile" component={ProfileScreen} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

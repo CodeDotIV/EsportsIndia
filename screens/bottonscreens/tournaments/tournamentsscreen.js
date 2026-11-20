@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   },
   gameImageContainer: {
     width: '100%',
-    height: hp(15),
+    aspectRatio: 16 / 9,
     backgroundColor: '#0F1419',
     position: 'relative',
     justifyContent: 'center',

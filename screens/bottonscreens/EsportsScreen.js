@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   gameImageContainer: {
     width: '100%',
-    height: hp(16), // Fixed image container height
+    aspectRatio: 16 / 9,
     backgroundColor: '#0F1419',
     position: 'relative',
     justifyContent: 'center',
@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   gameImage: {
-    height: '80%',
-    width: '80%',
+    height: '100%',
+    width: '100%',
   },
   comingSoonOverlay: {
     position: 'absolute',

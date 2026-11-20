@@ -9,8 +9,10 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { wp, hp, rf, getScreenDimensions } from '../utils/responsive';
+import { supabase } from '../services/supabase';
+import { getItem, setItem } from '../utils/storageHelper';
+import { getOrCreatePlayerId } from '../utils/playerId';
 
 const EntryScreen = () => {
   const navigation = useNavigation();
@@ -32,49 +34,47 @@ const EntryScreen = () => {
       }),
     ]).start();
 
-    // Check login status
-    const checkLoginStatus = async () => {
+    const timer = setTimeout(async () => {
       try {
-        console.log('🔍 Checking login status...');
-        const token = await AsyncStorage.getItem('userToken');
-        const userDataStr = await AsyncStorage.getItem('user');
-        
-        console.log('📦 Token exists:', !!token);
-        console.log('👤 User data exists:', !!userDataStr);
-        
-        if (token && userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            // Verify token is valid by checking if user data exists
-            if (userData && userData.email) {
-          console.log('✅ User is logged in, navigating to Main');
+        const { data, error } = supabase
+          ? await supabase.auth.getSession()
+          : { data: { session: null }, error: null };
+        if (error) throw error;
+
+        if (data.session) {
+          const authUser = data.session.user;
+          const storedUser = await getItem('user');
+          const profile = storedUser ? JSON.parse(storedUser) : {};
+          const playerId = await getOrCreatePlayerId(
+            authUser.id,
+            profile.playerId,
+            authUser.created_at
+          );
+          await setItem(
+            'user',
+            JSON.stringify({
+              ...profile,
+              id: authUser.id,
+              authCreatedAt: authUser.created_at || '',
+              playerId,
+              email: authUser.email || '',
+              name:
+                profile.name ||
+                authUser.user_metadata?.full_name ||
+                authUser.user_metadata?.name ||
+                authUser.email?.split('@')[0] ||
+                'Player',
+            })
+          );
+          navigation.replace('Main');
+        } else {
           navigation.replace('LoginScreen');
-              return;
-            }
-          } catch (parseError) {
-            console.error('❌ Error parsing user data:', parseError);
-            // Clear invalid data
-            await AsyncStorage.removeItem('user');
-            await AsyncStorage.removeItem('userToken');
-          }
         }
-        
-        // No valid token or user data, go to login
-          console.log('ℹ️ User not logged in, navigating to LoginScreen');
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'LoginScreen' }],
-        });
       } catch (error) {
-        console.error('❌ Error checking login status:', error);
-        // Default to login screen on error
+        console.error('Failed to restore Supabase session:', error);
         navigation.replace('LoginScreen');
       }
-    };
-
-    const timer = setTimeout(() => {
-      checkLoginStatus();
-    }, 2000);
+    }, 1200);
 
     return () => clearTimeout(timer);
   }, [navigation, fadeAnim, slideAnim]);

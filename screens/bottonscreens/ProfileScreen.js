@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
+  Animated, View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { getItem, setItem, removeItem } from '../../utils/storageHelper';
-import { logout, updateProfile, getCurrentUser } from '../../services/authService';
-import { supabase } from '../../services/supabase';
-import { wp, hp, rf, rs, isTablet } from '../../utils/responsive';
+import { signOut } from '../../services/supabaseAuth';
+import { getOrCreatePlayerId } from '../../utils/playerId';
+import { wp, hp, rf, rs } from '../../utils/responsive';
 
 // Country data with timezones
 const COUNTRIES = [
@@ -70,11 +70,34 @@ const LANGUAGES = [
   'Italian',
 ];
 
+const FREE_PLAN_CUSTOMIZATIONS = [
+  ['2', 'Backgrounds'],
+  ['1', 'Profile frame'],
+  ['1', 'Name style'],
+  ['2', 'Themes'],
+];
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+const getInitials = (value) =>
+  value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'U';
+
 const ProfileScreen = () => {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const upgradeOpacity = useRef(new Animated.Value(1)).current;
   const [user, setUser] = useState({
     name: '',
     email: '',
+    playerId: '',
+    authCreatedAt: '',
     phone: '',
     gender: '',
     location: '',
@@ -99,6 +122,7 @@ const ProfileScreen = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState(0);
@@ -108,84 +132,70 @@ const ProfileScreen = () => {
     loadUserProfile();
   }, []);
 
-  // Generate random avatar URL based on user name or email
-  const getRandomAvatar = (name, email) => {
-    const seed = name || email || 'user';
-    // Using UI Avatars API for random avatars
-    const encodedName = encodeURIComponent(seed);
-    return `https://ui-avatars.com/api/?name=${encodedName}&background=random&color=fff&size=200&bold=true`;
-  };
+  useEffect(() => {
+    if (!isFocused) {
+      upgradeOpacity.setValue(1);
+      return undefined;
+    }
 
+    const blinkAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(upgradeOpacity, {
+          toValue: 0.45,
+          duration: 850,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(upgradeOpacity, {
+          toValue: 1,
+          duration: 850,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ])
+    );
+
+    blinkAnimation.start();
+    return () => {
+      blinkAnimation.stop();
+      upgradeOpacity.setValue(1);
+    };
+  }, [isFocused, upgradeOpacity]);
 
   const loadUserProfile = async () => {
     try {
       setLoading(true);
-      console.log('📱 Loading user profile...');
-      
-      // Get token from storage
-      const token = await getItem('userToken');
-      if (!token) {
-        console.log('⚠️ No token found');
-        // Load from local storage as fallback
-        const localData = await getItem('user');
-        if (localData) {
-          const parsedData = JSON.parse(localData);
-          setUser(parsedData);
+      const localData = await getItem('user');
+      if (localData) {
+        const savedProfile = JSON.parse(localData);
+        const playerId = savedProfile.id
+          ? await getOrCreatePlayerId(
+              savedProfile.id,
+              savedProfile.playerId,
+              savedProfile.authCreatedAt
+            )
+          : savedProfile.playerId || '';
+        if (playerId && savedProfile.playerId !== playerId) {
+          savedProfile.playerId = playerId;
+          await setItem('user', JSON.stringify(savedProfile));
         }
-        return;
-      }
-
-      // Fetch from backend
-      const result = await getCurrentUser(token);
-      if (result.success) {
-        console.log('✅ Profile loaded from backend:', result.user);
-        setUser({
-          name: result.user.name || '',
-          email: result.user.email || '',
-          phone: result.user.phone || '',
-          gender: result.user.gender || '',
-          location: result.user.location || '',
-          bio: result.user.bio || '',
-          dateOfBirth: result.user.dateOfBirth ? new Date(result.user.dateOfBirth).toISOString().split('T')[0] : '',
-          avatar: result.user.avatar || '',
-          gamingUsername: result.user.gamingUsername || '',
-          favoriteGame: result.user.favoriteGame || '',
-          gamingPlatform: result.user.gamingPlatform || '',
-          skillLevel: result.user.skillLevel || '',
-          teamName: result.user.teamName || '',
-          yearsOfGaming: result.user.yearsOfGaming || '',
-          preferredGameMode: result.user.preferredGameMode || '',
-          country: result.user.country || '',
-          timezone: result.user.timezone || '',
-          language: result.user.language || 'English',
-          instagram: result.user.instagram || '',
-          twitter: result.user.twitter || '',
-          discord: result.user.discord || '',
-          youtube: result.user.youtube || '',
-          twitch: result.user.twitch || '',
-        });
-        // Also save to local storage
-        await setItem('user', JSON.stringify(result.user));
-      } else {
-        console.log('⚠️ Failed to load from backend, using local storage');
-        const localData = await getItem('user');
-        if (localData) {
-          const parsedData = JSON.parse(localData);
-          setUser(parsedData);
-        }
+        setUser((currentUser) => ({
+          ...Object.fromEntries(
+            Object.entries(currentUser).map(([field, initialValue]) => {
+              const value = savedProfile[field] ?? initialValue;
+              return [
+                field,
+                value === null || value === undefined
+                  ? ''
+                  : field === 'yearsOfGaming'
+                    ? value
+                    : String(value),
+              ];
+            })
+          ),
+          id: savedProfile.id,
+        }));
       }
     } catch (error) {
-      console.error('❌ Failed to load profile:', error);
-      // Fallback to local storage
-      try {
-        const localData = await getItem('user');
-        if (localData) {
-          const parsedData = JSON.parse(localData);
-          setUser(parsedData);
-        }
-      } catch (e) {
-        console.error('❌ Failed to load from local storage:', e);
-      }
+      console.error('Failed to load local profile:', error);
     } finally {
       setLoading(false);
     }
@@ -197,10 +207,9 @@ const ProfileScreen = () => {
       return;
     }
 
-    // Prevent rapid successive saves
     const now = Date.now();
     const timeSinceLastSave = now - lastSaveTime;
-    
+
     if (timeSinceLastSave < SAVE_COOLDOWN_MS) {
       const remainingSeconds = ((SAVE_COOLDOWN_MS - timeSinceLastSave) / 1000).toFixed(1);
       Alert.alert('Please wait', `Please wait ${remainingSeconds} seconds before saving again.`);
@@ -215,23 +224,12 @@ const ProfileScreen = () => {
     try {
       setLoading(true);
       setLastSaveTime(now);
-      console.log('💾 Saving profile to backend...', user);
 
-      const token = await getItem('userToken');
-      if (!token) {
-        Alert.alert('Error', 'You must be logged in to save your profile.');
-        return;
-      }
-
-      // Prepare profile data
-      // Validate and format dateOfBirth
-      let formattedDateOfBirth = null;
+      let formattedDateOfBirth = '';
       if (user.dateOfBirth && user.dateOfBirth.trim()) {
         const dateStr = user.dateOfBirth.trim();
-        // Check if it's a valid date format (YYYY-MM-DD)
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (dateRegex.test(dateStr)) {
-          // Validate that it's actually a valid date
           const date = new Date(dateStr);
           const [year, month, day] = dateStr.split('-').map(Number);
           const isValidDate = 
@@ -260,8 +258,7 @@ const ProfileScreen = () => {
         }
       }
 
-      // Validate yearsOfGaming - convert empty string to null
-      let formattedYearsOfGaming = null;
+      let formattedYearsOfGaming = '';
       if (user.yearsOfGaming !== null && user.yearsOfGaming !== undefined && user.yearsOfGaming !== '') {
         const yearsStr = user.yearsOfGaming.toString().trim();
         if (yearsStr) {
@@ -276,14 +273,17 @@ const ProfileScreen = () => {
         }
       }
 
-      // Helper function to convert empty strings to null for optional fields
       const sanitizeField = (value) => {
-        if (value === null || value === undefined) return null;
+        if (value === null || value === undefined) return '';
         const trimmed = String(value).trim();
-        return trimmed === '' ? null : trimmed;
+        return trimmed;
       };
 
       const profileData = {
+        id: user.id,
+        playerId: user.playerId,
+        authCreatedAt: user.authCreatedAt,
+        email: user.email,
         name: user.name.trim(),
         phone: sanitizeField(user.phone),
         gender: sanitizeField(user.gender) || '',
@@ -308,86 +308,43 @@ const ProfileScreen = () => {
         twitch: sanitizeField(user.twitch),
       };
 
-      console.log('📤 Sending profile data - bio:', profileData.bio);
-      
-      const result = await updateProfile(token, profileData);
-      
-      if (result.success) {
-        console.log('✅ Profile saved successfully');
-        console.log('📥 Received user data - bio:', result.user.bio);
-        // Update local storage
-        await setItem('user', JSON.stringify(result.user));
-        // Update local state with the response to ensure bio is synced
-        setUser({
-          ...user,
-          bio: result.user.bio !== undefined && result.user.bio !== null ? String(result.user.bio) : '',
-          name: result.user.name || user.name,
-          email: result.user.email || user.email,
-          dateOfBirth: result.user.dateOfBirth ? new Date(result.user.dateOfBirth).toISOString().split('T')[0] : user.dateOfBirth,
-        });
-        setIsEditing(false);
-        Alert.alert('Success', 'Profile saved successfully!');
-      } else {
-        console.error('❌ Profile save failed:', result.error);
-        Alert.alert('Error', result.error || 'Failed to save profile. Please try again.');
-      }
+      await setItem('user', JSON.stringify(profileData));
+      setUser(profileData);
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile saved locally!');
     } catch (error) {
-      console.error('❌ Failed to save profile:', error);
-      Alert.alert('Error', 'Failed to save profile. Please try again.');
+      console.error('Failed to save local profile:', error);
+      Alert.alert('Error', 'Failed to save profile locally.');
     } finally {
       setLoading(false);
     }
   };
 
-  const performLogout = async () => {
-    try {
-      console.log('🚪 Starting logout process...');
-      
-      await supabase.auth.signOut().catch(() => {});
-      await removeItem('user');
-      await removeItem('userToken');
-      console.log('✅ Storage cleared');
-      
-      const tabNav = navigation.getParent();
-      const stackNav = tabNav?.getParent();
-      
-      if (stackNav) {
-        try {
-          stackNav.reset({
-            index: 0,
-            routes: [{ name: 'LoginScreen' }],
-          });
-          console.log('✅ Navigation successful!');
-        } catch (error) {
-          try {
-            stackNav.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'LoginScreen' }],
-              })
-            );
-          } catch (dispatchError) {
-            stackNav.navigate('Entryscreen');
-          }
-        }
-      } else {
-        navigation.navigate('Entryscreen');
-      }
-    } catch (error) {
-      console.error('❌ Logout error:', error);
-      try {
-        await removeItem('user');
-        await removeItem('userToken');
-        navigation.navigate('Entryscreen');
-      } catch (e) {
-        console.error('❌ Final fallback failed:', e);
-      }
-    }
-  };
+  const handleSignOut = async () => {
+    if (signingOut) return;
 
-  const handleLogout = () => {
-    console.log('🔴 Logout button clicked!');
-    performLogout();
+    setSigningOut(true);
+    try {
+      await signOut();
+      await removeItem('user');
+
+      const rootNavigation =
+        navigation.getParent()?.getParent() || navigation.getParent() || navigation;
+      rootNavigation.reset({
+        index: 0,
+        routes: [{ name: 'LoginScreen' }],
+      });
+    } catch (error) {
+      console.error('Failed to sign out:', error);
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      if (Platform.OS === 'web') {
+        window.alert(`Sign out failed: ${message}`);
+      } else {
+        Alert.alert('Sign out failed', message);
+      }
+    } finally {
+      setSigningOut(false);
+    }
   };
 
   return (
@@ -395,9 +352,6 @@ const ProfileScreen = () => {
       <View style={styles.gradient}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="white" />
-          </TouchableOpacity>
           <Text style={styles.headerText}>My Profile</Text>
           <View style={styles.headerRight}>
             {!isEditing ? (
@@ -418,45 +372,96 @@ const ProfileScreen = () => {
         >
             {/* Profile Header Card */}
             <View style={styles.profileHeader}>
-              <Text style={styles.profileName}>{user.name || 'User Name'}</Text>
-              <Text style={styles.profileEmail}>{user.email || 'user@example.com'}</Text>
-              {user.gamingUsername ? (
-                <View style={styles.gamingBadge}>
-                  <Ionicons name="game-controller-outline" size={rs(14)} color="#FFD700" />
-                  <Text style={styles.gamingBadgeText}>{user.gamingUsername}</Text>
-                </View>
-              ) : null}
-              
-              {/* Bio Section */}
-              {isEditing ? (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Bio</Text>
-                  <TextInput
-                    style={[styles.input, { minHeight: hp(12), textAlignVertical: 'top', paddingTop: hp(1.2) }]}
-                    placeholder="Tell us about yourself..."
-                    placeholderTextColor="#999"
-                    value={user.bio || ''}
-                    onChangeText={(text) => {
-                      if (text.length <= 500) {
-                        setUser({ ...user, bio: text });
-                      }
-                    }}
-                    editable={isEditing}
-                    multiline
-                    numberOfLines={3}
-                    maxLength={500}
-                  />
-                  <Text style={styles.charCount}>{(user.bio || '').length}/500</Text>
-                </View>
-              ) : user.bio ? (
-                <View style={styles.bioContainer}>
-                  <Text style={styles.bioText}>{user.bio}</Text>
-                </View>
-              ) : null}
+              <View style={styles.avatarCircle}>
+                {user.avatar ? (
+                  <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarInitials}>
+                    {getInitials(user.name || 'Player')}
+                  </Text>
+                )}
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{user.name || 'User Name'}</Text>
+                <Text
+                  style={styles.playerIdLabel}
+                >
+                  PLAYER ID
+                </Text>
+                <Text
+                  style={styles.playerId}
+                  selectable
+                >
+                  {user.playerId || 'Generating ID...'}
+                </Text>
+                {user.gamingUsername ? (
+                  <View style={styles.gamingBadge}>
+                    <Ionicons name="game-controller-outline" size={rs(14)} color="#FFD700" />
+                    <Text style={styles.gamingBadgeText}>{user.gamingUsername}</Text>
+                  </View>
+                ) : null}
+
+                {isEditing ? (
+                  <View style={styles.profileBioInput}>
+                    <Text style={styles.label}>Bio</Text>
+                    <TextInput
+                      style={[styles.input, { minHeight: hp(12), textAlignVertical: 'top', paddingTop: hp(1.2) }]}
+                      placeholder="Tell us about yourself..."
+                      placeholderTextColor="#999"
+                      value={user.bio || ''}
+                      onChangeText={(text) => {
+                        if (text.length <= 500) {
+                          setUser({ ...user, bio: text });
+                        }
+                      }}
+                      editable={isEditing}
+                      multiline
+                      numberOfLines={3}
+                      maxLength={500}
+                    />
+                    <Text style={styles.charCount}>{(user.bio || '').length}/500</Text>
+                  </View>
+                ) : user.bio ? (
+                  <View style={styles.bioContainer}>
+                    <Text style={styles.bioText}>{user.bio}</Text>
+                  </View>
+                ) : null}
+              </View>
         </View>
       
+            <View style={styles.membershipCard}>
+              <View style={styles.membershipHeader}>
+                <View style={styles.membershipIcon}>
+                  <Ionicons name="person-outline" size={rs(24)} color="#9CA3AF" />
+                </View>
+                <View style={styles.membershipDetails}>
+                  <Text style={styles.membershipLabel}>CURRENT PLAN</Text>
+                  <Text style={styles.membershipName}>BASIC</Text>
+                  <Text style={styles.membershipSubtitle}>Basic Player · ₹0</Text>
+                </View>
+                <AnimatedTouchableOpacity
+                  style={[styles.membershipUpgrade, { opacity: upgradeOpacity }]}
+                  onPress={() => navigation.navigate('Plans')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Upgrade from the Basic plan"
+                >
+                  <Text style={styles.membershipUpgradeText}>UPGRADE</Text>
+                </AnimatedTouchableOpacity>
+              </View>
+              <View style={styles.membershipDivider} />
+              <Text style={styles.customizationTitle}>Your customization limits</Text>
+              <View style={styles.customizationGrid}>
+                {FREE_PLAN_CUSTOMIZATIONS.map(([count, label]) => (
+                  <View key={label} style={styles.customizationItem}>
+                    <Text style={styles.customizationCount}>{count}</Text>
+                    <Text style={styles.customizationLabel}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
             {/* Profile Form */}
-        <View style={styles.form}>
+        <View>
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Personal Information</Text>
                 
@@ -472,16 +477,6 @@ const ProfileScreen = () => {
                     onChangeText={(text) => setUser({ ...user, name: text })}
                     editable={isEditing}
                     autoCapitalize="words"
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Email</Text>
-                  <TextInput
-                    style={[styles.input, styles.disabled]}
-                    value={user.email}
-                    editable={false}
-                    placeholderTextColor="#999"
                   />
                 </View>
 
@@ -686,7 +681,11 @@ const ProfileScreen = () => {
                     placeholder="Enter years (e.g., 5)"
                     placeholderTextColor="#999"
                     keyboardType="numeric"
-                    value={user.yearsOfGaming ? user.yearsOfGaming.toString() : ''}
+                    value={
+                      user.yearsOfGaming === null || user.yearsOfGaming === undefined
+                        ? ''
+                        : user.yearsOfGaming.toString()
+                    }
                     onChangeText={(text) => setUser({ ...user, yearsOfGaming: text })}
                     editable={isEditing}
                   />
@@ -739,12 +738,16 @@ const ProfileScreen = () => {
                       }}
                       disabled={!user.instagram}
                       style={styles.socialIconButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Instagram ${user.instagram ? 'linked' : 'not linked'}`}
                     >
-                      <Ionicons 
-                        name="logo-instagram" 
-                        size={rs(32)} 
-                        color={user.instagram ? "#E4405F" : "#666"} 
+                      <Ionicons
+                        name="logo-instagram"
+                        size={rs(22)}
+                        color={user.instagram ? '#E4405F' : '#64748B'}
                       />
+                      <Text style={styles.socialTileName}>Instagram</Text>
+                      <Text style={styles.socialTileStatus}>{user.instagram ? 'Linked' : 'Not linked'}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -756,12 +759,16 @@ const ProfileScreen = () => {
                       }}
                       disabled={!user.twitter}
                       style={styles.socialIconButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Twitter ${user.twitter ? 'linked' : 'not linked'}`}
                     >
-                      <Ionicons 
-                        name="logo-twitter" 
-                        size={rs(32)} 
-                        color={user.twitter ? "#1DA1F2" : "#666"} 
+                      <Ionicons
+                        name="logo-twitter"
+                        size={rs(22)}
+                        color={user.twitter ? '#1DA1F2' : '#64748B'}
                       />
+                      <Text style={styles.socialTileName}>Twitter</Text>
+                      <Text style={styles.socialTileStatus}>{user.twitter ? 'Linked' : 'Not linked'}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -772,12 +779,16 @@ const ProfileScreen = () => {
                       }}
                       disabled={!user.discord}
                       style={styles.socialIconButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Discord ${user.discord ? 'linked' : 'not linked'}`}
                     >
-                      <Ionicons 
-                        name="logo-discord" 
-                        size={rs(32)} 
-                        color={user.discord ? "#5865F2" : "#666"} 
+                      <Ionicons
+                        name="logo-discord"
+                        size={rs(22)}
+                        color={user.discord ? '#5865F2' : '#64748B'}
                       />
+                      <Text style={styles.socialTileName}>Discord</Text>
+                      <Text style={styles.socialTileStatus}>{user.discord ? 'Linked' : 'Not linked'}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -789,12 +800,16 @@ const ProfileScreen = () => {
                       }}
                       disabled={!user.youtube}
                       style={styles.socialIconButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`YouTube ${user.youtube ? 'linked' : 'not linked'}`}
                     >
-                      <Ionicons 
-                        name="logo-youtube" 
-                        size={rs(32)} 
-                        color={user.youtube ? "#FF0000" : "#666"} 
+                      <Ionicons
+                        name="logo-youtube"
+                        size={rs(22)}
+                        color={user.youtube ? '#FF0000' : '#64748B'}
                       />
+                      <Text style={styles.socialTileName}>YouTube</Text>
+                      <Text style={styles.socialTileStatus}>{user.youtube ? 'Linked' : 'Not linked'}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -806,12 +821,16 @@ const ProfileScreen = () => {
                       }}
                       disabled={!user.twitch}
                       style={styles.socialIconButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Twitch ${user.twitch ? 'linked' : 'not linked'}`}
                     >
-                      <Ionicons 
-                        name="logo-twitch" 
-                        size={rs(32)} 
-                        color={user.twitch ? "#9146FF" : "#666"} 
+                      <Ionicons
+                        name="logo-twitch"
+                        size={rs(22)}
+                        color={user.twitch ? '#9146FF' : '#64748B'}
                       />
+                      <Text style={styles.socialTileName}>Twitch</Text>
+                      <Text style={styles.socialTileStatus}>{user.twitch ? 'Linked' : 'Not linked'}</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -999,17 +1018,19 @@ const ProfileScreen = () => {
                   </TouchableOpacity>
                 </View>
               ) : null}
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleSignOut}
+                disabled={signingOut}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="log-out-outline" size={rs(20)} color="#ff4444" />
+                <Text style={styles.logoutText}>
+                  {signingOut ? 'Signing out...' : 'Sign out'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            {/* Logout Button */}
-            <TouchableOpacity 
-              style={styles.logoutButton} 
-              onPress={handleLogout}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="log-out-outline" size={rs(20)} color="#ff4444" />
-              <Text style={styles.logoutText}>Logout</Text>
-            </TouchableOpacity>
           </ScrollView>
 
       {/* Country Picker Modal */}
@@ -1149,29 +1170,21 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '',
-    padding: 20,
-  },
-  backButton: {
-    color: 'white',
-    marginRight: 10,
-    paddingTop: 40,
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1.5),
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
-    paddingTop: 38,
     flex: 1,
   },
   headerLine: {
     height: 1,
     width: '100%',
     backgroundColor: '#FFD700',
-    marginVertical: 5,
   },
   headerRight: {
-    paddingTop: 40,
     alignItems: 'flex-end',
   },
   editIconButton: {
@@ -1180,7 +1193,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     ...(Platform.OS === 'web' && {
-      height: '100%',
       minHeight: 0,
     }),
   },
@@ -1189,60 +1201,179 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: wp(5),
-    paddingBottom: hp(8),
+    paddingBottom: hp(4),
     paddingTop: hp(2),
+    flexGrow: 1,
     ...(Platform.OS === 'web' && {
-      minHeight: '100%',
+      minHeight: 0,
     }),
   },
   profileHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: wp(4),
     paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: wp(4),
+    backgroundColor: '#1A1F2E',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: rs(12),
     marginBottom: hp(2),
   },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: hp(1.5),
-  },
   avatarCircle: {
-    width: rs(100),
-    height: rs(100),
-    borderRadius: rs(50),
+    width: rs(72),
+    height: rs(72),
+    borderRadius: rs(36),
     backgroundColor: '#E97FA9',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
     borderColor: '#fff',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: rs(36),
   },
   avatarInitials: {
-    fontSize: rf(32),
+    fontSize: rf(24),
     fontWeight: 'bold',
     color: '#000',
+  },
+  profileInfo: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'flex-start',
   },
   profileName: {
     fontSize: rf(22),
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: hp(0.5),
-    marginBottom: hp(0.5),
+    marginBottom: hp(0.4),
+    textAlign: 'left',
+    flexShrink: 1,
   },
-  profileEmail: {
-    fontSize: rf(14),
-    color: '#ccc',
+  playerIdLabel: {
+    color: '#9CA3AF',
+    fontSize: rf(9),
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    marginBottom: hp(0.25),
+  },
+  playerId: {
+    width: '100%',
+    fontSize: rf(9),
+    lineHeight: rf(13),
+    color: '#D1D5DB',
+    textAlign: 'left',
+    flexShrink: 1,
+  },
+  profileBioInput: {
+    width: '100%',
+    marginTop: hp(1),
+  },
+  membershipCard: {
+    backgroundColor: '#1A1F2E',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: rs(12),
+    padding: wp(4),
     marginBottom: hp(1),
+  },
+  membershipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  membershipIcon: {
+    width: rs(46),
+    height: rs(46),
+    borderRadius: rs(23),
+    backgroundColor: 'rgba(156, 163, 175, 0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  membershipDetails: {
+    flex: 1,
+    marginLeft: wp(3),
+  },
+  membershipLabel: {
+    color: '#9CA3AF',
+    fontSize: rf(10),
+    fontWeight: '600',
+    letterSpacing: 0.6,
+  },
+  membershipName: {
+    color: '#D1D5DB',
+    fontSize: rf(17),
+    fontWeight: 'bold',
+    marginTop: hp(0.2),
+  },
+  membershipSubtitle: {
+    color: '#9CA3AF',
+    fontSize: rf(11),
+    marginTop: hp(0.15),
+  },
+  membershipUpgrade: {
+    backgroundColor: '#FFD700',
+    borderRadius: rs(8),
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.8),
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  membershipUpgradeText: {
+    color: '#141E30',
+    fontSize: rf(9),
+    fontWeight: 'bold',
+  },
+  membershipDivider: {
+    height: 1,
+    backgroundColor: '#2A3441',
+    marginVertical: hp(1.5),
+  },
+  customizationTitle: {
+    color: '#FFFFFF',
+    fontSize: rf(13),
+    fontWeight: '600',
+    marginBottom: hp(0.8),
+  },
+  customizationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: hp(0.8),
+  },
+  customizationItem: {
+    width: '48%',
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: rs(7),
+    paddingHorizontal: wp(2.5),
+  },
+  customizationCount: {
+    color: '#D1D5DB',
+    fontSize: rf(13),
+    fontWeight: 'bold',
+    marginRight: wp(2),
+  },
+  customizationLabel: {
+    flex: 1,
+    color: '#9CA3AF',
+    fontSize: rf(10),
   },
   gamingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255, 215, 0, 0.2)',
-    paddingHorizontal: wp(5),
+    paddingHorizontal: wp(3),
     paddingVertical: hp(0.8),
     borderRadius: rs(18),
     borderWidth: 1.5,
     borderColor: '#FFD700',
-    marginTop: hp(0.5),
   },
   gamingBadgeText: {
     color: '#FFD700',
@@ -1250,20 +1381,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: wp(1.5),
   },
-  form: {
-    flex: 1,
-  },
   section: {
-    marginTop: hp(2),
+    backgroundColor: '#1A1F2E',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: rs(12),
+    padding: wp(4),
+    marginTop: hp(1),
   },
   sectionTitle: {
     fontSize: rf(18),
     fontWeight: 'bold',
-    marginBottom: hp(1),
+    marginBottom: hp(1.5),
     color: '#FFD700',
   },
   inputContainer: {
-    marginBottom: hp(2),
+    marginBottom: hp(1.5),
   },
   label: {
     fontSize: rf(16),
@@ -1369,7 +1502,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: hp(2.5),
-    marginHorizontal: wp(5),
     paddingVertical: hp(1.5),
     backgroundColor: 'rgba(255, 68, 68, 0.2)',
     borderRadius: rs(10),
@@ -1413,20 +1545,37 @@ const styles = StyleSheet.create({
   },
   socialIconsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: hp(1.5),
-    paddingHorizontal: wp(2),
+    marginTop: hp(1),
     paddingVertical: hp(1),
+    columnGap: wp(2),
+    rowGap: hp(1),
   },
   socialIconButton: {
-    padding: wp(2.5),
-    borderRadius: rs(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    flex: 1,
+    width: '30%',
+    minHeight: 68,
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(1),
+    borderRadius: rs(10),
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    justifyContent: 'center',
+    minWidth: 0,
     alignItems: 'center',
-    marginHorizontal: wp(1),
-    maxWidth: wp(18),
+  },
+  socialTileName: {
+    color: '#D1D5DB',
+    fontSize: rf(10),
+    fontWeight: '600',
+    marginTop: hp(0.25),
+  },
+  socialTileStatus: {
+    color: '#9CA3AF',
+    fontSize: rf(8),
+    marginTop: hp(0.1),
   },
   socialRow: {
     flexDirection: 'row',
@@ -1437,18 +1586,18 @@ const styles = StyleSheet.create({
     marginRight: wp(2.5),
   },
   bioContainer: {
-    marginTop: hp(1),
-    paddingHorizontal: wp(4),
+    alignSelf: 'stretch',
+    marginTop: hp(0.5),
+    paddingHorizontal: wp(3),
     paddingVertical: hp(1),
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: rs(10),
-    maxWidth: wp(90),
   },
   bioText: {
     fontSize: rf(16),
     color: '#fff',
     lineHeight: rf(24),
-    textAlign: 'center',
+    textAlign: 'left',
   },
   bioEditContainer: {
     marginTop: hp(1.5),
