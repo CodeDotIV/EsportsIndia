@@ -8,7 +8,7 @@ Configure Supabase Google OAuth before starting the app:
 
 1. Enable the Google provider in your Supabase project's Authentication settings.
 2. Add the provider's Supabase callback URL to the Google OAuth client's authorized redirect URIs.
-3. Add `myapp://auth/callback` to the Supabase project's allowed redirect URLs for native builds. For web, also allow the app's origin.
+3. Set the Supabase Site URL to your deployed website URL, not `http://localhost:3000`, and add `myapp://auth/callback` to the allowed redirect URLs. For web development, also allow the local web origin.
 4. Create a root `.env` file with your Supabase project URL and publishable key:
 
    ```env
@@ -18,11 +18,17 @@ Configure Supabase Google OAuth before starting the app:
 
 The Google button supports both account creation and sign-in. Supabase persists the session; the profile screen's **Sign out** action ends the session.
 
-Then run:
+Google OAuth cannot return to an app running in Expo Go because Expo Go cannot register the app's custom URL scheme. Install dependencies and launch an Android development build instead (Android SDK required):
 
 ```bash
 npm install
-npx expo start
+npx expo run:android
+```
+
+For later development sessions, start the bundler with:
+
+```bash
+npx expo start --dev-client
 ```
 
 ## Features

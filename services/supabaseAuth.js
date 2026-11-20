@@ -1,11 +1,21 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 import { requireSupabase } from './supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export const signInWithGoogle = async () => {
+  if (
+    Platform.OS !== 'web' &&
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+  ) {
+    throw new Error(
+      'Google sign-in cannot return to Expo Go. Open the app in an Android development build instead (npx expo run:android).'
+    );
+  }
+
   const client = requireSupabase();
   const redirectTo =
     Platform.OS === 'web'
