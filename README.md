@@ -31,6 +31,20 @@ For later development sessions, start the bundler with:
 npx expo start --dev-client
 ```
 
+## Production Android and iOS builds
+
+Add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the Expo project's **production** environment. Keep the Supabase Site URL set to your deployed HTTPS website and allow `myapp://auth/callback` in the redirect URLs.
+
+Install and sign in to EAS CLI, then create both store-ready builds:
+
+```bash
+npm install --global eas-cli
+eas login
+eas build --platform all --profile production
+```
+
+EAS produces an Android App Bundle (AAB) and an iOS App Store build. Apple Developer Program and Google Play Console accounts are required to submit them to their stores. Building does not publish the apps; submit the resulting builds for store review after verifying the signing credentials and store listings.
+
 ## Features
 
 - Game and tournament information

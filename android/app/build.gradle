@@ -88,7 +88,7 @@ android {
 
     namespace 'Esports.India'
     defaultConfig {
-        applicationId 'Esports.India'
+        applicationId 'com.jeevan12.mynewapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

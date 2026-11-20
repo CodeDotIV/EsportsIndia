@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>myapp</string>
-          <string>com.jeevan12.MyNewApp</string>
+          <string>com.jeevan12.mynewapp</string>
         </array>
       </dict>
     </array>
