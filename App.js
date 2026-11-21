@@ -1,8 +1,9 @@
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import BottomTabNavigator from './screens/bottonscreens/BottomTabNavigator.js';
 import Freefire from './screens/esports/freefire.js';
@@ -70,6 +71,11 @@ import LoginScreen from './login/LoginScreen.js';
 
 const Stack = createStackNavigator();
 
+Text.defaultProps = {
+  ...Text.defaultProps,
+  maxFontSizeMultiplier: 1.15,
+};
+
 const prefix = Linking.createURL('/');
 const linking = {
   prefixes: [prefix, 'myapp://'],
@@ -85,9 +91,10 @@ const linking = {
 export default function App() {
   // iOS and Android app navigation
   return (
-    <NavigationContainer linking={linking}>
-      <StatusBar style="light" backgroundColor="#141E30" />
-      <Stack.Navigator initialRouteName="Entryscreen">
+    <SafeAreaProvider>
+      <NavigationContainer linking={linking}>
+        <StatusBar style="light" backgroundColor="#141E30" />
+        <Stack.Navigator initialRouteName="Entryscreen">
         <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
@@ -149,7 +156,8 @@ export default function App() {
         <Stack.Screen name="SettingsAbout" component={SettingsAboutScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SettingsAdvanced" component={SettingsAdvancedScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SettingsDiagnostics" component={SettingsDiagnosticsScreen} options={{ headerShown: false }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

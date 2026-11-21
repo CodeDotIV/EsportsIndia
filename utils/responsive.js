@@ -1,15 +1,21 @@
 import { Dimensions, Platform, PixelRatio } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 // Base dimensions (iPhone 11 Pro - 375x812)
 const BASE_WIDTH = 375;
 const BASE_HEIGHT = 812;
 
-// Scale factor based on screen width
-const scale = SCREEN_WIDTH / BASE_WIDTH;
-const verticalScale = SCREEN_HEIGHT / BASE_HEIGHT;
+let { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+let scale = SCREEN_WIDTH / BASE_WIDTH;
+let verticalScale = SCREEN_HEIGHT / BASE_HEIGHT;
 
+Dimensions.addEventListener('change', ({ window }) => {
+  SCREEN_WIDTH = window.width;
+  SCREEN_HEIGHT = window.height;
+  scale = SCREEN_WIDTH / BASE_WIDTH;
+  verticalScale = SCREEN_HEIGHT / BASE_HEIGHT;
+});
+
+// Scale factor based on screen width
 // Moderate scale for font sizes (less aggressive scaling)
 const moderateScale = (size, factor = 0.5) => {
   return size + (scale - 1) * size * factor;

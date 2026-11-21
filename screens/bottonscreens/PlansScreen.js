@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, rs, wp } from '../../utils/responsive';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const plans = [
   {
@@ -95,6 +96,7 @@ const platformRules = [
 
 export default function PlansScreen() {
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const insets = useSafeAreaInsets();
 
   const handlePlanAction = (plan) => {
     const isFreePlan = plan.name === 'FREE';
@@ -111,7 +113,7 @@ export default function PlansScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.stickyHeader}>
+      <View style={[styles.stickyHeader, { paddingTop: Math.max(hp(1.5), insets.top + hp(0.5)) }]}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Membership Plans</Text>
           <Ionicons name="sparkles-outline" size={rs(20)} color="#FFD700" />
@@ -269,12 +271,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: wp(5),
     paddingTop: hp(1.5),
-    paddingBottom: hp(4),
+    paddingBottom: hp(6),
   },
   title: {
     color: '#FFFFFF',
     fontSize: rf(24),
     fontWeight: 'bold',
+    flexShrink: 1,
   },
   subtitle: {
     color: '#D1D5DB',

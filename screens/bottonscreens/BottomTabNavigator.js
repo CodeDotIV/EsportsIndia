@@ -8,10 +8,14 @@ import PlansScreen from './PlansScreen';
 import ProfileScreen from './ProfileScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = Math.max(72, 64 + insets.bottom);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -32,9 +36,9 @@ export default function BottomTabNavigator() {
           fontWeight: '600',
         },
         tabBarStyle: {
-          height: 90,
-          paddingBottom: 10,
-          paddingTop: 14,
+          height: tabBarHeight,
+          paddingBottom: Math.max(8, insets.bottom),
+          paddingTop: 8,
           backgroundColor: 'transparent',
         },
         tabBarItemStyle: {
