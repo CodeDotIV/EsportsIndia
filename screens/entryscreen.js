@@ -1,15 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  StyleSheet,
-  Animated,
-  ActivityIndicator,
-  SafeAreaView,
-} from 'react-native';
+import { View, Image, StyleSheet, Animated, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { wp, hp, rf } from '../utils/responsive';
+import { wp, hp } from '../utils/responsive';
 import { supabase } from '../services/supabase';
 import { getItem, setItem } from '../utils/storageHelper';
 import { getOrCreatePlayerId } from '../utils/playerId';
@@ -82,20 +74,16 @@ const EntryScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-        <ImageBackground
-          source={require('../assets/images/applogo.jpg')}
-          style={styles.background}
-          resizeMode="cover"
-        >
-          <View style={styles.splashOverlay}>
-            <Animated.Text
-              style={[styles.title, { transform: [{ translateY: slideAnim }] }]}
-            >
-              Welcome to EsportsIndia
-            </Animated.Text>
+        <View style={styles.logoWrap}>
+          <Image
+            source={require('../assets/images/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
             <ActivityIndicator size="small" color="#fff" style={styles.loader} />
-          </View>
-        </ImageBackground>
+          </Animated.View>
+        </View>
       </Animated.View>
     </SafeAreaView>
   );
@@ -106,32 +94,23 @@ export default EntryScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#141E30',
   },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#141E30',
   },
-  background: {
-    flex: 1,
-    width: '100%',
-  },
-  splashOverlay: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'flex-end',
+  logoWrap: {
+    width: wp(72),
+    height: hp(72),
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(10),
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
   },
-  title: {
-    fontSize: rf(28),
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: hp(1),
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   loader: {
     marginTop: hp(1),
