@@ -16,7 +16,8 @@
       "bundleIdentifier": "com.jeevan12.mynewapp"
     },
     "android": {
-      "package": "com.jeevan12.mynewapp"
+      "package": "com.jeevan12.mynewapp",
+      "icon": "./assets/images/icon.png"
     },
     "androidStatusBar": {
       "barStyle": "light-content",

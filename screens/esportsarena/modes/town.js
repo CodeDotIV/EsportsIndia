@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     //shadowRadius: 4,
   },
   image: {
-    width: 200, height: 120, borderRadius: rs(12),
+    width: Math.min(wp(55), 240), aspectRatio: 5 / 3, borderRadius: rs(12),
     resizeMode: "cover", margin: hp(2),
   },
   name: {

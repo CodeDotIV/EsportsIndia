@@ -1,9 +1,9 @@
 import React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import BottomTabNavigator from './screens/bottonscreens/BottomTabNavigator.js';
 import Freefire from './screens/esports/freefire.js';
@@ -73,7 +73,7 @@ const Stack = createStackNavigator();
 
 Text.defaultProps = {
   ...Text.defaultProps,
-  maxFontSizeMultiplier: 1.15,
+  maxFontSizeMultiplier: 1.3,
 };
 
 const prefix = Linking.createURL('/');
@@ -92,72 +92,77 @@ export default function App() {
   // iOS and Android app navigation
   return (
     <SafeAreaProvider>
-      <NavigationContainer linking={linking}>
-        <StatusBar style="light" backgroundColor="#141E30" />
-        <Stack.Navigator initialRouteName="Entryscreen">
-        <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
-        <Stack.Screen name="Livik" component={Livik} options={{ headerShown: false }} />
-        <Stack.Screen name="Aboutbgmi" component={Aboutbgmi} options={{ headerShown: false }}/>
-        <Stack.Screen name="Aboutfreefire" component={Aboutfreefire} options={{ headerShown: false }}/>
-        <Stack.Screen name="Aboutcallofduty" component={Aboutcallofduty} options={{ headerShown: false }} />
-        <Stack.Screen name="Aboutvalorant" component={Aboutvalorant} options={{ headerShown: false }} />
-        <Stack.Screen name="Bgmi" component={Bgmi} options={{ headerShown: false }} />
-        <Stack.Screen name="Freefire" component={Freefire} options={{ headerShown: false }} />
-        <Stack.Screen name="Callofduty" component={Callofduty} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangel" component={Erangel} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanok" component={Shanok} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusa" component={Nusa} options={{ headerShown: false }} />
-        <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
-        <Stack.Screen name="Liviksolo" component={Liviksolo} options={{ headerShown: false }} />
-        <Stack.Screen name="Livikduo" component={Livikduo} options={{ headerShown: false }} />
-        <Stack.Screen name="Liviksquad" component={Liviksquad} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangelsolo" component={Erangelsolo} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangelduo" component={Erangelduo} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangelsquad" component={Erangelsquad} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusasolo" component={Nusasolo} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusaduo" component={Nusaduo} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusasquad" component={Nusasquad} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanoksolo" component={Shanoksolo} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanokduo" component={Shanokduo} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanoksquad" component={Shanoksquad} options={{ headerShown: false }} />
-        <Stack.Screen name="Liviksoloregister" component={Liviksoloregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Livikduoregister" component={Livikduoregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Liviksquadregister" component={Liviksquadregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangelsoloregister" component={Erangelsoloregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangelduoregister" component={Erangelduoregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Erangelsquadregister" component={Erangelsquadregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusasoloregister" component={Nusasoloregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusaduoregister" component={Nusaduoregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Nusasquadregister" component={Nusasquadregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanoksoloregister" component={Shanoksoloregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanokduoregister" component={Shanokduoregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Shanoksquadregister" component={Shanoksquadregister} options={{ headerShown: false }} />
-        <Stack.Screen name="Esportsarena" component={Esportsarena} options={{headerShown: false}} />
-        <Stack.Screen name="Inventory" component={Inventory} options={{headerShown: false}} />
-        <Stack.Screen name="Library" component={Library} options={{headerShown: false}} />
-        <Stack.Screen name="Livikultimatearena" component={Livikultimatearena} options={{headerShown: false}} />
-        <Stack.Screen name="Erangelultimatearena" component={Erangelultimatearena} options={{headerShown: false}} />
-        <Stack.Screen name="Ruins" component={Ruins} options={{headerShown: false}} />
-        <Stack.Screen name="Town" component={Town} options={{headerShown: false}} />
-        <Stack.Screen name="Hangerarenatraining" component={Hangerarenatraining} options={{headerShown: false}} />
-        <Stack.Screen name="Hangertdm" component={Hangertdm} options={{headerShown: false}} />
-        <Stack.Screen name="Hangertgm" component={Hangertgm} options={{headerShown: false}} />
-        <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{headerShown: false}} />
-        <Stack.Screen name="Settings" component={SettingsHomeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsAccount" component={SettingsAccountScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsMembership" component={SettingsMembershipScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsPrivacy" component={SettingsPrivacyScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsTournaments" component={SettingsTournamentsScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsSupport" component={SettingsSupportScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsLegal" component={SettingsLegalScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsAbout" component={SettingsAboutScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsAdvanced" component={SettingsAdvancedScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsDiagnostics" component={SettingsDiagnosticsScreen} options={{ headerShown: false }} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <SafeAreaView
+        edges={Platform.OS === 'android' ? ['top'] : []}
+        style={{ flex: 1, backgroundColor: '#141E30' }}
+      >
+        <NavigationContainer linking={linking}>
+          <StatusBar style="light" backgroundColor="#141E30" />
+          <Stack.Navigator initialRouteName="Entryscreen">
+            <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
+            <Stack.Screen name="Livik" component={Livik} options={{ headerShown: false }} />
+            <Stack.Screen name="Aboutbgmi" component={Aboutbgmi} options={{ headerShown: false }} />
+            <Stack.Screen name="Aboutfreefire" component={Aboutfreefire} options={{ headerShown: false }} />
+            <Stack.Screen name="Aboutcallofduty" component={Aboutcallofduty} options={{ headerShown: false }} />
+            <Stack.Screen name="Aboutvalorant" component={Aboutvalorant} options={{ headerShown: false }} />
+            <Stack.Screen name="Bgmi" component={Bgmi} options={{ headerShown: false }} />
+            <Stack.Screen name="Freefire" component={Freefire} options={{ headerShown: false }} />
+            <Stack.Screen name="Callofduty" component={Callofduty} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangel" component={Erangel} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanok" component={Shanok} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusa" component={Nusa} options={{ headerShown: false }} />
+            <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
+            <Stack.Screen name="Liviksolo" component={Liviksolo} options={{ headerShown: false }} />
+            <Stack.Screen name="Livikduo" component={Livikduo} options={{ headerShown: false }} />
+            <Stack.Screen name="Liviksquad" component={Liviksquad} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelsolo" component={Erangelsolo} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelduo" component={Erangelduo} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelsquad" component={Erangelsquad} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusasolo" component={Nusasolo} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusaduo" component={Nusaduo} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusasquad" component={Nusasquad} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanoksolo" component={Shanoksolo} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanokduo" component={Shanokduo} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanoksquad" component={Shanoksquad} options={{ headerShown: false }} />
+            <Stack.Screen name="Liviksoloregister" component={Liviksoloregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Livikduoregister" component={Livikduoregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Liviksquadregister" component={Liviksquadregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelsoloregister" component={Erangelsoloregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelduoregister" component={Erangelduoregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelsquadregister" component={Erangelsquadregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusasoloregister" component={Nusasoloregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusaduoregister" component={Nusaduoregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Nusasquadregister" component={Nusasquadregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanoksoloregister" component={Shanoksoloregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanokduoregister" component={Shanokduoregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Shanoksquadregister" component={Shanoksquadregister} options={{ headerShown: false }} />
+            <Stack.Screen name="Esportsarena" component={Esportsarena} options={{ headerShown: false }} />
+            <Stack.Screen name="Inventory" component={Inventory} options={{ headerShown: false }} />
+            <Stack.Screen name="Library" component={Library} options={{ headerShown: false }} />
+            <Stack.Screen name="Livikultimatearena" component={Livikultimatearena} options={{ headerShown: false }} />
+            <Stack.Screen name="Erangelultimatearena" component={Erangelultimatearena} options={{ headerShown: false }} />
+            <Stack.Screen name="Ruins" component={Ruins} options={{ headerShown: false }} />
+            <Stack.Screen name="Town" component={Town} options={{ headerShown: false }} />
+            <Stack.Screen name="Hangerarenatraining" component={Hangerarenatraining} options={{ headerShown: false }} />
+            <Stack.Screen name="Hangertdm" component={Hangertdm} options={{ headerShown: false }} />
+            <Stack.Screen name="Hangertgm" component={Hangertgm} options={{ headerShown: false }} />
+            <Stack.Screen name="TournamentRegister" component={TournamentRegister} options={{ headerShown: false }} />
+            <Stack.Screen name="Settings" component={SettingsHomeScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsAccount" component={SettingsAccountScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsMembership" component={SettingsMembershipScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsPrivacy" component={SettingsPrivacyScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsTournaments" component={SettingsTournamentsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsSupport" component={SettingsSupportScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsLegal" component={SettingsLegalScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsAbout" component={SettingsAboutScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsAdvanced" component={SettingsAdvancedScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SettingsDiagnostics" component={SettingsDiagnosticsScreen} options={{ headerShown: false }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }

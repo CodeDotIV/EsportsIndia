@@ -503,6 +503,7 @@ const styles = StyleSheet.create({
   },
   gameCard: {
     width: '48.5%',
+    maxWidth: 360,
     backgroundColor: '#1A1F2E',
     borderRadius: rs(14),
     marginBottom: hp(1.7),

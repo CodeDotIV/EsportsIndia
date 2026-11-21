@@ -303,12 +303,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold' 
   },
   gamesGrid: {
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   gameCard: {
     width: '48%',
+    maxWidth: 360,
     marginBottom: hp(2.5),
   },
   gameCardInner: {

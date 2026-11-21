@@ -3,15 +3,17 @@ import { Dimensions, Platform, PixelRatio } from 'react-native';
 // Base dimensions (iPhone 11 Pro - 375x812)
 const BASE_WIDTH = 375;
 const BASE_HEIGHT = 812;
+const MIN_SCALE = 0.85;
+const MAX_SCALE = 1.2;
 
 let { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-let scale = SCREEN_WIDTH / BASE_WIDTH;
+let scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, SCREEN_WIDTH / BASE_WIDTH));
 let verticalScale = SCREEN_HEIGHT / BASE_HEIGHT;
 
 Dimensions.addEventListener('change', ({ window }) => {
   SCREEN_WIDTH = window.width;
   SCREEN_HEIGHT = window.height;
-  scale = SCREEN_WIDTH / BASE_WIDTH;
+  scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, SCREEN_WIDTH / BASE_WIDTH));
   verticalScale = SCREEN_HEIGHT / BASE_HEIGHT;
 });
 
@@ -34,16 +36,12 @@ export const hp = (percentage) => {
 // Responsive font size
 export const rf = (size) => {
   const newSize = moderateScale(size);
-  if (Platform.OS === 'ios') {
-    return Math.round(PixelRatio.roundToNearestPixel(newSize));
-  } else {
-    return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 2;
-  }
+  return Math.round(PixelRatio.roundToNearestPixel(newSize));
 };
 
 // Responsive size (for general sizing)
 export const rs = (size) => {
-  return Math.round(size * scale);
+  return Math.round(PixelRatio.roundToNearestPixel(size * scale));
 };
 
 // Get screen dimensions

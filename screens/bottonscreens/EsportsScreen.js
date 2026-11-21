@@ -158,13 +158,17 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     paddingHorizontal: wp(3),
     paddingBottom: hp(4),
+    alignItems: 'center',
   },
   columnWrapper: {
+    width: '100%',
+    maxWidth: 760,
     justifyContent: 'space-between',
     paddingHorizontal: wp(1),
   },
   gameCard: {
     width: '48%',
+    maxWidth: 360,
     marginBottom: hp(2),
   },
   gameCardInner: {
