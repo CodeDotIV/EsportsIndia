@@ -116,6 +116,10 @@ const styles = StyleSheet.create({
   },
   gridItem: { marginBottom: hp(2), alignItems: 'center' },
   card: {
+    width: wp(82),
+    backgroundColor: '#1A1F2E',
+    borderWidth: 1,
+    borderColor: '#2A3441',
     borderRadius: rs(16),
     overflow: 'hidden',
     elevation: 4,
@@ -125,8 +129,10 @@ const styles = StyleSheet.create({
     //shadowRadius: 4,
   },
   image: {
-    width: Math.min(wp(55), 240), aspectRatio: 5 / 3, borderRadius: rs(12),
-    resizeMode: "cover", margin: hp(2),
+    width: '100%',
+    height: hp(18),
+    borderRadius: 0,
+    resizeMode: "cover",
   },
   name: {
     fontSize: rf(16), fontWeight: 'bold',

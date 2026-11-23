@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   Linking,
   Alert,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,19 +58,43 @@ const gameData = [
 
 const latestUpdates = [
   {
-    id: 1,
-    title: 'Tournament updates',
-    description: 'Check the Esports section for upcoming tournament announcements.',
-  },
-  {
     id: 2,
     title: 'Community news',
     description: 'Follow EsportsIndia to stay connected with the gaming community.',
+    icon: 'people-outline',
+  },
+  {
+    id: 3,
+    title: 'Membership plans',
+    description: 'Subscribe for premium themes, badges, profile frames, and more.',
+    icon: 'sparkles-outline',
   },
 ];
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const upgradePulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(upgradePulse, {
+          toValue: 1.06,
+          duration: 700,
+          useNativeDriver: false,
+        }),
+        Animated.timing(upgradePulse, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: false,
+        }),
+        Animated.delay(1800),
+      ])
+    );
+
+    pulse.start();
+    return () => pulse.stop();
+  }, [upgradePulse]);
 
   const navigateTo = (routeName) => {
     let currentNavigation = navigation;
@@ -153,6 +178,18 @@ export default function HomeScreen() {
           <Text style={styles.greeting}>{getGreeting()}</Text>
           <Text style={styles.headerTitle}>EsportsIndia</Text>
         </View>
+        <Animated.View style={{ transform: [{ scale: upgradePulse }] }}>
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={() => navigateTo('Plans')}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Upgrade membership"
+          >
+              <Ionicons name="sparkles" size={rs(15)} color="#FFFFFF" />
+              <Text style={styles.upgradeButtonText}>Upgrade</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
       <View style={styles.divider} />
 
@@ -161,6 +198,45 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Latest updates</Text>
+              <Text style={styles.sectionSubtitle}>The community at a glance</Text>
+            </View>
+          </View>
+
+          <View style={styles.updatesCard}>
+            {latestUpdates.map((item, index) => (
+              <View
+                key={item.id}
+                style={[
+                  styles.updateItem,
+                  index > 0 && styles.updateDivider,
+                ]}
+              >
+                <View style={styles.updateIcon}>
+                  <Ionicons
+                    name={item.icon}
+                    size={19}
+                    color="#FFD700"
+                  />
+                </View>
+
+                <View style={styles.updateTextContainer}>
+                  <Text style={styles.updateTitle}>
+                    {item.title}
+                  </Text>
+
+                  <Text style={styles.updateDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
         <LinearGradient
           colors={['#263C59', '#1A2638', '#182131']}
           start={{ x: 0, y: 0 }}
@@ -178,7 +254,7 @@ export default function HomeScreen() {
           <View style={styles.heroActions}>
             <TouchableOpacity
               style={styles.primaryAction}
-              onPress={() => navigateTo('Esports')}
+              onPress={() => navigateTo('Tournaments')}
               activeOpacity={0.85}
               accessibilityRole="button"
             >
@@ -205,7 +281,7 @@ export default function HomeScreen() {
             </View>
             <TouchableOpacity
               style={styles.seeAllButton}
-              onPress={() => navigateTo('Esports')}
+              onPress={() => navigateTo('Tournaments')}
               activeOpacity={0.75}
               accessibilityRole="button"
             >
@@ -245,45 +321,6 @@ export default function HomeScreen() {
                   </View>
                 </View>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>Latest updates</Text>
-              <Text style={styles.sectionSubtitle}>The community at a glance</Text>
-            </View>
-          </View>
-
-          <View style={styles.updatesCard}>
-            {latestUpdates.map((item, index) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.updateItem,
-                  index > 0 && styles.updateDivider,
-                ]}
-              >
-                <View style={styles.updateIcon}>
-                  <Ionicons
-                    name="notifications-outline"
-                    size={19}
-                    color="#FFD700"
-                  />
-                </View>
-
-                <View style={styles.updateTextContainer}>
-                  <Text style={styles.updateTitle}>
-                    {item.title}
-                  </Text>
-
-                  <Text style={styles.updateDescription}>
-                    {item.description}
-                  </Text>
-                </View>
-              </View>
             ))}
           </View>
         </View>
@@ -363,6 +400,23 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
+    minWidth: 0,
+  },
+  upgradeButton: {
+    minHeight: rs(40),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: wp(3),
+    marginLeft: wp(2),
+    borderRadius: rs(10),
+    backgroundColor: '#2563EB',
+  },
+  upgradeButtonText: {
+    marginLeft: wp(1.5),
+    color: '#FFD700',
+    fontSize: rf(12),
+    fontWeight: '700',
   },
   greeting: {
     fontSize: rf(13),

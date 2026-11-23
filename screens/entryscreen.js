@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, Animated, ActivityIndicator, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Animated, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { wp, hp } from '../utils/responsive';
+import { hp, rf } from '../utils/responsive';
 import { supabase } from '../services/supabase';
 import { getItem, setItem } from '../utils/storageHelper';
 import { getOrCreatePlayerId } from '../utils/playerId';
@@ -16,7 +16,7 @@ const EntryScreen = () => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 2000,
+        duration: 1000,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
@@ -66,7 +66,7 @@ const EntryScreen = () => {
         console.error('Failed to restore Supabase session:', error);
         navigation.replace('LoginScreen');
       }
-    }, 1200);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [navigation, fadeAnim, slideAnim]);
@@ -74,16 +74,10 @@ const EntryScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-        <View style={styles.logoWrap}>
-          <Image
-            source={require('../assets/images/icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
-            <ActivityIndicator size="small" color="#fff" style={styles.loader} />
-          </Animated.View>
-        </View>
+        <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
+          <Text style={styles.title}>EsportsIndia</Text>
+          <Text style={styles.tagline}>PLAY. COMPETE. DOMINATE.</Text>
+        </Animated.View>
       </Animated.View>
     </SafeAreaView>
   );
@@ -102,17 +96,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#141E30',
   },
-  logoWrap: {
-    width: wp(72),
-    height: hp(72),
-    justifyContent: 'center',
-    alignItems: 'center',
+  title: {
+    fontSize: rf(32),
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
-  logo: {
-    width: '100%',
-    height: '100%',
-  },
-  loader: {
-    marginTop: hp(1),
+  tagline: {
+    marginTop: hp(0.8),
+    color: '#FFD700',
+    fontSize: rf(12),
+    fontWeight: '700',
+    letterSpacing: 2,
+    textAlign: 'center',
   },
 });

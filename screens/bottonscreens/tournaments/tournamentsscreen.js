@@ -26,15 +26,30 @@ const bgmiCategories = [
   { category: 'Arena', maps: ['Team Death Match'] },
 ];
 
+const esportsGames = [
+  { id: '1', name: 'BGMI', screen: 'Esportsarena', image: require('../../../assets/images/bgmi.jpg'), available: true },
+  { id: '2', name: 'Call of Duty', screen: 'Callofduty', image: require('../../../assets/images/callofduty.jpg'), available: false },
+  { id: '3', name: 'FreeFire', screen: 'Freefire', image: require('../../../assets/images/freefire.jpg'), available: false },
+  { id: '4', name: 'Valorant', screen: 'Valorant', image: require('../../../assets/images/valorant.jpg'), available: false },
+];
+
 export default function TournamentsScreen() {
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState('Active');
   const [selectedGame, setSelectedGame] = useState('');
   const [showBgmiCards, setShowBgmiCards] = useState(false);
   const [season, setSeason] = useState('1');
-  const tabs = ['Active', 'Upcoming'];
+  const tabs = ['Active', 'Esports'];
 
   const handleCardPress = (game) => {
+    if (selectedTab === 'Esports') {
+      if (!game.available) {
+        Alert.alert('Coming Soon', `${game.name} will be available soon!`);
+        return;
+      }
+      navigation.navigate(game.screen);
+      return;
+    }
     if (game.name === 'BGMI') {
       setShowBgmiCards(true);
       setSelectedGame(game.name);
@@ -157,7 +172,7 @@ export default function TournamentsScreen() {
           ))
         ) : (
           <View style={styles.gamesGrid}>
-            {games.map((game) => (
+            {(selectedTab === 'Esports' ? esportsGames : games).map((game) => (
               <TouchableOpacity 
                 key={`${selectedTab}-${game.id}`} 
                 style={styles.gameCard} 
@@ -167,17 +182,29 @@ export default function TournamentsScreen() {
                 <View style={styles.gameCardInner}>
                   <View style={styles.gameImageContainer}>
                     <Image source={game.image} style={styles.gameImage} resizeMode="contain" />
-                    {game.name !== 'BGMI' && (
+                    {selectedTab === 'Esports'
+                      ? !game.available && (
+                        <View style={styles.comingSoonOverlay}>
+                          <Text style={styles.comingSoonText}>Coming Soon</Text>
+                        </View>
+                      )
+                      : game.name !== 'BGMI' && (
                       <View style={styles.comingSoonOverlay}>
                         <Text style={styles.comingSoonText}>Coming Soon</Text>
                       </View>
-                    )}
+                      )}
                   </View>
                   <View style={styles.gameCardInfo}>
                     <Text style={styles.gameCardText}>{game.name}</Text>
                     <View style={styles.gameCardBadge}>
-                      <Ionicons name="trophy-outline" size={rs(14)} color="#FFD700" />
-                      <Text style={styles.gameCardBadgeText}>Tournament</Text>
+                      <Ionicons
+                        name={selectedTab === 'Esports' ? 'game-controller-outline' : 'trophy-outline'}
+                        size={rs(14)}
+                        color="#FFD700"
+                      />
+                      <Text style={styles.gameCardBadgeText}>
+                        {selectedTab === 'Esports' ? 'Esports' : 'Tournament'}
+                      </Text>
                     </View>
                   </View>
                 </View>

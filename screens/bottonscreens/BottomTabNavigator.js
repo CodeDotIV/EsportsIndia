@@ -2,7 +2,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import HomeScreen from './HomeScreen';
-import EsportsScreen from './EsportsScreen';
 import TournamentsScreen from './tournaments/tournamentsscreen';
 import PlansScreen from './PlansScreen';
 import ProfileScreen from './ProfileScreen';
@@ -23,7 +22,6 @@ export default function BottomTabNavigator() {
         tabBarIcon: ({ color }) => {
           let iconName;
           if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'Esports') iconName = 'sports-esports';
           else if (route.name === 'Tournaments') iconName = 'emoji-events';
           else if (route.name === 'Plans') iconName = 'card-membership';
           else if (route.name === 'Profile') iconName = 'person';
@@ -57,7 +55,6 @@ export default function BottomTabNavigator() {
       detachInactiveScreens={Platform.OS === 'web' ? false : true}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Esports" component={EsportsScreen} />
       <Tab.Screen name="Tournaments" component={TournamentsScreen} />
       <Tab.Screen name="Plans" component={PlansScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
