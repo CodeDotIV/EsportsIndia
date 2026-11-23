@@ -1,13 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
-  Animated, View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { getItem, setItem } from '../../utils/storageHelper';
 import { getOrCreatePlayerId } from '../../utils/playerId';
 import { wp, hp, rf, rs } from '../../utils/responsive';
+import { supabase } from '../../services/supabase';
+import {
+  loadProfileFromCloud,
+  mergeProfileWithAuthUser,
+  syncProfileToCloud,
+} from '../../services/userProfile';
 
 // Country data with timezones
 const COUNTRIES = [
@@ -69,15 +75,6 @@ const LANGUAGES = [
   'Italian',
 ];
 
-const FREE_PLAN_CUSTOMIZATIONS = [
-  ['2', 'Backgrounds'],
-  ['1', 'Profile frame'],
-  ['1', 'Name style'],
-  ['2', 'Themes'],
-];
-
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
 const getInitials = (value) =>
   value
     .trim()
@@ -90,8 +87,6 @@ const getInitials = (value) =>
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const isFocused = useIsFocused();
-  const upgradeOpacity = useRef(new Animated.Value(1)).current;
   const [user, setUser] = useState({
     name: '',
     email: '',
@@ -119,89 +114,82 @@ const ProfileScreen = () => {
     youtube: '',
     twitch: '',
   });
-  const isEditing = true;
+  const [profileSaved, setProfileSaved] = useState(false);
+  const isEditing = !profileSaved;
   const [loading, setLoading] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
-  const [lastSaveTime, setLastSaveTime] = useState(0);
-  const SAVE_COOLDOWN_MS = 2000; // 2 seconds cooldown between saves
+  const readOnlyInputStyle =
+    Platform.OS === 'web' && !isEditing ? styles.readOnlyInput : null;
+  const inputStyle = [styles.input, readOnlyInputStyle];
+  const handleProfileInputFocus = (event) => {
+    if (Platform.OS === 'web' && !isEditing) {
+      event.target.blur();
+    }
+  };
 
   useEffect(() => {
     loadUserProfile();
   }, []);
 
-  useEffect(() => {
-    if (!isFocused) {
-      upgradeOpacity.setValue(1);
-      return undefined;
-    }
-
-    let active = true;
-    let blinkAnimation;
-    getItem('settings.reduceAnimations')
-      .then((value) => {
-        if (!active || value === 'true') return;
-        blinkAnimation = Animated.loop(
-          Animated.sequence([
-            Animated.timing(upgradeOpacity, {
-              toValue: 0.45,
-              duration: 850,
-              useNativeDriver: Platform.OS !== 'web',
-            }),
-            Animated.timing(upgradeOpacity, {
-              toValue: 1,
-              duration: 850,
-              useNativeDriver: Platform.OS !== 'web',
-            }),
-          ])
-        );
-        blinkAnimation.start();
-      })
-      .catch((error) => {
-        console.error('Failed to load animation preference:', error);
-      });
-
-    return () => {
-      active = false;
-      blinkAnimation?.stop();
-      upgradeOpacity.setValue(1);
-    };
-  }, [isFocused, upgradeOpacity]);
-
   const loadUserProfile = async () => {
     try {
       setLoading(true);
       const localData = await getItem('user');
-      if (localData) {
-        const savedProfile = JSON.parse(localData);
-        const playerId = savedProfile.id
-          ? await getOrCreatePlayerId(
-              savedProfile.id,
-              savedProfile.playerId,
-              savedProfile.authCreatedAt
-            )
-          : savedProfile.playerId || '';
-        if (playerId && savedProfile.playerId !== playerId) {
-          savedProfile.playerId = playerId;
-          await setItem('user', JSON.stringify(savedProfile));
+      const localProfile = localData ? JSON.parse(localData) : {};
+      let authUser = null;
+      let cloudProfile = null;
+      if (supabase) {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Failed to load cloud profile:', error);
+          Alert.alert('Cloud profile unavailable', 'Showing profile data saved on this device.');
+        } else {
+          authUser = data.user;
+          if (authUser) {
+            try {
+              cloudProfile = await loadProfileFromCloud(authUser);
+            } catch (cloudError) {
+              console.error('Failed to load profile from Supabase:', cloudError);
+              Alert.alert(
+                'Cloud profile unavailable',
+                'Showing profile data saved on this device. Check that the profiles table migration has been applied.'
+              );
+            }
+          }
         }
-        setUser((currentUser) => ({
-          ...Object.fromEntries(
-            Object.entries(currentUser).map(([field, initialValue]) => {
-              const value = savedProfile[field] ?? initialValue;
-              return [
-                field,
-                value === null || value === undefined
-                  ? ''
-                  : field === 'yearsOfGaming'
-                    ? value
-                    : String(value),
-              ];
-            })
-          ),
-          id: savedProfile.id,
-        }));
       }
+
+      const savedProfile = mergeProfileWithAuthUser(localProfile, authUser, cloudProfile);
+      const playerId = savedProfile.id
+        ? await getOrCreatePlayerId(
+            savedProfile.id,
+            savedProfile.playerId,
+            savedProfile.authCreatedAt
+          )
+        : savedProfile.playerId || '';
+      if (playerId && (savedProfile.playerId !== playerId || authUser)) {
+        savedProfile.playerId = playerId;
+        await setItem('user', JSON.stringify(savedProfile));
+      }
+
+      setUser((currentUser) => ({
+        ...Object.fromEntries(
+          Object.entries(currentUser).map(([field, initialValue]) => {
+            const value = savedProfile[field] ?? initialValue;
+            return [
+              field,
+              value === null || value === undefined
+                ? ''
+                : field === 'yearsOfGaming'
+                  ? value
+                  : String(value),
+            ];
+          })
+        ),
+        id: savedProfile.id,
+      }));
+      setProfileSaved(savedProfile.profileCompleted === true);
     } catch (error) {
       console.error('Failed to load local profile:', error);
     } finally {
@@ -210,17 +198,10 @@ const ProfileScreen = () => {
   };
 
   const handleSave = async () => {
+    if (profileSaved) return;
+
     if (!user.name.trim()) {
       Alert.alert('Validation', 'Name is required.');
-      return;
-    }
-
-    const now = Date.now();
-    const timeSinceLastSave = now - lastSaveTime;
-
-    if (timeSinceLastSave < SAVE_COOLDOWN_MS) {
-      const remainingSeconds = ((SAVE_COOLDOWN_MS - timeSinceLastSave) / 1000).toFixed(1);
-      Alert.alert('Please wait', `Please wait ${remainingSeconds} seconds before saving again.`);
       return;
     }
 
@@ -231,7 +212,6 @@ const ProfileScreen = () => {
 
     try {
       setLoading(true);
-      setLastSaveTime(now);
 
       let formattedDateOfBirth = '';
       if (user.dateOfBirth && user.dateOfBirth.trim()) {
@@ -288,6 +268,7 @@ const ProfileScreen = () => {
       };
 
       const profileData = {
+        profileCompleted: false,
         id: user.id,
         playerId: user.playerId,
         authCreatedAt: user.authCreatedAt,
@@ -318,7 +299,31 @@ const ProfileScreen = () => {
 
       await setItem('user', JSON.stringify(profileData));
       setUser(profileData);
-      Alert.alert('Success', 'Profile saved locally!');
+      const completedProfile = { ...profileData, profileCompleted: true };
+      try {
+        await syncProfileToCloud(completedProfile);
+      } catch (error) {
+        console.error('Failed to sync profile to cloud:', error);
+        Alert.alert(
+          'Saved on this device',
+          'Your profile was saved locally, but cloud sync failed. Please try saving again when connected.'
+        );
+        return;
+      }
+
+      setUser(completedProfile);
+      setProfileSaved(true);
+      try {
+        await setItem('user', JSON.stringify(completedProfile));
+      } catch (error) {
+        console.error('Failed to save profile completion state locally:', error);
+        Alert.alert(
+          'Profile synced',
+          'Your profile is saved to your account, but this device could not save its completion status.'
+        );
+        return;
+      }
+      Alert.alert('Success', 'Profile saved and synced to your account.');
     } catch (error) {
       console.error('Failed to save local profile:', error);
       Alert.alert('Error', 'Failed to save profile locally.');
@@ -365,57 +370,28 @@ const ProfileScreen = () => {
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user.name || 'User Name'}</Text>
-                <Text
-                  style={styles.playerIdLabel}
-                >
-                  PLAYER ID
-                </Text>
-                <Text
-                  style={styles.playerId}
-                  selectable
-                >
-                  {user.playerId || 'Generating ID...'}
-                </Text>
-                {user.gamingUsername ? (
-                  <View style={styles.gamingBadge}>
-                    <Ionicons name="game-controller-outline" size={rs(14)} color="#FFD700" />
-                    <Text style={styles.gamingBadgeText}>{user.gamingUsername}</Text>
-                  </View>
-                ) : null}
-
+                <View style={styles.playerIdRow}>
+                  <Text style={styles.playerIdLabel}>Player ID</Text>
+                  <Text
+                    style={styles.playerId}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    selectable
+                  >
+                    {user.playerId || 'Generating ID...'}
+                  </Text>
+                </View>
               </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Plans')}
+                style={styles.profileUpgradeButton}
+                accessibilityRole="button"
+                accessibilityLabel="Upgrade from the free tier"
+              >
+                <Ionicons name="sparkles-outline" size={rs(13)} color="#141E30" />
+                <Text style={styles.upgradeButtonText}>Upgrade</Text>
+              </TouchableOpacity>
         </View>
-      
-            <View style={styles.membershipCard}>
-              <View style={styles.membershipHeader}>
-                <View style={styles.membershipIcon}>
-                  <Ionicons name="person-outline" size={rs(24)} color="#9CA3AF" />
-                </View>
-                <View style={styles.membershipDetails}>
-                  <Text style={styles.membershipLabel}>CURRENT PLAN</Text>
-                  <Text style={styles.membershipName}>BASIC</Text>
-                  <Text style={styles.membershipSubtitle}>Basic Player · ₹0</Text>
-                </View>
-                <AnimatedTouchableOpacity
-                  style={[styles.membershipUpgrade, { opacity: upgradeOpacity }]}
-                  onPress={() => navigation.navigate('Plans')}
-                  accessibilityRole="button"
-                  accessibilityLabel="Upgrade from the Basic plan"
-                >
-                  <Text style={styles.membershipUpgradeText}>UPGRADE</Text>
-                </AnimatedTouchableOpacity>
-              </View>
-              <View style={styles.membershipDivider} />
-              <Text style={styles.customizationTitle}>Your customization limits</Text>
-              <View style={styles.customizationGrid}>
-                {FREE_PLAN_CUSTOMIZATIONS.map(([count, label]) => (
-                  <View key={label} style={styles.customizationItem}>
-                    <Text style={styles.customizationCount}>{count}</Text>
-                    <Text style={styles.customizationLabel}>{label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
 
             {/* Profile Form */}
         <View>
@@ -427,7 +403,8 @@ const ProfileScreen = () => {
                     Full Name <Text style={{ color: '#FF6B6B' }}>*</Text>
                   </Text>
                   <TextInput
-                    style={styles.input}
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
                     placeholder="Enter your full name"
                     placeholderTextColor="#999"
                     value={user.name}
@@ -440,7 +417,8 @@ const ProfileScreen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Phone Number</Text>
                   <TextInput
-                    style={styles.input}
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
                     placeholder="Enter your phone number"
                     placeholderTextColor="#999"
                     keyboardType="phone-pad"
@@ -474,7 +452,8 @@ const ProfileScreen = () => {
                     </View>
                   ) : (
                     <TextInput
-                      style={[styles.input, styles.disabled]}
+                      style={[inputStyle, styles.disabled]}
+                      onFocus={handleProfileInputFocus}
                       value={user.gender || 'Not specified'}
                       editable={false}
                       placeholderTextColor="#999"
@@ -485,7 +464,8 @@ const ProfileScreen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Date of Birth</Text>
                   <TextInput
-                    style={styles.input}
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
                     placeholder="YYYY-MM-DD (e.g., 1990-01-15)"
                     placeholderTextColor="#999"
                     value={user.dateOfBirth}
@@ -517,7 +497,8 @@ const ProfileScreen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Location</Text>
                   <TextInput
-                    style={styles.input}
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
                     placeholder="Enter your location"
                     placeholderTextColor="#999"
                     value={user.location}
@@ -527,171 +508,19 @@ const ProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Gaming Profile</Text>
-                
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Gaming Username</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your gaming username"
-                    placeholderTextColor="#999"
-                    value={user.gamingUsername}
-                    onChangeText={(text) => setUser({ ...user, gamingUsername: text })}
-                    editable={isEditing}
-                    autoCapitalize="none"
-                  />
+              {!profileSaved && (
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.saveButton, loading && styles.buttonDisabled]}
+                    onPress={handleSave}
+                    disabled={loading}
+                  >
+                    <Text style={styles.saveButtonText}>
+                      {loading ? 'Saving...' : 'Save Profile'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Favorite Game</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your favorite game"
-                    placeholderTextColor="#999"
-                    value={user.favoriteGame}
-                    onChangeText={(text) => setUser({ ...user, favoriteGame: text })}
-                    editable={isEditing}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Gaming Platform</Text>
-                  {isEditing ? (
-                    <View style={styles.optionsContainer}>
-                      {['PC', 'Mobile', 'Console', 'PC & Mobile', 'PC & Console', 'Mobile & Console', 'All Platforms'].map((option) => (
-                        <TouchableOpacity
-                          key={option}
-                          style={[
-                            styles.optionButton,
-                            user.gamingPlatform === option && styles.optionButtonSelected
-                          ]}
-                          onPress={() => setUser({ ...user, gamingPlatform: option })}
-                        >
-                          <Text style={[
-                            styles.optionButtonText,
-                            user.gamingPlatform === option && styles.optionButtonTextSelected
-                          ]}>
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ) : (
-                    <TextInput
-                      style={[styles.input, styles.disabled]}
-                      value={user.gamingPlatform || 'Not specified'}
-                      editable={false}
-                      placeholderTextColor="#999"
-                    />
-                  )}
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Skill Level</Text>
-                  {isEditing ? (
-                    <View style={styles.optionsContainer}>
-                      {['Beginner', 'Intermediate', 'Advanced', 'Professional'].map((option) => (
-                        <TouchableOpacity
-                          key={option}
-                          style={[
-                            styles.optionButton,
-                            user.skillLevel === option && styles.optionButtonSelected
-                          ]}
-                          onPress={() => setUser({ ...user, skillLevel: option })}
-                        >
-                          <Text style={[
-                            styles.optionButtonText,
-                            user.skillLevel === option && styles.optionButtonTextSelected
-                          ]}>
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ) : (
-                    <TextInput
-                      style={[styles.input, styles.disabled]}
-                      value={user.skillLevel || 'Not specified'}
-                      editable={false}
-                      placeholderTextColor="#999"
-                    />
-                  )}
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Team/Clan Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your team or clan name"
-                    placeholderTextColor="#999"
-                    value={user.teamName}
-                    onChangeText={(text) => setUser({ ...user, teamName: text })}
-                    editable={isEditing}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Years of Gaming Experience</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter years (e.g., 5)"
-                    placeholderTextColor="#999"
-                    keyboardType="numeric"
-                    value={
-                      user.yearsOfGaming === null || user.yearsOfGaming === undefined
-                        ? ''
-                        : user.yearsOfGaming.toString()
-                    }
-                    onChangeText={(text) => setUser({ ...user, yearsOfGaming: text })}
-                    editable={isEditing}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Preferred Game Mode</Text>
-                  {isEditing ? (
-                    <View style={styles.optionsContainer}>
-                      {['Solo', 'Duo', 'Squad', 'Tournament', 'All'].map((option) => (
-                        <TouchableOpacity
-                          key={option}
-                          style={[
-                            styles.optionButton,
-                            user.preferredGameMode === option && styles.optionButtonSelected
-                          ]}
-                          onPress={() => setUser({ ...user, preferredGameMode: option })}
-                        >
-                          <Text style={[
-                            styles.optionButtonText,
-                            user.preferredGameMode === option && styles.optionButtonTextSelected
-                          ]}>
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ) : (
-                    <TextInput
-                      style={[styles.input, styles.disabled]}
-                      value={user.preferredGameMode || 'Not specified'}
-                      editable={false}
-                      placeholderTextColor="#999"
-                    />
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.saveButton, loading && styles.buttonDisabled]}
-                  onPress={handleSave}
-                  disabled={loading}
-                >
-                  <Text style={styles.saveButtonText}>
-                    {loading ? 'Saving...' : 'Save Profile'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              )}
             </View>
 
           </ScrollView>
@@ -850,6 +679,24 @@ const styles = StyleSheet.create({
   settingsButton: {
     padding: wp(1),
   },
+  profileUpgradeButton: {
+    position: 'absolute',
+    top: hp(1),
+    right: wp(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    backgroundColor: '#FFD700',
+    borderRadius: rs(8),
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.4),
+    minHeight: 28,
+  },
+  upgradeButtonText: {
+    color: '#141E30',
+    fontSize: rf(10),
+    fontWeight: 'bold',
+  },
   scrollContainer: {
     flex: 1,
     ...(Platform.OS === 'web' && {
@@ -869,6 +716,7 @@ const styles = StyleSheet.create({
     }),
   },
   profileHeader: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
@@ -905,6 +753,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     alignItems: 'flex-start',
+    paddingRight: wp(2),
   },
   profileName: {
     fontSize: rf(22),
@@ -914,128 +763,25 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     flexShrink: 1,
   },
+  playerIdRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+  },
   playerIdLabel: {
     color: '#9CA3AF',
     fontSize: rf(9),
     fontWeight: '600',
-    letterSpacing: 0.6,
-    marginBottom: hp(0.25),
   },
   playerId: {
-    width: '100%',
+    flex: 1,
+    minWidth: 0,
     fontSize: rf(9),
     lineHeight: rf(13),
     color: '#D1D5DB',
     textAlign: 'left',
     flexShrink: 1,
-  },
-  membershipCard: {
-    backgroundColor: '#1A1F2E',
-    borderWidth: 1,
-    borderColor: '#2A3441',
-    borderRadius: rs(12),
-    padding: wp(4),
-    marginBottom: hp(1),
-  },
-  membershipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  membershipIcon: {
-    width: rs(46),
-    height: rs(46),
-    borderRadius: rs(23),
-    backgroundColor: 'rgba(156, 163, 175, 0.16)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  membershipDetails: {
-    flex: 1,
-    marginLeft: wp(3),
-  },
-  membershipLabel: {
-    color: '#9CA3AF',
-    fontSize: rf(10),
-    fontWeight: '600',
-    letterSpacing: 0.6,
-  },
-  membershipName: {
-    color: '#D1D5DB',
-    fontSize: rf(17),
-    fontWeight: 'bold',
-    marginTop: hp(0.2),
-  },
-  membershipSubtitle: {
-    color: '#9CA3AF',
-    fontSize: rf(11),
-    marginTop: hp(0.15),
-  },
-  membershipUpgrade: {
-    backgroundColor: '#FFD700',
-    borderRadius: rs(8),
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.8),
-    minHeight: 36,
-    justifyContent: 'center',
-  },
-  membershipUpgradeText: {
-    color: '#141E30',
-    fontSize: rf(9),
-    fontWeight: 'bold',
-  },
-  membershipDivider: {
-    height: 1,
-    backgroundColor: '#2A3441',
-    marginVertical: hp(1.5),
-  },
-  customizationTitle: {
-    color: '#FFFFFF',
-    fontSize: rf(13),
-    fontWeight: '600',
-    marginBottom: hp(0.8),
-  },
-  customizationGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: hp(0.8),
-  },
-  customizationItem: {
-    width: '48%',
-    minHeight: 38,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: rs(7),
-    paddingHorizontal: wp(2.5),
-  },
-  customizationCount: {
-    color: '#D1D5DB',
-    fontSize: rf(13),
-    fontWeight: 'bold',
-    marginRight: wp(2),
-  },
-  customizationLabel: {
-    flex: 1,
-    color: '#9CA3AF',
-    fontSize: rf(10),
-  },
-  gamingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.8),
-    borderRadius: rs(18),
-    borderWidth: 1.5,
-    borderColor: '#FFD700',
-  },
-  gamingBadgeText: {
-    color: '#FFD700',
-    fontSize: rf(14),
-    fontWeight: '600',
-    marginLeft: wp(1.5),
   },
   section: {
     backgroundColor: '#1A1F2E',
@@ -1068,6 +814,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1F2E',
     color: '#FFFFFF',
     fontSize: rf(15),
+  },
+  readOnlyInput: {
+    outlineStyle: 'none',
+    cursor: 'default',
   },
   disabled: {
     backgroundColor: '#1A1F2E',

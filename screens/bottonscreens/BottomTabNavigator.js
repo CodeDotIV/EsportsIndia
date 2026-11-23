@@ -2,7 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import HomeScreen from './HomeScreen';
+import ExploreScreen from './ExploreScreen';
 import TournamentsScreen from './tournaments/tournamentsscreen';
+import ConnectScreen from './ConnectScreen';
 import PlansScreen from './PlansScreen';
 import ProfileScreen from './ProfileScreen';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,7 +24,9 @@ export default function BottomTabNavigator() {
         tabBarIcon: ({ color }) => {
           let iconName;
           if (route.name === 'Home') iconName = 'home';
+          else if (route.name === 'Explore') iconName = 'explore';
           else if (route.name === 'Tournaments') iconName = 'emoji-events';
+          else if (route.name === 'Connect') iconName = 'people';
           else if (route.name === 'Plans') iconName = 'card-membership';
           else if (route.name === 'Profile') iconName = 'person';
           return <Icon name={iconName} size={22} color={color} />;
@@ -30,7 +34,7 @@ export default function BottomTabNavigator() {
         tabBarActiveTintColor: '#FFD700',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
         },
         tabBarStyle: {
@@ -40,7 +44,8 @@ export default function BottomTabNavigator() {
           backgroundColor: 'transparent',
         },
         tabBarItemStyle: {
-          flex: 1.5,
+          flex: 1,
+          minWidth: 0,
         },
         tabBarBackground: () => (
           <LinearGradient
@@ -55,8 +60,17 @@ export default function BottomTabNavigator() {
       detachInactiveScreens={Platform.OS === 'web' ? false : true}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Explore" component={ExploreScreen} />
       <Tab.Screen name="Tournaments" component={TournamentsScreen} />
-      <Tab.Screen name="Plans" component={PlansScreen} />
+      <Tab.Screen name="Connect" component={ConnectScreen} />
+      <Tab.Screen
+        name="Plans"
+        component={PlansScreen}
+        options={{
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

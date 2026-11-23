@@ -16,6 +16,10 @@ Configure Supabase Google OAuth before starting the app:
    EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
    ```
 
+5. Apply [`supabase/migrations/20261123205000_create_profiles.sql`](./supabase/migrations/20261123205000_create_profiles.sql) in your Supabase project's SQL Editor. Profile data is stored in the `public.profiles` table, with row-level security restricting access to the signed-in user.
+6. Apply [`supabase/migrations/20261123214500_create_team_directory.sql`](./supabase/migrations/20261123214500_create_team_directory.sql) to enable Explore team search. Team names are searchable by signed-in users; other profile fields remain private.
+7. Apply [`supabase/migrations/20261123221000_list_registered_players.sql`](./supabase/migrations/20261123221000_list_registered_players.sql) to show other registered players by display name in Connect's For you tab. Email addresses and other profile fields are not exposed.
+
 The Google button supports both account creation and sign-in. Supabase persists the session; the profile screen's **Sign out** action ends the session.
 
 Google OAuth cannot return to an app running in Expo Go because Expo Go cannot register the app's custom URL scheme. Install dependencies and launch an Android development build instead (Android SDK required):

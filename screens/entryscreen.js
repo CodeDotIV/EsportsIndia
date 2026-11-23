@@ -5,6 +5,7 @@ import { hp, rf } from '../utils/responsive';
 import { supabase } from '../services/supabase';
 import { getItem, setItem } from '../utils/storageHelper';
 import { getOrCreatePlayerId } from '../utils/playerId';
+import { mergeProfileWithAuthUser } from '../services/userProfile';
 
 const EntryScreen = () => {
   const navigation = useNavigation();
@@ -37,21 +38,22 @@ const EntryScreen = () => {
           const authUser = data.session.user;
           const storedUser = await getItem('user');
           const profile = storedUser ? JSON.parse(storedUser) : {};
+          const mergedProfile = mergeProfileWithAuthUser(profile, authUser);
           const playerId = await getOrCreatePlayerId(
             authUser.id,
-            profile.playerId,
+            mergedProfile.playerId,
             authUser.created_at
           );
           await setItem(
             'user',
             JSON.stringify({
-              ...profile,
+              ...mergedProfile,
               id: authUser.id,
               authCreatedAt: authUser.created_at || '',
               playerId,
               email: authUser.email || '',
               name:
-                profile.name ||
+                mergedProfile.name ||
                 authUser.user_metadata?.full_name ||
                 authUser.user_metadata?.name ||
                 authUser.email?.split('@')[0] ||

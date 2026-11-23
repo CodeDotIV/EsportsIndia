@@ -7,11 +7,9 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Alert, 
-  SafeAreaView, 
-  ScrollView 
+  SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 
 const games = [
@@ -92,14 +90,7 @@ export default function EsportsScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="chevron-back" size={24} color="white" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Esports</Text>
+        <Text style={styles.headerText}>Explore</Text>
       </View>
 
       {/* Game Grid */}
@@ -127,23 +118,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 10,
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginLeft: wp(2),
   },
   headerText: {
     fontSize: 18,

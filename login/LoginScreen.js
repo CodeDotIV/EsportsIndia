@@ -13,6 +13,7 @@ import { isSupabaseConfigured } from '../services/supabase';
 import { signInWithGoogle } from '../services/supabaseAuth';
 import { setItem } from '../utils/storageHelper';
 import { getOrCreatePlayerId } from '../utils/playerId';
+import { mergeProfileWithAuthUser } from '../services/userProfile';
 import { hp, rf, wp } from '../utils/responsive';
 
 export default function LoginScreen({ navigation }) {
@@ -27,17 +28,21 @@ export default function LoginScreen({ navigation }) {
       if (result.cancelled || result.redirecting) return;
 
       const user = result.session.user;
-      const userData = {
+      const userData = mergeProfileWithAuthUser({
         id: user.id,
         authCreatedAt: user.created_at || '',
-        playerId: await getOrCreatePlayerId(user.id, '', user.created_at),
+        playerId: await getOrCreatePlayerId(
+          user.id,
+          user.user_metadata?.playerId,
+          user.created_at
+        ),
         email: user.email || '',
         name:
           user.user_metadata?.full_name ||
           user.user_metadata?.name ||
           user.email?.split('@')[0] ||
           'Player',
-      };
+      }, user);
       await setItem('user', JSON.stringify(userData));
       navigation.replace('Main');
     } catch (error) {
