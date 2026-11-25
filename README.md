@@ -17,8 +17,12 @@ Configure Supabase Google OAuth before starting the app:
    ```
 
 5. Apply [`supabase/migrations/20261123205000_create_profiles.sql`](./supabase/migrations/20261123205000_create_profiles.sql) in your Supabase project's SQL Editor. Profile data is stored in the `public.profiles` table, with row-level security restricting access to the signed-in user.
-6. Apply [`supabase/migrations/20261123214500_create_team_directory.sql`](./supabase/migrations/20261123214500_create_team_directory.sql) to enable Explore team search. Team names are searchable by signed-in users; other profile fields remain private.
-7. Apply [`supabase/migrations/20261123221000_list_registered_players.sql`](./supabase/migrations/20261123221000_list_registered_players.sql) to show other registered players by display name in Connect's For you tab. Email addresses and other profile fields are not exposed.
+6. Apply [`supabase/migrations/20261123214500_create_team_directory.sql`](./supabase/migrations/20261123214500_create_team_directory.sql) to enable Explore team search. Team names are searchable by signed-in users.
+7. Apply [`supabase/migrations/20261123221000_list_registered_players.sql`](./supabase/migrations/20261123221000_list_registered_players.sql) to show other registered players in Connect's For you tab.
+8. Apply [`supabase/migrations/20261124091500_add_team_directory_filters.sql`](./supabase/migrations/20261124091500_add_team_directory_filters.sql) to add Explore team filtering.
+9. Apply [`supabase/migrations/20261124094700_add_public_esports_profile.sql`](./supabase/migrations/20261124094700_add_public_esports_profile.sql) to enable public esports profile fields, state/zone team filters, and public player cards. Phone, gender, and date of birth are not exposed.
+10. Apply [`supabase/migrations/20261124110500_keep_selected_profile_fields.sql`](./supabase/migrations/20261124110500_keep_selected_profile_fields.sql) to retain only the selected profile fields, remove older saved profile fields, and update the team/player directory functions.
+11. Apply [`supabase/migrations/20261125121000_add_public_profile_explore_search.sql`](./supabase/migrations/20261125121000_add_public_profile_explore_search.sql) to enable public profile search and filtering in Explore, and supply shared filter options to both profile and team search.
 
 The Google button supports both account creation and sign-in. Supabase persists the session; the profile screen's **Sign out** action ends the session.
 

@@ -1,79 +1,73 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Image, Linking, Modal, Pressable
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Switch
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { getItem, setItem } from '../../utils/storageHelper';
 import { getOrCreatePlayerId } from '../../utils/playerId';
+import {
+  isAdultDateOfBirth,
+  isValidFullName,
+  isValidIndianMobileNumber,
+  sanitizeDateOfBirth,
+  sanitizeFullName,
+  sanitizeIndianMobileNumber,
+} from '../../utils/profileValidation';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 import { supabase } from '../../services/supabase';
 import {
+  limitBioWords,
   loadProfileFromCloud,
   mergeProfileWithAuthUser,
+  PROFILE_FIELDS,
   syncProfileToCloud,
 } from '../../services/userProfile';
 
-// Country data with timezones
-const COUNTRIES = [
-  { name: 'India', code: 'IN', timezone: 'IST (UTC+5:30)' },
-  { name: 'United States', code: 'US', timezone: 'EST/PST (UTC-5/-8)' },
-  { name: 'United Kingdom', code: 'GB', timezone: 'GMT (UTC+0)' },
-  { name: 'Canada', code: 'CA', timezone: 'EST/PST (UTC-5/-8)' },
-  { name: 'Australia', code: 'AU', timezone: 'AEST (UTC+10)' },
-  { name: 'Germany', code: 'DE', timezone: 'CET (UTC+1)' },
-  { name: 'France', code: 'FR', timezone: 'CET (UTC+1)' },
-  { name: 'Japan', code: 'JP', timezone: 'JST (UTC+9)' },
-  { name: 'China', code: 'CN', timezone: 'CST (UTC+8)' },
-  { name: 'Brazil', code: 'BR', timezone: 'BRT (UTC-3)' },
-  { name: 'Russia', code: 'RU', timezone: 'MSK (UTC+3)' },
-  { name: 'South Korea', code: 'KR', timezone: 'KST (UTC+9)' },
-  { name: 'Mexico', code: 'MX', timezone: 'CST (UTC-6)' },
-  { name: 'Italy', code: 'IT', timezone: 'CET (UTC+1)' },
-  { name: 'Spain', code: 'ES', timezone: 'CET (UTC+1)' },
-  { name: 'Netherlands', code: 'NL', timezone: 'CET (UTC+1)' },
-  { name: 'Sweden', code: 'SE', timezone: 'CET (UTC+1)' },
-  { name: 'Poland', code: 'PL', timezone: 'CET (UTC+1)' },
-  { name: 'Turkey', code: 'TR', timezone: 'TRT (UTC+3)' },
-  { name: 'Saudi Arabia', code: 'SA', timezone: 'AST (UTC+3)' },
-  { name: 'United Arab Emirates', code: 'AE', timezone: 'GST (UTC+4)' },
-  { name: 'Singapore', code: 'SG', timezone: 'SGT (UTC+8)' },
-  { name: 'Malaysia', code: 'MY', timezone: 'MYT (UTC+8)' },
-  { name: 'Indonesia', code: 'ID', timezone: 'WIB (UTC+7)' },
-  { name: 'Philippines', code: 'PH', timezone: 'PHT (UTC+8)' },
-  { name: 'Thailand', code: 'TH', timezone: 'ICT (UTC+7)' },
-  { name: 'Vietnam', code: 'VN', timezone: 'ICT (UTC+7)' },
-  { name: 'Bangladesh', code: 'BD', timezone: 'BST (UTC+6)' },
-  { name: 'Pakistan', code: 'PK', timezone: 'PKT (UTC+5)' },
-  { name: 'Nepal', code: 'NP', timezone: 'NPT (UTC+5:45)' },
-  { name: 'Sri Lanka', code: 'LK', timezone: 'SLST (UTC+5:30)' },
-  { name: 'South Africa', code: 'ZA', timezone: 'SAST (UTC+2)' },
-  { name: 'Egypt', code: 'EG', timezone: 'EET (UTC+2)' },
-  { name: 'Nigeria', code: 'NG', timezone: 'WAT (UTC+1)' },
-  { name: 'Kenya', code: 'KE', timezone: 'EAT (UTC+3)' },
-  { name: 'Argentina', code: 'AR', timezone: 'ART (UTC-3)' },
-  { name: 'Chile', code: 'CL', timezone: 'CLT (UTC-3)' },
-  { name: 'Colombia', code: 'CO', timezone: 'COT (UTC-5)' },
-  { name: 'Peru', code: 'PE', timezone: 'PET (UTC-5)' },
-  { name: 'Other', code: 'OTHER', timezone: 'Custom' },
+const GAMES = ['BGMI', 'Call of Duty', 'FreeFire', 'Valorant'];
+const TEAM_TYPES = ['Solo', 'Duo', 'Squad'];
+const ZONES = ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'];
+const BIO_WORD_LIMIT = 20;
+const INDIAN_STATES_AND_UTS = [
+  'Andaman and Nicobar Islands',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chandigarh',
+  'Chhattisgarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jammu and Kashmir',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Ladakh',
+  'Lakshadweep',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Puducherry',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
 ];
 
-// Main languages
-const LANGUAGES = [
-  'English',
-  'Hindi',
-  'Spanish',
-  'French',
-  'German',
-  'Chinese (Mandarin)',
-  'Japanese',
-  'Korean',
-  'Arabic',
-  'Portuguese',
-  'Russian',
-  'Italian',
-];
+const countWords = (value) => String(value || '').trim().split(/\s+/).filter(Boolean).length;
 
 const getInitials = (value) =>
   value
@@ -89,36 +83,28 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState({
     name: '',
+    phone: '',
+    gender: '',
+    dateOfBirth: '',
+    game: '',
+    bio: '',
+    teamName: '',
+    state: '',
+    zone: '',
+    teamType: '',
+    lookingFor: '',
+    tournamentPartners: false,
+  });
+  const [identity, setIdentity] = useState({
+    id: '',
     email: '',
     playerId: '',
     authCreatedAt: '',
-    phone: '',
-    gender: '',
-    location: '',
-    bio: '',
-    dateOfBirth: '',
-    avatar: '',
-    gamingUsername: '',
-    favoriteGame: '',
-    gamingPlatform: '',
-    skillLevel: '',
-    teamName: '',
-    yearsOfGaming: '',
-    preferredGameMode: '',
-    country: '',
-    timezone: '',
-    language: 'English',
-    instagram: '',
-    twitter: '',
-    discord: '',
-    youtube: '',
-    twitch: '',
   });
   const [profileSaved, setProfileSaved] = useState(false);
   const isEditing = !profileSaved;
   const [loading, setLoading] = useState(false);
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const bioWordCount = countWords(user.bio);
   const readOnlyInputStyle =
     Platform.OS === 'web' && !isEditing ? styles.readOnlyInput : null;
   const inputStyle = [styles.input, readOnlyInputStyle];
@@ -168,28 +154,44 @@ const ProfileScreen = () => {
             savedProfile.authCreatedAt
           )
         : savedProfile.playerId || '';
-      if (playerId && (savedProfile.playerId !== playerId || authUser)) {
-        savedProfile.playerId = playerId;
-        await setItem('user', JSON.stringify(savedProfile));
-      }
+      const loadedIdentity = {
+        id: savedProfile.id || '',
+        email: savedProfile.email || '',
+        playerId,
+        authCreatedAt: savedProfile.authCreatedAt || '',
+      };
 
-      setUser((currentUser) => ({
-        ...Object.fromEntries(
-          Object.entries(currentUser).map(([field, initialValue]) => {
-            const value = savedProfile[field] ?? initialValue;
-            return [
-              field,
-              value === null || value === undefined
+      const loadedProfile = Object.fromEntries(
+        PROFILE_FIELDS.map((field) => {
+          const value = savedProfile[field] ?? user[field];
+          return [
+            field,
+            field === 'tournamentPartners'
+              ? value === true || value === 'true'
+              : value === null || value === undefined
                 ? ''
-                : field === 'yearsOfGaming'
-                  ? value
-                  : String(value),
-            ];
-          })
-        ),
-        id: savedProfile.id,
-      }));
-      setProfileSaved(savedProfile.profileCompleted === true);
+                : String(value),
+          ];
+        })
+      );
+      if (!loadedProfile.state && INDIAN_STATES_AND_UTS.includes(localProfile.location)) {
+        loadedProfile.state = localProfile.location;
+      }
+      loadedProfile.bio = limitBioWords(loadedProfile.bio, BIO_WORD_LIMIT);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(loadedProfile.dateOfBirth)) {
+        const [year, month, day] = loadedProfile.dateOfBirth.split('-');
+        loadedProfile.dateOfBirth = `${day}-${month}-${year}`;
+      } else if (loadedProfile.dateOfBirth) {
+        loadedProfile.dateOfBirth = sanitizeDateOfBirth(loadedProfile.dateOfBirth);
+      }
+      const saved = savedProfile.profileCompleted === true || Boolean(cloudProfile?.name);
+      setIdentity(loadedIdentity);
+      setUser(loadedProfile);
+      setProfileSaved(saved);
+      await setItem(
+        'user',
+        JSON.stringify({ ...loadedIdentity, ...loadedProfile, profileCompleted: saved })
+      );
     } catch (error) {
       console.error('Failed to load local profile:', error);
     } finally {
@@ -200,8 +202,20 @@ const ProfileScreen = () => {
   const handleSave = async () => {
     if (profileSaved) return;
 
-    if (!user.name.trim()) {
-      Alert.alert('Validation', 'Name is required.');
+    if (!isValidFullName(user.name)) {
+      Alert.alert('Validation', 'Enter a proper name using letters, spaces, apostrophes, or hyphens.');
+      return;
+    }
+
+    const phoneNumber = sanitizeIndianMobileNumber(user.phone);
+    if (user.phone.trim() && !isValidIndianMobileNumber(phoneNumber)) {
+      Alert.alert('Validation', 'Phone number must be a valid 10-digit Indian mobile number starting with 6-9.');
+      return;
+    }
+
+    const dateOfBirth = sanitizeDateOfBirth(user.dateOfBirth);
+    if (user.dateOfBirth.trim() && !isAdultDateOfBirth(dateOfBirth)) {
+      Alert.alert('Validation', 'Date of birth must be valid DD-MM-YYYY format and you must be at least 18.');
       return;
     }
 
@@ -213,54 +227,6 @@ const ProfileScreen = () => {
     try {
       setLoading(true);
 
-      let formattedDateOfBirth = '';
-      if (user.dateOfBirth && user.dateOfBirth.trim()) {
-        const dateStr = user.dateOfBirth.trim();
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (dateRegex.test(dateStr)) {
-          const date = new Date(dateStr);
-          const [year, month, day] = dateStr.split('-').map(Number);
-          const isValidDate = 
-            !isNaN(date.getTime()) &&
-            date.getFullYear() === year &&
-            date.getMonth() + 1 === month &&
-            date.getDate() === day &&
-            year >= 1900 &&
-            year <= new Date().getFullYear() &&
-            month >= 1 &&
-            month <= 12 &&
-            day >= 1 &&
-            day <= 31;
-          
-          if (isValidDate) {
-            formattedDateOfBirth = dateStr;
-          } else {
-            Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format (e.g., 1990-01-15)');
-            setLoading(false);
-            return;
-          }
-        } else {
-          Alert.alert('Invalid Date Format', 'Please enter date in YYYY-MM-DD format (e.g., 1990-01-15)');
-          setLoading(false);
-          return;
-        }
-      }
-
-      let formattedYearsOfGaming = '';
-      if (user.yearsOfGaming !== null && user.yearsOfGaming !== undefined && user.yearsOfGaming !== '') {
-        const yearsStr = user.yearsOfGaming.toString().trim();
-        if (yearsStr) {
-          const years = parseInt(yearsStr);
-          if (!isNaN(years) && years >= 0 && years <= 100) {
-            formattedYearsOfGaming = years;
-          } else {
-            Alert.alert('Invalid Years', 'Years of gaming must be a number between 0 and 100');
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
       const sanitizeField = (value) => {
         if (value === null || value === undefined) return '';
         const trimmed = String(value).trim();
@@ -268,40 +234,27 @@ const ProfileScreen = () => {
       };
 
       const profileData = {
-        profileCompleted: false,
-        id: user.id,
-        playerId: user.playerId,
-        authCreatedAt: user.authCreatedAt,
-        email: user.email,
         name: user.name.trim(),
-        phone: sanitizeField(user.phone),
+        phone: phoneNumber,
         gender: sanitizeField(user.gender) || '',
-        location: sanitizeField(user.location),
+        dateOfBirth,
+        game: sanitizeField(user.game),
         bio: sanitizeField(user.bio) || '',
-        dateOfBirth: formattedDateOfBirth,
-        avatar: sanitizeField(user.avatar) || '',
-        gamingUsername: sanitizeField(user.gamingUsername),
-        favoriteGame: sanitizeField(user.favoriteGame),
-        gamingPlatform: user.gamingPlatform || '',
-        skillLevel: user.skillLevel || '',
         teamName: sanitizeField(user.teamName),
-        yearsOfGaming: formattedYearsOfGaming,
-        preferredGameMode: user.preferredGameMode || '',
-        country: sanitizeField(user.country),
-        timezone: sanitizeField(user.timezone),
-        language: user.language.trim() || 'English',
-        instagram: sanitizeField(user.instagram),
-        twitter: sanitizeField(user.twitter),
-        discord: sanitizeField(user.discord),
-        youtube: sanitizeField(user.youtube),
-        twitch: sanitizeField(user.twitch),
+        state: sanitizeField(user.state),
+        zone: sanitizeField(user.zone),
+        teamType: sanitizeField(user.teamType),
+        lookingFor: sanitizeField(user.lookingFor),
+        tournamentPartners: Boolean(user.tournamentPartners),
       };
 
-      await setItem('user', JSON.stringify(profileData));
       setUser(profileData);
-      const completedProfile = { ...profileData, profileCompleted: true };
+      await setItem(
+        'user',
+        JSON.stringify({ ...identity, ...profileData, profileCompleted: false })
+      );
       try {
-        await syncProfileToCloud(completedProfile);
+        await syncProfileToCloud(profileData);
       } catch (error) {
         console.error('Failed to sync profile to cloud:', error);
         Alert.alert(
@@ -311,10 +264,12 @@ const ProfileScreen = () => {
         return;
       }
 
-      setUser(completedProfile);
       setProfileSaved(true);
       try {
-        await setItem('user', JSON.stringify(completedProfile));
+        await setItem(
+          'user',
+          JSON.stringify({ ...identity, ...profileData, profileCompleted: true })
+        );
       } catch (error) {
         console.error('Failed to save profile completion state locally:', error);
         Alert.alert(
@@ -360,27 +315,12 @@ const ProfileScreen = () => {
             {/* Profile Header Card */}
             <View style={styles.profileHeader}>
               <View style={styles.avatarCircle}>
-                {user.avatar ? (
-                  <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
-                ) : (
-                  <Text style={styles.avatarInitials}>
-                    {getInitials(user.name || 'Player')}
-                  </Text>
-                )}
+                <Text style={styles.avatarInitials}>
+                  {getInitials(user.name || 'Player')}
+                </Text>
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user.name || 'User Name'}</Text>
-                <View style={styles.playerIdRow}>
-                  <Text style={styles.playerIdLabel}>Player ID</Text>
-                  <Text
-                    style={styles.playerId}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    selectable
-                  >
-                    {user.playerId || 'Generating ID...'}
-                  </Text>
-                </View>
               </View>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Plans')}
@@ -408,7 +348,7 @@ const ProfileScreen = () => {
                     placeholder="Enter your full name"
                     placeholderTextColor="#999"
                     value={user.name}
-                    onChangeText={(text) => setUser({ ...user, name: text })}
+                    onChangeText={(text) => setUser({ ...user, name: sanitizeFullName(text) })}
                     editable={isEditing}
                     autoCapitalize="words"
                   />
@@ -423,42 +363,28 @@ const ProfileScreen = () => {
                     placeholderTextColor="#999"
                     keyboardType="phone-pad"
                     value={user.phone}
-                    onChangeText={(text) => setUser({ ...user, phone: text })}
+                    onChangeText={(text) =>
+                      setUser({ ...user, phone: sanitizeIndianMobileNumber(text) })
+                    }
                     editable={isEditing}
                   />
+                  {isEditing && (
+                    <Text style={styles.helperText}>10 digits, starting with 6-9.</Text>
+                  )}
                 </View>
 
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Gender</Text>
-                  {isEditing ? (
-                    <View style={styles.genderContainer}>
-                      {['Male', 'Female', 'Other', 'Prefer not to say'].map((option) => (
-                        <TouchableOpacity
-                          key={option}
-                          style={[
-                            styles.genderOption,
-                            user.gender === option && styles.genderOptionSelected
-                          ]}
-                          onPress={() => setUser({ ...user, gender: option })}
-                        >
-                          <Text style={[
-                            styles.genderOptionText,
-                            user.gender === option && styles.genderOptionTextSelected
-                          ]}>
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ) : (
-                    <TextInput
-                      style={[inputStyle, styles.disabled]}
-                      onFocus={handleProfileInputFocus}
-                      value={user.gender || 'Not specified'}
-                      editable={false}
-                      placeholderTextColor="#999"
-                    />
-                  )}
+                  <TextInput
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
+                    placeholder="Enter your gender"
+                    placeholderTextColor="#999"
+                    value={user.gender}
+                    onChangeText={(text) => setUser({ ...user, gender: text })}
+                    editable={isEditing}
+                    autoCapitalize="words"
+                  />
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -466,49 +392,207 @@ const ProfileScreen = () => {
                   <TextInput
                     style={inputStyle}
                     onFocus={handleProfileInputFocus}
-                    placeholder="YYYY-MM-DD (e.g., 1990-01-15)"
+                    placeholder="DD-MM-YYYY"
                     placeholderTextColor="#999"
                     value={user.dateOfBirth}
-                    onChangeText={(text) => {
-                      // Only allow valid date format characters
-                      const cleaned = text.replace(/[^0-9-]/g, '');
-                      // Auto-format as user types: YYYY-MM-DD
-                      let formatted = cleaned;
-                      if (cleaned.length > 4 && cleaned[4] !== '-') {
-                        formatted = cleaned.slice(0, 4) + '-' + cleaned.slice(4);
-                      }
-                      if (formatted.length > 7 && formatted[7] !== '-') {
-                        formatted = formatted.slice(0, 7) + '-' + formatted.slice(7);
-                      }
-                      // Limit to 10 characters (YYYY-MM-DD)
-                      if (formatted.length <= 10) {
-                        setUser({ ...user, dateOfBirth: formatted });
-                      }
-                    }}
+                    onChangeText={(text) =>
+                      setUser({ ...user, dateOfBirth: sanitizeDateOfBirth(text) })
+                    }
                     editable={isEditing}
-                    maxLength={10}
                     keyboardType="numeric"
                   />
                   {isEditing && (
-                    <Text style={styles.helperText}>Format: YYYY-MM-DD (e.g., 1990-01-15)</Text>
+                    <Text style={styles.helperText}>DD-MM-YYYY. You must be at least 18.</Text>
                   )}
                 </View>
 
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Public Profile</Text>
+                <Text style={styles.sectionSubtitle}>
+                  These details are visible to signed-in players.
+                </Text>
+
                 <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Location</Text>
+                  <Text style={styles.label}>Game</Text>
+                  <View style={styles.optionsContainer}>
+                    {GAMES.map((game) => (
+                      <TouchableOpacity
+                        key={game}
+                        style={[
+                          styles.optionButton,
+                          user.game === game && styles.optionButtonSelected,
+                          !isEditing && styles.optionButtonDisabled,
+                        ]}
+                        onPress={() => setUser({ ...user, game })}
+                        disabled={!isEditing}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: user.game === game }}
+                      >
+                        <Text
+                          style={[
+                            styles.optionButtonText,
+                            user.game === game && styles.optionButtonTextSelected,
+                          ]}
+                        >
+                          {game}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Bio</Text>
+                  <TextInput
+                    style={[inputStyle, styles.bioInput]}
+                    onFocus={handleProfileInputFocus}
+                    placeholder="Tell players a little about yourself"
+                    placeholderTextColor="#999"
+                    value={user.bio}
+                    onChangeText={(text) =>
+                      setUser({ ...user, bio: limitBioWords(text, BIO_WORD_LIMIT) })
+                    }
+                    editable={isEditing}
+                    multiline
+                    textAlignVertical="top"
+                  />
+                  <Text style={styles.helperText}>
+                    Maximum 20 words ({bioWordCount}/{BIO_WORD_LIMIT})
+                  </Text>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Team Name</Text>
                   <TextInput
                     style={inputStyle}
                     onFocus={handleProfileInputFocus}
-                    placeholder="Enter your location"
+                    placeholder="Enter your team name"
                     placeholderTextColor="#999"
-                    value={user.location}
-                    onChangeText={(text) => setUser({ ...user, location: text })}
+                    value={user.teamName}
+                    onChangeText={(text) => setUser({ ...user, teamName: text })}
                     editable={isEditing}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>State</Text>
+                  <TextInput
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
+                    placeholder="Enter your state"
+                    placeholderTextColor="#999"
+                    value={user.state}
+                    onChangeText={(text) => setUser({ ...user, state: text })}
+                    editable={isEditing}
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Zone</Text>
+                  <View style={styles.optionsContainer}>
+                    {ZONES.map((zone) => (
+                      <TouchableOpacity
+                        key={zone}
+                        style={[
+                          styles.optionButton,
+                          user.zone === zone && styles.optionButtonSelected,
+                          !isEditing && styles.optionButtonDisabled,
+                        ]}
+                        onPress={() => setUser({ ...user, zone })}
+                        disabled={!isEditing}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: user.zone === zone }}
+                      >
+                        <Text
+                          style={[
+                            styles.optionButtonText,
+                            user.zone === zone && styles.optionButtonTextSelected,
+                          ]}
+                        >
+                          {zone}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Team Type</Text>
+                  <View style={styles.optionsContainer}>
+                    {TEAM_TYPES.map((teamType) => (
+                      <TouchableOpacity
+                        key={teamType}
+                        style={[
+                          styles.optionButton,
+                          user.teamType === teamType && styles.optionButtonSelected,
+                          !isEditing && styles.optionButtonDisabled,
+                        ]}
+                        onPress={() => setUser({ ...user, teamType })}
+                        disabled={!isEditing}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: user.teamType === teamType }}
+                      >
+                        <Text
+                          style={[
+                            styles.optionButtonText,
+                            user.teamType === teamType && styles.optionButtonTextSelected,
+                          ]}
+                        >
+                          {teamType}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Looking For</Text>
+                  <TextInput
+                    style={inputStyle}
+                    onFocus={handleProfileInputFocus}
+                    placeholder="What are you looking for?"
+                    placeholderTextColor="#999"
+                    value={user.lookingFor}
+                    onChangeText={(text) => setUser({ ...user, lookingFor: text })}
+                    editable={isEditing}
+                  />
+                </View>
+
+                <View style={styles.partnerPreferenceRow}>
+                  <View style={styles.partnerPreferenceCopy}>
+                    <Text style={styles.label}>Tournament Partners</Text>
+                    <Text style={styles.helperText}>
+                      Show this preference on your public profile.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={Boolean(user.tournamentPartners)}
+                    onValueChange={(value) =>
+                      setUser({ ...user, tournamentPartners: value })
+                    }
+                    disabled={!isEditing}
+                    trackColor={{ false: '#3A4555', true: '#BFA300' }}
+                    thumbColor={user.tournamentPartners ? '#FFD700' : '#D1D5DB'}
+                    accessibilityLabel="Tournament partners"
                   />
                 </View>
               </View>
 
-              {!profileSaved && (
+              {profileSaved ? (
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={() => setProfileSaved(false)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit profile"
+                  >
+                    <Text style={styles.saveButtonText}>Edit Profile</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
                     style={[styles.saveButton, loading && styles.buttonDisabled]}
@@ -525,116 +609,6 @@ const ProfileScreen = () => {
 
           </ScrollView>
 
-      {/* Country Picker Modal */}
-      <Modal
-        visible={showCountryPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowCountryPicker(false)}
-        accessibilityViewIsModal={true}
-        statusBarTranslucent={true}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable 
-            style={StyleSheet.absoluteFill}
-            onPress={() => setShowCountryPicker(false)}
-            accessible={false}
-            accessibilityRole="none"
-          />
-          <View 
-            style={styles.modalContent}
-            accessible={true}
-            importantForAccessibility="yes"
-            accessibilityViewIsModal={true}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Country</Text>
-              <TouchableOpacity 
-                onPress={() => setShowCountryPicker(false)}
-                accessible={true}
-                accessibilityLabel="Close country picker"
-                accessibilityRole="button"
-              >
-                <Ionicons name="close" size={rs(28)} color="#fff" />
-              </TouchableOpacity>
-            </View>
-            <Picker
-              selectedValue={user.country}
-              onValueChange={(itemValue) => {
-                const selectedCountry = COUNTRIES.find(c => c.name === itemValue);
-                setUser({
-                  ...user,
-                  country: itemValue,
-                  timezone: selectedCountry ? selectedCountry.timezone : ''
-                });
-                setShowCountryPicker(false);
-              }}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-              accessible={true}
-            >
-              <Picker.Item label="Select Country" value="" />
-              {COUNTRIES.map((country) => (
-                <Picker.Item key={country.code} label={`${country.name} (${country.timezone})`} value={country.name} />
-              ))}
-            </Picker>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Language Picker Modal */}
-      <Modal
-        visible={showLanguagePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowLanguagePicker(false)}
-        accessibilityViewIsModal={true}
-        statusBarTranslucent={true}
-        presentationStyle="overFullScreen"
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable 
-            style={StyleSheet.absoluteFill}
-            onPress={() => setShowLanguagePicker(false)}
-            accessible={false}
-            accessibilityRole="none"
-          />
-          <View 
-            style={styles.modalContent}
-            accessible={true}
-            importantForAccessibility="yes"
-            accessibilityViewIsModal={true}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Language</Text>
-              <TouchableOpacity 
-                onPress={() => setShowLanguagePicker(false)}
-                accessible={true}
-                accessibilityLabel="Close language picker"
-                accessibilityRole="button"
-              >
-                <Ionicons name="close" size={rs(28)} color="#fff" />
-              </TouchableOpacity>
-            </View>
-            <Picker
-              selectedValue={user.language}
-              onValueChange={(itemValue) => {
-                setUser({ ...user, language: itemValue });
-                setShowLanguagePicker(false);
-              }}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-              accessible={true}
-            >
-              {LANGUAGES.map((lang) => (
-                <Picker.Item key={lang} label={lang} value={lang} />
-              ))}
-            </Picker>
-          </View>
-        </View>
-      </Modal>
       </View>
     </SafeAreaView>
   );
@@ -739,11 +713,6 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
     overflow: 'hidden',
   },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: rs(36),
-  },
   avatarInitials: {
     fontSize: rf(24),
     fontWeight: 'bold',
@@ -760,26 +729,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: hp(0.4),
-    textAlign: 'left',
-    flexShrink: 1,
-  },
-  playerIdRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(1.5),
-  },
-  playerIdLabel: {
-    color: '#9CA3AF',
-    fontSize: rf(9),
-    fontWeight: '600',
-  },
-  playerId: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: rf(9),
-    lineHeight: rf(13),
-    color: '#D1D5DB',
     textAlign: 'left',
     flexShrink: 1,
   },
@@ -815,47 +764,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: rf(15),
   },
+  bioInput: {
+    minHeight: hp(11),
+  },
   readOnlyInput: {
     outlineStyle: 'none',
     cursor: 'default',
-  },
-  disabled: {
-    backgroundColor: '#1A1F2E',
-    color: '#999',
   },
   helperText: {
     fontSize: rf(11),
     color: '#999',
     marginTop: hp(0.3),
     fontStyle: 'italic',
-  },
-  genderContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: hp(0.5),
-  },
-  genderOption: {
-    paddingVertical: hp(0.8),
-    paddingHorizontal: wp(4),
-    borderRadius: rs(20),
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: wp(2),
-    marginBottom: hp(0.8),
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  genderOptionSelected: {
-    backgroundColor: '#f5a623',
-    borderColor: '#f5a623',
-  },
-  genderOptionText: {
-    color: '#fff',
-    fontSize: rf(13),
-    fontWeight: '500',
-  },
-  genderOptionTextSelected: {
-    color: '#000',
-    fontWeight: 'bold',
   },
   buttonContainer: {
     marginTop: hp(3),
@@ -906,75 +826,17 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
-  socialIconsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: hp(1),
-    paddingVertical: hp(1),
-    columnGap: wp(2),
-    rowGap: hp(1),
+  optionButtonDisabled: {
+    opacity: 0.7,
   },
-  socialIconButton: {
-    width: '30%',
-    minHeight: 68,
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(1),
-    borderRadius: rs(10),
-    borderWidth: 1,
-    borderColor: '#2A3441',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    justifyContent: 'center',
-    minWidth: 0,
-    alignItems: 'center',
-  },
-  socialTileName: {
-    color: '#D1D5DB',
-    fontSize: rf(10),
-    fontWeight: '600',
-    marginTop: hp(0.25),
-  },
-  socialTileStatus: {
-    color: '#9CA3AF',
-    fontSize: rf(8),
-    marginTop: hp(0.1),
-  },
-  socialRow: {
+  partnerPreferenceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(2),
-  },
-  socialIcon: {
-    marginRight: wp(2.5),
-  },
-  timezoneDisplay: {
-    fontSize: rf(12),
-    color: '#f5a623',
-    marginTop: hp(0.8),
-    marginLeft: wp(1),
-    fontStyle: 'italic',
-  },
-  pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: rs(10),
-    paddingVertical: hp(1.2),
-    paddingHorizontal: wp(4),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    minHeight: hp(5.5),
     marginTop: hp(0.5),
   },
-  pickerButtonText: {
-    fontSize: rf(15),
-    color: '#fff',
+  partnerPreferenceCopy: {
     flex: 1,
-  },
-  pickerPlaceholder: {
-    color: '#999',
   },
   sectionSubtitle: {
     fontSize: rf(12),
@@ -982,39 +844,5 @@ const styles = StyleSheet.create({
     marginBottom: hp(1.5),
     fontStyle: 'italic',
     marginTop: hp(-0.5),
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#1a1a2e',
-    borderTopLeftRadius: rs(20),
-    borderTopRightRadius: rs(20),
-    maxHeight: hp(60),
-    paddingBottom: Platform.OS === 'ios' ? hp(2) : hp(1),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  modalTitle: {
-    fontSize: rf(18),
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  picker: {
-    backgroundColor: 'transparent',
-    color: '#fff',
-  },
-  pickerItem: {
-    color: '#fff',
-    fontSize: rf(16),
   },
 });

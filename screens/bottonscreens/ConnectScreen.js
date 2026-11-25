@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, wp } from '../../utils/responsive';
 import { listRegisteredPlayers } from '../../services/userProfile';
+import PublicProfileCard from '../../components/PublicProfileCard';
 
 export default function ConnectScreen() {
   const navigation = useNavigation();
@@ -45,7 +46,7 @@ export default function ConnectScreen() {
           setPlayers([]);
           setSearchError(
             error?.code === 'PGRST202'
-              ? 'Player directory setup is missing. Apply the registered-players migration in Supabase and refresh its schema cache.'
+              ? 'Player search is not set up. Apply the public-profile search migration in Supabase and refresh its schema cache.'
               : 'Player directory is unavailable. Check your connection and Supabase setup.'
           );
         }
@@ -134,15 +135,15 @@ export default function ConnectScreen() {
         ) : searchError ? (
           <Text style={styles.emptyMessage}>{searchError}</Text>
         ) : (
-          players.map((displayName, index) => (
-            <View key={`${displayName.toLowerCase()}-${index}`} style={styles.resultRow}>
-              <Ionicons name="person-outline" size={20} color="#FFD700" />
-              <Text style={styles.resultTitle}>{displayName}</Text>
-            </View>
+          players.map((player, index) => (
+            <PublicProfileCard
+              key={`${player.display_name || 'player'}-${index}`}
+              profile={player}
+            />
           ))
         )}
         {selectedCategory === 'For you' && !searching && !searchError && players.length === 0 && (
-          <Text style={styles.emptyMessage}>No registered players found.</Text>
+          <Text style={styles.emptyMessage}>No public profiles found.</Text>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -221,19 +222,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: wp(5),
     marginTop: hp(1),
-  },
-  resultRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-    paddingVertical: hp(1.5),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2A3441',
-  },
-  resultTitle: {
-    color: '#FFFFFF',
-    fontSize: rf(15),
-    fontWeight: '600',
   },
   statusRow: {
     flexDirection: 'row',
