@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  ActivityIndicator,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,54 +12,48 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, wp } from '../../utils/responsive';
-import { listRegisteredPlayers } from '../../services/userProfile';
-import PublicProfileCard from '../../components/PublicProfileCard';
+
+const filterOptions = {
+  game: ['BGMI', 'FreeFire', 'Call of Duty', 'Valorant'],
+  teamType: ['Solo', 'Duo', 'Squad'],
+  zone: ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'],
+};
 
 export default function ConnectScreen() {
   const navigation = useNavigation();
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('For you');
-  const [players, setPlayers] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState('');
-  const normalizedQuery = query.trim();
+  const [selectedCategory, setSelectedCategory] = useState('Network');
+  const [filters, setFilters] = useState({ game: '', teamType: '', state: '', zone: '' });
+  const [draftFilters, setDraftFilters] = useState({ game: '', teamType: '', state: '', zone: '' });
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const hasFilters = Boolean(filters.game || filters.teamType || filters.state || filters.zone);
 
-  useEffect(() => {
-    if (selectedCategory !== 'For you') {
-      setPlayers([]);
-      setSearching(false);
-      setSearchError('');
-      return undefined;
-    }
-
-    let active = true;
-    setPlayers([]);
-    setSearching(true);
-    setSearchError('');
-    const searchTimeout = setTimeout(async () => {
-      try {
-        const results = await listRegisteredPlayers(normalizedQuery);
-        if (active) setPlayers(results);
-      } catch (error) {
-        console.error('Failed to load registered players:', error);
-        if (active) {
-          setPlayers([]);
-          setSearchError(
-            error?.code === 'PGRST202'
-              ? 'Player search is not set up. Apply the public-profile search migration in Supabase and refresh its schema cache.'
-              : 'Player directory is unavailable. Check your connection and Supabase setup.'
+  const renderFilterGroup = (title, options, field) => (
+    <View style={styles.filterGroup}>
+      <Text style={styles.filterGroupTitle}>{title}</Text>
+      <View style={styles.filterOptions}>
+        {options.map((option) => {
+          const selected = draftFilters[field] === option;
+          return (
+            <TouchableOpacity
+              key={option}
+              style={[styles.filterOption, selected && styles.filterOptionSelected]}
+              onPress={() => setDraftFilters((current) => ({
+                ...current,
+                [field]: selected ? '' : option,
+              }))}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+            >
+              <Text style={[styles.filterOptionText, selected && styles.filterOptionTextSelected]}>
+                {option}
+              </Text>
+            </TouchableOpacity>
           );
-        }
-      } finally {
-        if (active) setSearching(false);
-      }
-    }, 250);
-
-    return () => {
-      active = false;
-      clearTimeout(searchTimeout);
-    };
-  }, [normalizedQuery, selectedCategory]);
+        })}
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,13 +71,15 @@ export default function ConnectScreen() {
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#9CA3AF" />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { outlineStyle: 'none' }]}
           value={query}
           onChangeText={setQuery}
-          placeholder="Search players"
+          placeholder={selectedCategory === 'Network' ? 'Search connected players' : 'Search chats'}
           placeholderTextColor="#9CA3AF"
           returnKeyType="search"
-          accessibilityLabel="Search players"
+          accessibilityLabel={
+            selectedCategory === 'Network' ? 'Search connected players' : 'Search chats'
+          }
         />
         {query.length > 0 && (
           <TouchableOpacity
@@ -94,9 +90,22 @@ export default function ConnectScreen() {
             <Ionicons name="close-circle" size={20} color="#9CA3AF" />
           </TouchableOpacity>
         )}
+        {selectedCategory === 'Network' && (
+          <TouchableOpacity
+            onPress={() => {
+              setDraftFilters(filters);
+              setFiltersVisible(true);
+            }}
+            style={styles.filterButton}
+            accessibilityRole="button"
+            accessibilityLabel="Filter connected players"
+          >
+            <Ionicons name="options-outline" size={20} color={hasFilters ? '#FFD700' : '#9CA3AF'} />
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.categoryTabs}>
-        {['For you', 'Network', 'Chats'].map((category) => {
+        {['Network', 'Chats'].map((category) => {
           const isSelected = selectedCategory === category;
           return (
             <TouchableOpacity
@@ -113,39 +122,73 @@ export default function ConnectScreen() {
           );
         })}
       </View>
-      <ScrollView
-        style={styles.results}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <View style={styles.results} />
+      <Modal
+        visible={filtersVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFiltersVisible(false)}
       >
-        {searching && (
-          <View style={styles.statusRow}>
-            <ActivityIndicator color="#FFD700" />
-            <Text style={styles.statusMessage}>
-              {normalizedQuery ? 'Searching players...' : 'Loading players...'}
-            </Text>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalDismissArea}
+            activeOpacity={1}
+            onPress={() => setFiltersVisible(false)}
+            accessibilityLabel="Close filters"
+          />
+          <View style={styles.filterModal}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalTitle}>Filter connected players</Text>
+              <TouchableOpacity
+                onPress={() => setFiltersVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Close filters"
+              >
+                <Ionicons name="close" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.filterModalContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {renderFilterGroup('Game', filterOptions.game, 'game')}
+              {renderFilterGroup('Team Type', filterOptions.teamType, 'teamType')}
+              <View style={styles.filterGroup}>
+                <Text style={styles.filterGroupTitle}>State</Text>
+                <TextInput
+                  style={styles.stateInput}
+                  value={draftFilters.state}
+                  onChangeText={(state) => setDraftFilters((current) => ({ ...current, state }))}
+                  placeholder="Enter a state"
+                  placeholderTextColor="#9CA3AF"
+                  accessibilityLabel="Filter by state"
+                />
+              </View>
+              {renderFilterGroup('Zone', filterOptions.zone, 'zone')}
+            </ScrollView>
+            <View style={styles.filterModalActions}>
+              <TouchableOpacity
+                style={styles.clearFiltersButton}
+                onPress={() => setDraftFilters({ game: '', teamType: '', state: '', zone: '' })}
+                accessibilityRole="button"
+              >
+                <Text style={styles.clearFiltersText}>Clear all</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyFiltersButton}
+                onPress={() => {
+                  setFilters(draftFilters);
+                  setFiltersVisible(false);
+                }}
+                accessibilityRole="button"
+              >
+                <Text style={styles.applyFiltersText}>Apply filters</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-        {selectedCategory !== 'For you' && !searching ? (
-          <Text style={styles.emptyMessage}>
-            {selectedCategory === 'Network'
-              ? 'Your network will appear here.'
-              : 'Your chats will appear here.'}
-          </Text>
-        ) : searchError ? (
-          <Text style={styles.emptyMessage}>{searchError}</Text>
-        ) : (
-          players.map((player, index) => (
-            <PublicProfileCard
-              key={`${player.display_name || 'player'}-${index}`}
-              profile={player}
-            />
-          ))
-        )}
-        {selectedCategory === 'For you' && !searching && !searchError && players.length === 0 && (
-          <Text style={styles.emptyMessage}>No public profiles found.</Text>
-        )}
-      </ScrollView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -191,6 +234,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1),
     outlineStyle: 'none',
   },
+  filterButton: {
+    padding: wp(1),
+  },
   categoryTabs: {
     flexDirection: 'row',
     gap: wp(2),
@@ -220,24 +266,110 @@ const styles = StyleSheet.create({
   },
   results: {
     flex: 1,
-    marginHorizontal: wp(5),
-    marginTop: hp(1),
   },
-  statusRow: {
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: wp(5),
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+  },
+  modalDismissArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  filterModal: {
+    width: '100%',
+    maxWidth: 480,
+    maxHeight: '80%',
+    alignSelf: 'center',
+    padding: wp(5),
+    backgroundColor: '#1A1F2E',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: 16,
+  },
+  filterModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginBottom: hp(1),
+  },
+  filterModalTitle: {
+    color: '#FFFFFF',
+    fontSize: rf(18),
+    fontWeight: '700',
+  },
+  filterModalContent: {
+    flexShrink: 1,
+  },
+  filterGroup: {
+    marginTop: hp(1.5),
+  },
+  filterGroupTitle: {
+    color: '#FFFFFF',
+    fontSize: rf(14),
+    fontWeight: '600',
+    marginBottom: hp(0.8),
+  },
+  filterOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: wp(2),
-    marginTop: hp(3),
   },
-  statusMessage: {
-    color: '#9CA3AF',
-    fontSize: rf(14),
+  filterOption: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderWidth: 1,
+    borderColor: '#3A4555',
+    borderRadius: 18,
   },
-  emptyMessage: {
-    color: '#9CA3AF',
-    fontSize: rf(14),
-    textAlign: 'center',
-    marginTop: hp(3),
+  filterOptionSelected: {
+    backgroundColor: '#FFD700',
+    borderColor: '#FFD700',
+  },
+  filterOptionText: {
+    color: '#D1D5DB',
+    fontSize: rf(12),
+  },
+  filterOptionTextSelected: {
+    color: '#141E30',
+    fontWeight: '600',
+  },
+  stateInput: {
+    minHeight: 44,
+    paddingHorizontal: wp(3),
+    borderWidth: 1,
+    borderColor: '#3A4555',
+    borderRadius: 10,
+    color: '#FFFFFF',
+    fontSize: rf(13),
+  },
+  filterModalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: wp(3),
+    marginTop: hp(2),
+  },
+  clearFiltersButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: hp(1.2),
+  },
+  clearFiltersText: {
+    color: '#D1D5DB',
+    fontSize: rf(13),
+    fontWeight: '600',
+  },
+  applyFiltersButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: hp(1.2),
+    backgroundColor: '#FFD700',
+    borderRadius: 22,
+  },
+  applyFiltersText: {
+    color: '#141E30',
+    fontSize: rf(13),
+    fontWeight: '700',
   },
 });

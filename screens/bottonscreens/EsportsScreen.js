@@ -6,9 +6,9 @@ import {
   FlatList, 
   StyleSheet, 
   TouchableOpacity, 
-  Alert, 
   SafeAreaView
 } from 'react-native';
+import { Alert } from '../../components/AppDialog.js';
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 

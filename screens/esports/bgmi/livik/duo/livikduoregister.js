@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   Button,
-  Alert,
   ActivityIndicator,
   TouchableOpacity,
   Platform,
@@ -14,6 +13,7 @@ import {
   FlatList,
   Pressable,
 } from "react-native";
+import { Alert } from '../../../../../components/AppDialog.js';
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";

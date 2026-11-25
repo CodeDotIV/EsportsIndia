@@ -68,6 +68,7 @@ import {
   SettingsTournamentsScreen,
 } from './screens/bottonscreens/settings/SettingsScreens.js';
 import LoginScreen from './login/LoginScreen.js';
+import { AppDialogHost } from './components/AppDialog.js';
 
 const Stack = createStackNavigator();
 
@@ -163,6 +164,7 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaView>
+      <AppDialogHost />
     </SafeAreaProvider>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable, Alert, ImageBackground, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, ImageBackground, SafeAreaView } from "react-native";
+import { Alert } from '../../../../../components/AppDialog.js';
 import { Ionicons } from "@expo/vector-icons"; 
 import { useNavigation } from '@react-navigation/native';
 import { wp, hp, rf, rs } from '../../../../../utils/responsive';

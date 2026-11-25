@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   Image,
   SafeAreaView,
 } from 'react-native';
+import { Alert } from '../../../components/AppDialog.js';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../../utils/responsive';

@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   Image,
   Linking,
-  Alert,
 } from 'react-native';
+import { Alert } from '../../components/AppDialog.js';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { wp, hp, rf, rs } from '../../utils/responsive';

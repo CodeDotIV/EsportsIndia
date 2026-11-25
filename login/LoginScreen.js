@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Platform,
   SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { Alert } from '../components/AppDialog.js';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 import { isSupabaseConfigured } from '../services/supabase';
 import { signInWithGoogle } from '../services/supabaseAuth';
@@ -48,7 +48,7 @@ export default function LoginScreen({ navigation }) {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Google sign-in failed.';
       if (Platform.OS === 'web') {
-        window.alert(message);
+        Alert.alert('', message);
       } else {
         Alert.alert('Google sign-in failed', message);
       }

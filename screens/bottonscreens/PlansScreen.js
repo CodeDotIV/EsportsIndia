@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Alert,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Alert } from '../../components/AppDialog.js';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, rs, wp } from '../../utils/responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -86,6 +87,9 @@ const plans = [
   },
 ];
 
+const UPI_ID = '7569950113@ybl';
+const UPI_NAME = 'Esports India';
+
 const platformRules = [
   'Membership does not guarantee tournament entry or prizes.',
   'No competitive advantage is based on membership.',
@@ -98,16 +102,40 @@ export default function PlansScreen() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const insets = useSafeAreaInsets();
 
-  const handlePlanAction = (plan) => {
+  const handlePlanAction = async (plan) => {
     const isFreePlan = plan.name === 'FREE';
-    const title = isFreePlan ? 'Get started' : 'Checkout unavailable';
-    const message = isFreePlan
-      ? 'The FREE plan is available at no cost.'
-      : `${plan.name} membership checkout is not configured yet. No payment has been taken.`;
-    if (Platform.OS === 'web') {
-      window.alert(message);
-    } else {
-      Alert.alert(title, message);
+    if (isFreePlan) {
+      const message = 'The FREE plan is available at no cost.';
+      if (Platform.OS === 'web') {
+        Alert.alert('', message);
+      } else {
+        Alert.alert('Get started', message);
+      }
+      return;
+    }
+
+    const amount = Number(plan.price.replace(/[^\d.]/g, ''));
+    const paymentUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(
+      UPI_NAME
+    )}&am=${amount}&cu=INR&tn=${encodeURIComponent(`${plan.name} membership`)}`;
+
+    setSelectedPlan(null);
+    try {
+      await Linking.openURL(paymentUrl);
+      const message = `Finish paying ₹${amount} in your UPI app. Payment is not automatically verified, so this action alone will not activate your membership.`;
+      if (Platform.OS === 'web') {
+        Alert.alert('', message);
+      } else {
+        Alert.alert('Complete payment', message);
+      }
+    } catch (error) {
+      console.error('Unable to open UPI payment:', error);
+      const message = `Unable to open a UPI app. Pay ₹${amount} to ${UPI_ID} using a UPI app. Payment is not automatically verified.`;
+      if (Platform.OS === 'web') {
+        Alert.alert('', message);
+      } else {
+        Alert.alert('Unable to open UPI app', message);
+      }
     }
   };
 

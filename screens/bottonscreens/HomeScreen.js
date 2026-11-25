@@ -9,9 +9,9 @@ import {
   ScrollView,
   SafeAreaView,
   Linking,
-  Alert,
   Animated,
 } from 'react-native';
+import { Alert } from '../../components/AppDialog.js';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';

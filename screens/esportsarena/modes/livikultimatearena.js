@@ -1,8 +1,9 @@
 import React from "react";
 import {
   View, Text, StyleSheet, FlatList,
-  Pressable, Alert, Image, SafeAreaView
+  Pressable, Image, SafeAreaView
 } from "react-native";
+import { Alert } from '../../../components/AppDialog.js';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { wp, hp, rf, rs } from '../../../utils/responsive';

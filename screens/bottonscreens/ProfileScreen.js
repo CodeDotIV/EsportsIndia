@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView, Platform, Switch
+  View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, SafeAreaView, Platform, Switch
 } from 'react-native';
+import { Alert } from '../../components/AppDialog.js';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { getItem, setItem } from '../../utils/storageHelper';

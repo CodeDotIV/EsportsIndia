@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Button, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, Button } from 'react-native';
+import { Alert } from '../../../../../components/AppDialog.js';
 
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqrRrHhYhJ2O1lcTHC8Cyc8lAHaXUDpPgMXilotORD-K-g1iI6CUjp_iWUuzMYGUxGag/exec";
 

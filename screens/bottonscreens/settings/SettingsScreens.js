@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Modal,
   Platform,
   SafeAreaView,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Alert } from '../../../components/AppDialog.js';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
@@ -530,7 +530,7 @@ function SettingsSectionScreen({ navigation, sectionKey }) {
   }, [sectionKey]);
 
   const showMessage = (title, message) => {
-    if (Platform.OS === 'web') window.alert(`${title}: ${message}`);
+    if (Platform.OS === 'web') Alert.alert('', `${title}: ${message}`);
     else Alert.alert(title, message);
   };
 
@@ -672,7 +672,7 @@ export function SettingsAdvancedScreen({ navigation }) {
     } catch (error) {
       console.error('Failed to sign out:', error);
       const message = error instanceof Error ? error.message : 'Please try again.';
-      if (Platform.OS === 'web') window.alert(`Sign out failed: ${message}`);
+      if (Platform.OS === 'web') Alert.alert('', `Sign out failed: ${message}`);
       else Alert.alert('Sign out failed', message);
     } finally {
       setSigningOut(false);

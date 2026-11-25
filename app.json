@@ -17,7 +17,11 @@
     },
     "android": {
       "package": "com.jeevan12.mynewapp",
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "androidStatusBar": {
       "barStyle": "light-content",

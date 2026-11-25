@@ -6,11 +6,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Alert } from '../components/AppDialog.js';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { wp, hp, rf, rs } from '../utils/responsive';
