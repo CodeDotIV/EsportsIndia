@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, wp } from '../../utils/responsive';
 import PublicProfileCard from '../../components/PublicProfileCard';
@@ -20,13 +20,22 @@ import {
   listRegisteredPlayers,
   searchTeams,
 } from '../../services/userProfile';
+import { getConnectionOverview } from '../../services/connections';
 
 export default function ExploreScreen() {
   const navigation = useNavigation();
   const [query, setQuery] = useState('');
   const [teams, setTeams] = useState([]);
   const [players, setPlayers] = useState([]);
+  const [connectionStatuses, setConnectionStatuses] = useState({});
+  const [connectionRequests, setConnectionRequests] = useState([]);
+  const [connectionProfiles, setConnectionProfiles] = useState([]);
+  const [connectionUserId, setConnectionUserId] = useState('');
+  const [connectionStatusesLoading, setConnectionStatusesLoading] = useState(true);
+  const [connectionStatusesError, setConnectionStatusesError] = useState(false);
   const [selectedTab, setSelectedTab] = useState('Public Profiles');
+  const [connectionTab, setConnectionTab] = useState('connected');
+  const [exploreMenuVisible, setExploreMenuVisible] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [filters, setFilters] = useState({ game: '', teamType: '', state: '', zone: '' });
@@ -42,6 +51,134 @@ export default function ExploreScreen() {
   const [filterOptionsError, setFilterOptionsError] = useState('');
   const normalizedQuery = query.trim();
   const hasFilters = Boolean(filters.game || filters.teamType || filters.state || filters.zone);
+
+  const loadConnectionOverview = useCallback(async (isActive = () => true) => {
+    if (isActive()) {
+      setConnectionStatusesLoading(true);
+      setConnectionStatusesError(false);
+    }
+
+    try {
+      const overview = await getConnectionOverview();
+      if (!isActive()) return;
+
+      setConnectionStatuses(overview.statuses);
+      setConnectionRequests(overview.requests);
+      setConnectionProfiles(overview.profiles);
+      setConnectionUserId(overview.currentUserId);
+    } catch (error) {
+      console.error('Failed to load Explore connections:', error);
+      if (isActive()) {
+        setConnectionStatusesError(true);
+      }
+    } finally {
+      if (isActive()) setConnectionStatusesLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadConnectionOverview(() => active);
+      return () => {
+        active = false;
+      };
+    }, [loadConnectionOverview])
+  );
+
+  const connectionProfilesById = useMemo(
+    () =>
+      connectionProfiles.reduce((map, profile) => {
+        map[profile.user_id] = profile;
+        return map;
+      }, {}),
+    [connectionProfiles]
+  );
+  const connectedCount = connectionRequests.filter(
+    (request) => request.status === 'accepted'
+  ).length;
+  const publicPlayers = players.filter(
+    (player) => connectionStatuses[player.user_id] !== 'accepted'
+  );
+  const sentRequestCount = connectionRequests.filter(
+    (request) =>
+      request.status === 'pending' &&
+      request.requester_id === connectionUserId
+  ).length;
+  const visibleConnectionProfiles = useMemo(() => {
+    const seen = new Set();
+    const profiles = connectionRequests.reduce((matches, request) => {
+      const isVisibleRequest =
+        connectionTab === 'connected'
+          ? request.status === 'accepted'
+          : request.status === 'pending' &&
+            request.requester_id === connectionUserId;
+      if (!isVisibleRequest) return matches;
+
+      const otherUserId =
+        request.requester_id === connectionUserId
+          ? request.receiver_id
+          : request.requester_id;
+      if (!otherUserId || seen.has(otherUserId)) return matches;
+
+      seen.add(otherUserId);
+      const profile = connectionProfilesById[otherUserId];
+      if (profile) matches.push(profile);
+      return matches;
+    }, []);
+
+    return profiles.filter((profile) => {
+      const searchText = [
+        profile.full_name,
+        profile.display_name,
+        profile.name,
+        profile.game,
+        profile.team_name,
+        profile.team_type,
+        profile.state,
+        profile.zone,
+        profile.bio,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      if (normalizedQuery && !searchText.includes(normalizedQuery.toLowerCase())) {
+        return false;
+      }
+      if (
+        filters.game &&
+        profile.game?.toLowerCase() !== filters.game.toLowerCase()
+      ) return false;
+      if (
+        filters.teamType &&
+        profile.team_type?.toLowerCase() !== filters.teamType.toLowerCase()
+      ) return false;
+      if (
+        filters.state &&
+        !profile.state?.toLowerCase().includes(filters.state.toLowerCase())
+      ) return false;
+      if (
+        filters.zone &&
+        profile.zone?.toLowerCase() !== filters.zone.toLowerCase()
+      ) return false;
+
+      return true;
+    });
+  }, [
+    connectionRequests,
+    connectionTab,
+    connectionUserId,
+    connectionProfilesById,
+    filters,
+    normalizedQuery,
+  ]);
+
+  const handleConnectionStatusChange = (userId, status) => {
+    if (!userId) return;
+    setConnectionStatuses((current) => ({ ...current, [userId]: status }));
+    loadConnectionOverview();
+  };
 
   useEffect(() => {
     if (!filtersVisible) return undefined;
@@ -74,7 +211,11 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     const showProfiles = selectedTab === 'Public Profiles';
-    if (!showProfiles && !normalizedQuery && !hasFilters) {
+    const showTeams = selectedTab === 'Teams';
+    if (
+      selectedTab === 'Connections' ||
+      (!showProfiles && showTeams && !normalizedQuery && !hasFilters)
+    ) {
       setTeams([]);
       setPlayers([]);
       setSearching(false);
@@ -93,7 +234,7 @@ export default function ExploreScreen() {
           ? await listRegisteredPlayers(normalizedQuery, filters)
           : await searchTeams(normalizedQuery, filters);
         if (active && showProfiles) setPlayers(results);
-        if (active && !showProfiles) setTeams(results);
+        if (active && showTeams) setTeams(results);
       } catch (error) {
         console.error('Failed to search Explore results:', error);
         if (active) {
@@ -147,6 +288,29 @@ export default function ExploreScreen() {
     </View>
   );
 
+  const searchPlaceholder =
+    selectedTab === 'Public Profiles'
+      ? 'Search players'
+      : selectedTab === 'Teams'
+        ? 'Search teams'
+        : connectionTab === 'connected'
+          ? 'Search connected players'
+          : 'Search sent requests';
+  const exploreSections = [
+    { label: 'Public Profiles', tab: 'Public Profiles' },
+    { label: 'Teams', tab: 'Teams' },
+    {
+      label: `Connected Players (${connectedCount})`,
+      tab: 'Connections',
+      connection: 'connected',
+    },
+    {
+      label: `Sent Requests (${sentRequestCount})`,
+      tab: 'Connections',
+      connection: 'sent',
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -160,64 +324,54 @@ export default function ExploreScreen() {
         </TouchableOpacity>
         <Text style={styles.heading}>Explore</Text>
       </View>
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#9CA3AF" />
-        <TextInput
-          style={styles.searchInput}
-          value={query}
-          onChangeText={setQuery}
-          placeholder={selectedTab === 'Public Profiles' ? 'Search players' : 'Search teams'}
-          placeholderTextColor="#9CA3AF"
-          returnKeyType="search"
-          accessibilityLabel={
-            selectedTab === 'Public Profiles' ? 'Search public profiles' : 'Search teams'
-          }
-        />
-        {query.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setQuery('')}
-            accessibilityRole="button"
-            accessibilityLabel="Clear search"
-          >
-            <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          onPress={() => {
-            setDraftFilters(filters);
-            setFiltersVisible(true);
-          }}
-          style={styles.filterButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Filter ${selectedTab.toLowerCase()}`}
-        >
-          <Ionicons name="options-outline" size={20} color={hasFilters ? '#FFD700' : '#9CA3AF'} />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.categoryTabs}>
-        {['Public Profiles', 'Teams'].map((tab) => {
-          const isSelected = selectedTab === tab;
-          return (
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#9CA3AF" />
+          <TextInput
+            style={styles.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder={searchPlaceholder}
+            placeholderTextColor="#9CA3AF"
+            returnKeyType="search"
+            accessibilityLabel={searchPlaceholder}
+          />
+          {query.length > 0 && (
             <TouchableOpacity
-              key={tab}
-              style={[styles.categoryButton, isSelected && styles.categoryButtonSelected]}
-              onPress={() => setSelectedTab(tab)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: isSelected }}
+              onPress={() => setQuery('')}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
             >
-              <Text style={[styles.categoryLabel, isSelected && styles.categoryLabelSelected]}>
-                {tab}
-              </Text>
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
             </TouchableOpacity>
-          );
-        })}
+          )}
+          <TouchableOpacity
+            onPress={() => {
+              setDraftFilters(filters);
+              setFiltersVisible(true);
+            }}
+            style={styles.filterButton}
+            accessibilityRole="button"
+            accessibilityLabel={`Filter ${selectedTab.toLowerCase()}`}
+          >
+            <Ionicons name="options-outline" size={20} color={hasFilters ? '#FFD700' : '#9CA3AF'} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          onPress={() => setExploreMenuVisible(true)}
+          style={styles.exploreMenuButton}
+          accessibilityRole="button"
+          accessibilityLabel="Explore sections"
+        >
+          <Ionicons name="ellipsis-vertical" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
       <ScrollView
         style={styles.results}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {searching && (
+        {searching && selectedTab !== 'Connections' && (
           <View style={styles.statusRow}>
             <ActivityIndicator color="#FFD700" />
             <Text style={styles.statusMessage}>
@@ -225,14 +379,49 @@ export default function ExploreScreen() {
             </Text>
           </View>
         )}
-        {searchError ? (
+        {selectedTab === 'Connections' ? (
+          connectionStatusesLoading ? (
+            <View style={styles.statusRow}>
+              <ActivityIndicator color="#FFD700" />
+              <Text style={styles.statusMessage}>Loading connections...</Text>
+            </View>
+          ) : connectionStatusesError ? (
+            <Text style={styles.emptyMessage}>
+              Connections are unavailable. Check your connection and Supabase setup.
+            </Text>
+          ) : visibleConnectionProfiles.length > 0 ? (
+            visibleConnectionProfiles.map((profile, index) => (
+              <PublicProfileCard
+                key={profile.user_id || `${profile.display_name || 'player'}-${index}`}
+                profile={profile}
+                connectionStatus={connectionStatuses[profile.user_id] || 'none'}
+                onConnectionStatusChange={handleConnectionStatusChange}
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyMessage}>
+              {connectionTab === 'connected'
+                ? 'No connected players found.'
+                : 'No sent requests found.'}
+            </Text>
+          )
+        ) : searchError ? (
           <Text style={styles.emptyMessage}>{searchError}</Text>
         ) : (
           selectedTab === 'Public Profiles' ? (
-            players.map((player, index) => (
+            publicPlayers.map((player, index) => (
               <PublicProfileCard
-                key={`${player.display_name || 'player'}-${index}`}
+                key={player.user_id || `${player.display_name || 'player'}-${index}`}
                 profile={player}
+                connectionStatus={
+                  connectionStatuses[player.user_id] ||
+                  (connectionStatusesLoading
+                    ? 'loading'
+                    : connectionStatusesError
+                      ? 'unavailable'
+                      : 'none')
+                }
+                onConnectionStatusChange={handleConnectionStatusChange}
               />
             ))
           ) : teams.map((teamName) => (
@@ -242,7 +431,7 @@ export default function ExploreScreen() {
             </View>
           ))
         )}
-        {!searching && !searchError && selectedTab === 'Public Profiles' && players.length === 0 && (
+        {!searching && !searchError && selectedTab === 'Public Profiles' && publicPlayers.length === 0 && (
           <Text style={styles.emptyMessage}>No public profiles found.</Text>
         )}
         {!searching &&
@@ -253,6 +442,47 @@ export default function ExploreScreen() {
             <Text style={styles.emptyMessage}>No teams found.</Text>
         )}
       </ScrollView>
+      <Modal
+        visible={exploreMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setExploreMenuVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalDismissArea}
+            activeOpacity={1}
+            onPress={() => setExploreMenuVisible(false)}
+            accessibilityLabel="Close Explore sections"
+          />
+          <View style={styles.exploreMenu}>
+            <Text style={styles.filterModalTitle}>Explore sections</Text>
+            {exploreSections.map((section) => {
+              const isSelected =
+                selectedTab === section.tab &&
+                (!section.connection || connectionTab === section.connection);
+              return (
+                <TouchableOpacity
+                  key={section.label}
+                  style={styles.exploreMenuItem}
+                  onPress={() => {
+                    setSelectedTab(section.tab);
+                    if (section.connection) setConnectionTab(section.connection);
+                    setExploreMenuVisible(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                >
+                  <Text style={[styles.exploreMenuLabel, isSelected && styles.exploreMenuLabelSelected]}>
+                    {section.label}
+                  </Text>
+                  {isSelected && <Ionicons name="checkmark" size={20} color="#FFD700" />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </Modal>
       <Modal
         visible={filtersVisible}
         transparent
@@ -269,7 +499,13 @@ export default function ExploreScreen() {
           <View style={styles.filterModal}>
             <View style={styles.filterModalHeader}>
               <Text style={styles.filterModalTitle}>
-                Filter {selectedTab === 'Public Profiles' ? 'public profiles' : 'teams'}
+                Filter {
+                  selectedTab === 'Public Profiles'
+                    ? 'public profiles'
+                    : selectedTab === 'Teams'
+                      ? 'teams'
+                      : 'connections'
+                }
               </Text>
               <TouchableOpacity
                 onPress={() => setFiltersVisible(false)}
@@ -357,12 +593,18 @@ const styles = StyleSheet.create({
     fontSize: rf(18),
     fontWeight: 'bold',
   },
-  searchContainer: {
+  searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(2),
     marginHorizontal: wp(5),
     marginTop: hp(1),
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
     paddingHorizontal: wp(3),
     minHeight: 46,
     backgroundColor: '#1A1F2E',
@@ -381,31 +623,11 @@ const styles = StyleSheet.create({
   filterButton: {
     padding: wp(1),
   },
-  categoryTabs: {
-    flexDirection: 'row',
-    marginHorizontal: wp(5),
-    marginTop: hp(1.5),
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A3441',
-  },
-  categoryButton: {
-    flex: 1,
+  exploreMenuButton: {
+    width: 40,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 40,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  categoryButtonSelected: {
-    borderBottomColor: '#FFD700',
-  },
-  categoryLabel: {
-    color: '#D1D5DB',
-    fontSize: rf(12),
-    fontWeight: '600',
-  },
-  categoryLabelSelected: {
-    color: '#FFD700',
   },
   results: {
     flex: 1,
@@ -460,6 +682,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2A3441',
     borderRadius: 16,
+  },
+  exploreMenu: {
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
+    padding: wp(5),
+    backgroundColor: '#1A1F2E',
+    borderWidth: 1,
+    borderColor: '#2A3441',
+    borderRadius: 16,
+  },
+  exploreMenuItem: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#2A3441',
+  },
+  exploreMenuLabel: {
+    color: '#D1D5DB',
+    fontSize: rf(14),
+  },
+  exploreMenuLabelSelected: {
+    color: '#FFD700',
+    fontWeight: '600',
   },
   filterModalHeader: {
     flexDirection: 'row',

@@ -1,365 +1,411 @@
 
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, wp } from '../utils/responsive';
+import { Alert } from './AppDialog.js';
+import {
+  sendConnectionRequest,
+  withdrawConnectionRequest,
+} from '../services/connections';
 
-export default function PublicProfileCard({ profile = {} }) {
+export default function PublicProfileCard({
+  profile,
+  connectionStatus: initialConnectionStatus = 'none',
+  onConnectionStatusChange,
+}) {
+  const [connectionStatus, setConnectionStatus] = useState(
+    initialConnectionStatus
+  );
+  const [sending, setSending] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+
+  useEffect(() => {
+    setConnectionStatus(initialConnectionStatus || 'none');
+  }, [initialConnectionStatus]);
+
+  if (!profile) return null;
+
   const name =
     profile.full_name ||
     profile.display_name ||
     profile.name ||
     'Player';
 
-  const game = profile.game || '';
-  const teamType = profile.team_type || '';
-  const teamName = profile.team_name || '';
+  const gameDetails = [
+    profile.game,
+    profile.team_name,
+    profile.team_type,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const location = [
     profile.state,
     profile.zone,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
-  const lookingFor = profile.looking_for || '';
-  const bio = profile.bio || '';
+  const updateConnectionStatus = (status) => {
+    setConnectionStatus(status);
+    onConnectionStatusChange?.(profile.user_id, status);
+  };
 
-  const initial = String(name).trim().charAt(0).toUpperCase() || 'P';
+  const handleWithdraw = async () => {
+    try {
+      setWithdrawing(true);
+      await withdrawConnectionRequest(profile.user_id);
+      updateConnectionStatus('none');
+      Alert.alert('Request cancelled', `Your request to ${name} was cancelled.`);
+    } catch (error) {
+      console.error('Withdraw connection request error:', error);
+      Alert.alert(
+        'Unable to cancel request',
+        error?.message || 'Please try again.'
+      );
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  const confirmWithdraw = () => {
+    Alert.alert(
+      'Cancel request?',
+      `Cancel your connection request to ${name}?`,
+      [
+        { text: 'Keep Request', style: 'cancel' },
+        { text: 'Cancel Request', style: 'destructive', onPress: handleWithdraw },
+      ]
+    );
+  };
+
+  const handleConnect = async () => {
+    if (!profile.user_id) {
+      Alert.alert('Unable to connect', 'Player ID is missing.');
+      return;
+    }
+
+    if (sending || withdrawing || connectionStatus === 'pending' ||
+        connectionStatus === 'accepted' ||
+        connectionStatus === 'incoming' ||
+        connectionStatus === 'loading' ||
+        connectionStatus === 'unavailable') {
+      return;
+    }
+
+    try {
+      setSending(true);
+
+      const result = await sendConnectionRequest(profile.user_id);
+
+      const status =
+        typeof result === 'string'
+          ? result
+          : result?.status || result?.data?.status;
+
+      if (status === 'pending') {
+        updateConnectionStatus('pending');
+        Alert.alert('Request sent', `Your connection request was sent to ${name}.`);
+      } else if (status === 'accepted') {
+        updateConnectionStatus('accepted');
+        Alert.alert('Connected', `You are already connected with ${name}.`);
+      } else if (status === 'incoming') {
+        updateConnectionStatus('incoming');
+        Alert.alert(
+          'Request received',
+          `${name} has already sent you a connection request. Open Network to respond.`
+        );
+      } else {
+        updateConnectionStatus('pending');
+        Alert.alert('Request sent', 'Your connection request was submitted.');
+      }
+    } catch (error) {
+      console.error('Connect request error:', error);
+      Alert.alert(
+        'Connection failed',
+        error?.message || 'Unable to send connection request. Please try again.'
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const getButtonLabel = () => {
+    if (sending) return 'Sending...';
+    if (withdrawing) return 'Cancelling...';
+
+    switch (connectionStatus) {
+      case 'pending':
+        return 'Cancel Request';
+      case 'accepted':
+        return 'Connected';
+      case 'incoming':
+        return 'Respond in Network';
+      case 'loading':
+        return 'Checking...';
+      case 'unavailable':
+        return 'Status unavailable';
+      default:
+        return 'Connect';
+    }
+  };
+
+  const getButtonIcon = () => {
+    switch (connectionStatus) {
+      case 'pending':
+        return 'close-circle-outline';
+      case 'accepted':
+        return 'checkmark-circle';
+      case 'incoming':
+        return 'mail-outline';
+      case 'loading':
+        return 'sync-outline';
+      case 'unavailable':
+        return 'alert-circle-outline';
+      default:
+        return 'person-add-outline';
+    }
+  };
+
+  const isDisabled =
+    sending ||
+    withdrawing ||
+    connectionStatus === 'accepted' ||
+    connectionStatus === 'incoming' ||
+    connectionStatus === 'loading' ||
+    connectionStatus === 'unavailable';
 
   return (
     <View style={styles.card}>
-      {/* Top accent */}
-      <View style={styles.accentLine} />
-
-      {/* Player header */}
+      {/* Profile Header */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
-          <View style={styles.onlineDot} />
+          <Ionicons
+            name="person"
+            size={rf(25)}
+            color="#A5A5B5"
+          />
         </View>
 
-        <View style={styles.playerInfo}>
+        <View style={styles.headerInfo}>
           <Text style={styles.name} numberOfLines={1}>
             {name}
           </Text>
 
-          <View style={styles.badges}>
-            {game ? (
-              <View style={styles.gameBadge}>
-                <Ionicons
-                  name="game-controller-outline"
-                  size={12}
-                  color="#FFD700"
-                />
-                <Text style={styles.gameText}>{game}</Text>
-              </View>
-            ) : null}
+          {!!gameDetails && (
+            <Text style={styles.gameDetails} numberOfLines={1}>
+              {gameDetails}
+            </Text>
+          )}
 
-            {teamType ? (
-              <View style={styles.typeBadge}>
-                <Text style={styles.typeText}>{teamType}</Text>
-              </View>
-            ) : null}
-          </View>
+          {!!location && (
+            <View style={styles.locationRow}>
+              <Ionicons
+                name="location-outline"
+                size={rf(13)}
+                color="#85859A"
+              />
+              <Text style={styles.location} numberOfLines={1}>
+                {location}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <Ionicons
-          name="chevron-forward"
-          size={18}
-          color="#64748B"
-        />
       </View>
 
-      {/* Team information */}
-      {teamName ? (
-        <View style={styles.teamSection}>
-          <View style={styles.sectionIcon}>
-            <Ionicons
-              name="people-outline"
-              size={17}
-              color="#FFD700"
-            />
-          </View>
-
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionLabel}>TEAM</Text>
-            <Text style={styles.teamName} numberOfLines={1}>
-              {teamName}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-
-      {/* Location */}
-      {location ? (
-        <View style={styles.locationRow}>
-          <Ionicons
-            name="location-outline"
-            size={15}
-            color="#94A3B8"
-          />
-          <Text style={styles.locationText}>{location}</Text>
-        </View>
-      ) : null}
-
       {/* Bio */}
-      {bio ? (
-        <View style={styles.bioContainer}>
-          <Text style={styles.bioLabel}>ABOUT PLAYER</Text>
-          <Text style={styles.bio}>{bio}</Text>
-        </View>
-      ) : null}
+      {!!profile.bio && (
+        <Text style={styles.bio} numberOfLines={3}>
+          {profile.bio}
+        </Text>
+      )}
 
-      {/* Footer */}
-      {(lookingFor || profile.tournament_partners) ? (
-        <View style={styles.footer}>
-          {lookingFor ? (
-            <View style={styles.lookingBadge}>
-              <Ionicons
-                name="search-outline"
-                size={13}
-                color="#CBD5E1"
-              />
-              <Text style={styles.lookingText} numberOfLines={1}>
-                Looking for: {lookingFor}
-              </Text>
-            </View>
-          ) : null}
-
-          {profile.tournament_partners ? (
-            <View style={styles.partnerBadge}>
-              <Ionicons
-                name="trophy-outline"
-                size={13}
-                color="#34D399"
-              />
-              <Text style={styles.partnerText}>
-                Tournament Partner
-              </Text>
-            </View>
-          ) : null}
+      {/* Looking For */}
+      {!!profile.looking_for && (
+        <View style={styles.lookingForContainer}>
+          <Text style={styles.smallLabel}>LOOKING FOR</Text>
+          <Text style={styles.lookingFor}>
+            {profile.looking_for}
+          </Text>
         </View>
-      ) : null}
+      )}
+
+      {/* Tournament Partners */}
+      {profile.tournament_partners && (
+        <View style={styles.tournamentRow}>
+          <Ionicons
+            name="trophy-outline"
+            size={rf(14)}
+            color="#F5C451"
+          />
+          <Text style={styles.tournamentText}>
+            Interested in tournament partnerships
+          </Text>
+        </View>
+      )}
+
+      {/* Connect Button */}
+      <TouchableOpacity
+        style={[
+          styles.connectButton,
+          connectionStatus === 'accepted' && styles.connectedButton,
+          connectionStatus === 'pending' && styles.pendingButton,
+          connectionStatus === 'incoming' && styles.incomingButton,
+          isDisabled && styles.disabledButton,
+        ]}
+        onPress={connectionStatus === 'pending' ? confirmWithdraw : handleConnect}
+        disabled={isDisabled}
+        activeOpacity={0.8}
+      >
+        {sending || withdrawing || connectionStatus === 'loading' ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Ionicons
+            name={getButtonIcon()}
+            size={rf(16)}
+            color="#FFFFFF"
+          />
+        )}
+
+        <Text style={styles.connectButtonText}>
+          {getButtonLabel()}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: hp(1.8),
+    backgroundColor: '#171724',
+    borderRadius: wp(4),
     padding: wp(4),
-    backgroundColor: '#1B2638',
+    marginBottom: hp(1.5),
     borderWidth: 1,
-    borderColor: '#2B3A50',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-
-  accentLine: {
-    position: 'absolute',
-    top: 0,
-    left: wp(4),
-    width: wp(12),
-    height: 3,
-    backgroundColor: '#FFD700',
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
+    borderColor: '#29293B',
   },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: hp(1.5),
   },
 
   avatar: {
     width: wp(13),
     height: wp(13),
     borderRadius: wp(6.5),
-    alignItems: 'center',
+    backgroundColor: '#29293B',
     justifyContent: 'center',
-    backgroundColor: '#303D52',
-    borderWidth: 1.5,
-    borderColor: '#FFD700',
+    alignItems: 'center',
   },
 
-  avatarText: {
-    color: '#FFD700',
-    fontSize: rf(21),
-    fontWeight: '800',
-  },
-
-  onlineDot: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    backgroundColor: '#34D399',
-    borderWidth: 2,
-    borderColor: '#1B2638',
-  },
-
-  playerInfo: {
+  headerInfo: {
     flex: 1,
-    minWidth: 0,
     marginLeft: wp(3),
+    marginRight: wp(2),
   },
 
   name: {
     color: '#FFFFFF',
-    fontSize: rf(17),
-    fontWeight: '800',
-    marginBottom: hp(0.6),
-  },
-
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: wp(1.5),
-  },
-
-  gameBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: wp(2.2),
-    paddingVertical: hp(0.4),
-    backgroundColor: 'rgba(255,215,0,0.12)',
-    borderRadius: 6,
-  },
-
-  gameText: {
-    color: '#FFD700',
-    fontSize: rf(10),
+    fontSize: rf(16),
     fontWeight: '700',
   },
 
-  typeBadge: {
-    paddingHorizontal: wp(2.2),
-    paddingVertical: hp(0.4),
-    backgroundColor: '#29384C',
-    borderRadius: 6,
-  },
-
-  typeText: {
-    color: '#CBD5E1',
-    fontSize: rf(10),
-    fontWeight: '600',
-  },
-
-  teamSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: hp(1.2),
-    paddingHorizontal: wp(3),
-    backgroundColor: '#243248',
-    borderRadius: 10,
-    marginBottom: hp(1.2),
-  },
-
-  sectionIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,215,0,0.10)',
-  },
-
-  sectionContent: {
-    flex: 1,
-    marginLeft: wp(2.5),
-  },
-
-  sectionLabel: {
-    color: '#94A3B8',
-    fontSize: rf(9),
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-
-  teamName: {
-    color: '#FFFFFF',
-    fontSize: rf(14),
-    fontWeight: '700',
-    marginTop: 2,
+  gameDetails: {
+    color: '#A78BFA',
+    fontSize: rf(12),
+    marginTop: hp(0.3),
   },
 
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(1.5),
-    marginBottom: hp(1.2),
+    marginTop: hp(0.4),
   },
 
-  locationText: {
-    color: '#A8B5C7',
+  location: {
+    color: '#85859A',
     fontSize: rf(11),
-  },
-
-  bioContainer: {
-    paddingTop: hp(1.2),
-    borderTopWidth: 1,
-    borderTopColor: '#304057',
-  },
-
-  bioLabel: {
-    color: '#8292A8',
-    fontSize: rf(9),
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: hp(0.5),
+    marginLeft: wp(1),
   },
 
   bio: {
-    color: '#E2E8F0',
+    color: '#B5B5C5',
     fontSize: rf(12),
-    lineHeight: rf(19),
-  },
-
-  footer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: wp(2),
+    lineHeight: rf(18),
     marginTop: hp(1.3),
   },
 
-  lookingBadge: {
+  lookingForContainer: {
+    backgroundColor: '#222235',
+    borderRadius: wp(2),
+    padding: wp(2.5),
+    marginTop: hp(1.3),
+  },
+
+  smallLabel: {
+    color: '#85859A',
+    fontSize: rf(9),
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: hp(0.4),
+  },
+
+  lookingFor: {
+    color: '#D6D6E2',
+    fontSize: rf(11),
+  },
+
+  tournamentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.7),
-    backgroundColor: '#29384C',
-    borderRadius: 7,
-    maxWidth: '100%',
+    marginTop: hp(1.2),
   },
 
-  lookingText: {
-    color: '#CBD5E1',
-    fontSize: rf(10),
-    fontWeight: '600',
-    flexShrink: 1,
+  tournamentText: {
+    color: '#D6D6E2',
+    fontSize: rf(11),
+    marginLeft: wp(1.5),
   },
 
-  partnerBadge: {
+  connectButton: {
+    backgroundColor: '#7654E8',
+    minHeight: hp(5),
+    borderRadius: wp(2.5),
+    marginTop: hp(1.8),
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.7),
-    backgroundColor: 'rgba(52,211,153,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(52,211,153,0.22)',
-    borderRadius: 7,
+    gap: wp(2),
   },
 
-  partnerText: {
-    color: '#34D399',
-    fontSize: rf(10),
+  connectedButton: {
+    backgroundColor: '#237A55',
+  },
+
+  pendingButton: {
+    backgroundColor: '#55556A',
+  },
+
+  incomingButton: {
+    backgroundColor: '#7654E8',
+  },
+
+  disabledButton: {
+    opacity: 0.85,
+  },
+
+  connectButtonText: {
+    color: '#FFFFFF',
+    fontSize: rf(12),
     fontWeight: '700',
   },
 });

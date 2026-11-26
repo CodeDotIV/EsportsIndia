@@ -130,7 +130,7 @@ export default function PlansScreen() {
       }
     } catch (error) {
       console.error('Unable to open UPI payment:', error);
-      const message = `Unable to open a UPI app. Pay ₹${amount} to ${UPI_ID} using a UPI app. Payment is not automatically verified.`;
+      const message = `Unable to open a UPI app. Please try again from a device with a UPI app installed. Payment is not automatically verified.`;
       if (Platform.OS === 'web') {
         Alert.alert('', message);
       } else {

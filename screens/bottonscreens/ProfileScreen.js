@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, SafeAreaView, Platform, Switch
 } from 'react-native';
 import { Alert } from '../../components/AppDialog.js';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getItem, setItem } from '../../utils/storageHelper';
 import { getOrCreatePlayerId } from '../../utils/playerId';
 import {
@@ -17,6 +17,7 @@ import {
 } from '../../utils/profileValidation';
 import { wp, hp, rf, rs } from '../../utils/responsive';
 import { supabase } from '../../services/supabase';
+import { getConnectionRequests } from '../../services/connections';
 import {
   limitBioWords,
   loadProfileFromCloud,
@@ -105,6 +106,8 @@ const ProfileScreen = () => {
   const [profileSaved, setProfileSaved] = useState(false);
   const isEditing = !profileSaved;
   const [loading, setLoading] = useState(false);
+  const [connectionCount, setConnectionCount] = useState(null);
+  const [connectionCountLoading, setConnectionCountLoading] = useState(true);
   const bioWordCount = countWords(user.bio);
   const readOnlyInputStyle =
     Platform.OS === 'web' && !isEditing ? styles.readOnlyInput : null;
@@ -118,6 +121,36 @@ const ProfileScreen = () => {
   useEffect(() => {
     loadUserProfile();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadConnectionCount = async () => {
+        setConnectionCountLoading(true);
+
+        try {
+          const requests = await getConnectionRequests();
+          const count = requests.filter(
+            (request) => request.status === 'accepted'
+          ).length;
+
+          if (isActive) setConnectionCount(count);
+        } catch (error) {
+          console.error('Failed to load profile connections:', error);
+          if (isActive) setConnectionCount(null);
+        } finally {
+          if (isActive) setConnectionCountLoading(false);
+        }
+      };
+
+      loadConnectionCount();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   const loadUserProfile = async () => {
     try {
@@ -288,6 +321,11 @@ const ProfileScreen = () => {
     }
   };
 
+  const profileSummaryLines = [
+    [user.game, user.teamName, user.teamType].filter(Boolean).join(' · '),
+    [user.state, user.zone].filter(Boolean).join(' '),
+  ].filter(Boolean);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.gradient}>
@@ -315,23 +353,48 @@ const ProfileScreen = () => {
         >
             {/* Profile Header Card */}
             <View style={styles.profileHeader}>
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarInitials}>
-                  {getInitials(user.name || 'Player')}
-                </Text>
+              <View style={styles.profileHeaderTop}>
+                <View style={styles.avatarCircle}>
+                  <Text style={styles.avatarInitials}>
+                    {getInitials(user.name || 'Player')}
+                  </Text>
+                </View>
+                <View style={styles.profileInfo}>
+                  <Text style={styles.profileName} numberOfLines={1}>
+                    {user.name || 'User Name'}
+                  </Text>
+                  {profileSummaryLines.map((line, index) => (
+                    <Text
+                      style={styles.profileSummaryText}
+                      key={`profile-summary-${index}`}
+                      numberOfLines={1}
+                    >
+                      {line}
+                    </Text>
+                  ))}
+                  <View style={styles.connectionsCount}>
+                    <Ionicons name="people-outline" size={rf(14)} color="#FFD700" />
+                    <Text style={styles.connectionsCountText}>
+                      {connectionCountLoading
+                        ? 'Loading connections...'
+                        : connectionCount === null
+                          ? 'Connections unavailable'
+                          : `${connectionCount} ${
+                              connectionCount === 1 ? 'connection' : 'connections'
+                            }`}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Plans')}
+                  style={styles.profileUpgradeButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Upgrade from the free tier"
+                >
+                  <Ionicons name="sparkles-outline" size={rs(13)} color="#141E30" />
+                  <Text style={styles.upgradeButtonText}>Upgrade</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{user.name || 'User Name'}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Plans')}
-                style={styles.profileUpgradeButton}
-                accessibilityRole="button"
-                accessibilityLabel="Upgrade from the free tier"
-              >
-                <Ionicons name="sparkles-outline" size={rs(13)} color="#141E30" />
-                <Text style={styles.upgradeButtonText}>Upgrade</Text>
-              </TouchableOpacity>
         </View>
 
             {/* Profile Form */}
@@ -655,11 +718,9 @@ const styles = StyleSheet.create({
     padding: wp(1),
   },
   profileUpgradeButton: {
-    position: 'absolute',
-    top: hp(1),
-    right: wp(3),
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 'auto',
     gap: wp(1),
     backgroundColor: '#FFD700',
     borderRadius: rs(8),
@@ -691,10 +752,9 @@ const styles = StyleSheet.create({
     }),
   },
   profileHeader: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(4),
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: hp(1.2),
     paddingVertical: hp(2),
     paddingHorizontal: wp(4),
     backgroundColor: '#1A1F2E',
@@ -702,6 +762,11 @@ const styles = StyleSheet.create({
     borderColor: '#2A3441',
     borderRadius: rs(12),
     marginBottom: hp(2),
+  },
+  profileHeaderTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(4),
   },
   avatarCircle: {
     width: rs(72),
@@ -731,6 +796,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: hp(0.4),
     textAlign: 'left',
+    flexShrink: 1,
+  },
+  connectionsCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+  },
+  connectionsCountText: {
+    color: '#D1D5DB',
+    fontSize: rf(12),
+    fontWeight: '600',
+  },
+  profileSummaryText: {
+    color: '#D1D5DB',
+    fontSize: rf(11),
+    lineHeight: rf(15),
     flexShrink: 1,
   },
   section: {

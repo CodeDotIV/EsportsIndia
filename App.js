@@ -69,6 +69,7 @@ import {
 } from './screens/bottonscreens/settings/SettingsScreens.js';
 import LoginScreen from './login/LoginScreen.js';
 import { AppDialogHost } from './components/AppDialog.js';
+import NetworkStatusBanner from './components/NetworkStatusBanner.js';
 
 const Stack = createStackNavigator();
 
@@ -97,6 +98,7 @@ export default function App() {
         edges={Platform.OS === 'android' ? ['top'] : []}
         style={{ flex: 1, backgroundColor: '#141E30' }}
       >
+        <NetworkStatusBanner />
         <NavigationContainer linking={linking}>
           <StatusBar style="light" backgroundColor="#141E30" />
           <Stack.Navigator initialRouteName="Entryscreen">
