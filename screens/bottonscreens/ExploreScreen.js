@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -10,11 +11,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { hp, rf, wp } from '../../utils/responsive';
 import PublicProfileCard from '../../components/PublicProfileCard';
+import ExploreBannerAd from './ExploreBannerAd';
 import {
   getTeamFilterOptions,
   listRegisteredPlayers,
@@ -49,6 +50,7 @@ export default function ExploreScreen() {
   });
   const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
   const [filterOptionsError, setFilterOptionsError] = useState('');
+
   const normalizedQuery = query.trim();
   const hasFilters = Boolean(filters.game || filters.teamType);
 
@@ -94,36 +96,45 @@ export default function ExploreScreen() {
       }, {}),
     [connectionProfiles]
   );
+
   const connectedCount = connectionRequests.filter(
     (request) => request.status === 'accepted'
   ).length;
+
   const publicPlayers = players.filter(
     (player) => connectionStatuses[player.user_id] !== 'accepted'
   );
+
   const sentRequestCount = connectionRequests.filter(
     (request) =>
       request.status === 'pending' &&
       request.requester_id === connectionUserId
   ).length;
+
   const visibleConnectionProfiles = useMemo(() => {
     const seen = new Set();
+
     const profiles = connectionRequests.reduce((matches, request) => {
       const isVisibleRequest =
         connectionTab === 'connected'
           ? request.status === 'accepted'
           : request.status === 'pending' &&
             request.requester_id === connectionUserId;
+
       if (!isVisibleRequest) return matches;
 
       const otherUserId =
         request.requester_id === connectionUserId
           ? request.receiver_id
           : request.requester_id;
+
       if (!otherUserId || seen.has(otherUserId)) return matches;
 
       seen.add(otherUserId);
+
       const profile = connectionProfilesById[otherUserId];
       if (profile) matches.push(profile);
+
       return matches;
     }, []);
 
@@ -144,14 +155,17 @@ export default function ExploreScreen() {
       if (normalizedQuery && !searchText.includes(normalizedQuery.toLowerCase())) {
         return false;
       }
+
       if (
         filters.game &&
         profile.game?.toLowerCase() !== filters.game.toLowerCase()
       ) return false;
+
       if (
         filters.teamType &&
         profile.team_type?.toLowerCase() !== filters.teamType.toLowerCase()
       ) return false;
+
       return true;
     });
   }, [
@@ -165,6 +179,7 @@ export default function ExploreScreen() {
 
   const handleConnectionStatusChange = (userId, status) => {
     if (!userId) return;
+
     setConnectionStatuses((current) => ({ ...current, [userId]: status }));
     loadConnectionOverview();
   };
@@ -173,14 +188,17 @@ export default function ExploreScreen() {
     if (!filtersVisible) return undefined;
 
     let active = true;
+
     setFilterOptionsLoading(true);
     setFilterOptionsError('');
+
     getTeamFilterOptions()
       .then((options) => {
         if (active) setFilterOptions(options);
       })
       .catch((error) => {
         console.error('Failed to load team filter options:', error);
+
         if (active) {
           setFilterOptionsError(
             error?.code === 'PGRST202'
@@ -201,6 +219,7 @@ export default function ExploreScreen() {
   useEffect(() => {
     const showProfiles = selectedTab === 'Public Profiles';
     const showTeams = selectedTab === 'Teams';
+
     if (
       selectedTab === 'Connections' ||
       (!showProfiles && showTeams && !normalizedQuery && !hasFilters)
@@ -213,22 +232,27 @@ export default function ExploreScreen() {
     }
 
     let active = true;
+
     setTeams([]);
     setPlayers([]);
     setSearching(true);
     setSearchError('');
+
     const searchTimeout = setTimeout(async () => {
       try {
         const results = showProfiles
           ? await listRegisteredPlayers(normalizedQuery, filters)
           : await searchTeams(normalizedQuery, filters);
+
         if (active && showProfiles) setPlayers(results);
         if (active && showTeams) setTeams(results);
       } catch (error) {
         console.error('Failed to search Explore results:', error);
+
         if (active) {
           setTeams([]);
           setPlayers([]);
+
           setSearchError(
             error?.code === 'PGRST202'
               ? 'Public profiles are not set up. Apply the public-profile search migration in Supabase and refresh the schema cache.'
@@ -249,24 +273,38 @@ export default function ExploreScreen() {
   const renderFilterGroup = (title, options, field) => (
     <View style={styles.filterGroup}>
       <Text style={styles.filterGroupTitle}>{title}</Text>
+
       <View style={styles.filterOptions}>
         {options.length === 0 ? (
-          <Text style={styles.noFilterOptions}>No saved {title.toLowerCase()} options.</Text>
+          <Text style={styles.noFilterOptions}>
+            No saved {title.toLowerCase()} options.
+          </Text>
         ) : (
           options.map((option) => {
             const selected = draftFilters[field] === option;
+
             return (
               <TouchableOpacity
                 key={option}
-                style={[styles.filterOption, selected && styles.filterOptionSelected]}
-                onPress={() => setDraftFilters((current) => ({
-                  ...current,
-                  [field]: selected ? '' : option,
-                }))}
+                style={[
+                  styles.filterOption,
+                  selected && styles.filterOptionSelected,
+                ]}
+                onPress={() =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    [field]: selected ? '' : option,
+                  }))
+                }
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
               >
-                <Text style={[styles.filterOptionText, selected && styles.filterOptionTextSelected]}>
+                <Text
+                  style={[
+                    styles.filterOptionText,
+                    selected && styles.filterOptionTextSelected,
+                  ]}
+                >
                   {option}
                 </Text>
               </TouchableOpacity>
@@ -285,6 +323,7 @@ export default function ExploreScreen() {
         : connectionTab === 'connected'
           ? 'Search connected players'
           : 'Search sent requests';
+
   const exploreSections = [
     { label: 'Public Profiles', tab: 'Public Profiles' },
     { label: 'Teams', tab: 'Teams' },
@@ -311,11 +350,14 @@ export default function ExploreScreen() {
         >
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
+
         <Text style={styles.heading}>Explore</Text>
       </View>
+
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#9CA3AF" />
+
           <TextInput
             style={styles.searchInput}
             value={query}
@@ -325,6 +367,7 @@ export default function ExploreScreen() {
             returnKeyType="search"
             accessibilityLabel={searchPlaceholder}
           />
+
           {query.length > 0 && (
             <TouchableOpacity
               onPress={() => setQuery('')}
@@ -334,6 +377,7 @@ export default function ExploreScreen() {
               <Ionicons name="close-circle" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           )}
+
           <TouchableOpacity
             onPress={() => {
               setDraftFilters(filters);
@@ -343,9 +387,14 @@ export default function ExploreScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Filter ${selectedTab.toLowerCase()}`}
           >
-            <Ionicons name="options-outline" size={20} color={hasFilters ? '#FFD700' : '#9CA3AF'} />
+            <Ionicons
+              name="options-outline"
+              size={20}
+              color={hasFilters ? '#FFD700' : '#9CA3AF'}
+            />
           </TouchableOpacity>
         </View>
+
         <TouchableOpacity
           onPress={() => setExploreMenuVisible(true)}
           style={styles.exploreMenuButton}
@@ -355,6 +404,7 @@ export default function ExploreScreen() {
           <Ionicons name="ellipsis-vertical" size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+
       <ScrollView
         style={styles.results}
         keyboardShouldPersistTaps="handled"
@@ -368,6 +418,7 @@ export default function ExploreScreen() {
             </Text>
           </View>
         )}
+
         {selectedTab === 'Connections' ? (
           connectionStatusesLoading ? (
             <View style={styles.statusRow}>
@@ -399,38 +450,57 @@ export default function ExploreScreen() {
         ) : (
           selectedTab === 'Public Profiles' ? (
             publicPlayers.map((player, index) => (
-              <PublicProfileCard
+              <React.Fragment
                 key={player.user_id || `${player.display_name || 'player'}-${index}`}
-                profile={player}
-                connectionStatus={
-                  connectionStatuses[player.user_id] ||
-                  (connectionStatusesLoading
-                    ? 'loading'
-                    : connectionStatusesError
-                      ? 'unavailable'
-                      : 'none')
-                }
-                onConnectionStatusChange={handleConnectionStatusChange}
-              />
+              >
+                <PublicProfileCard
+                  profile={player}
+                  connectionStatus={
+                    connectionStatuses[player.user_id] ||
+                    (connectionStatusesLoading
+                      ? 'loading'
+                      : connectionStatusesError
+                        ? 'unavailable'
+                        : 'none')
+                  }
+                  onConnectionStatusChange={handleConnectionStatusChange}
+                />
+
+                {/* Real banner after every 3 profiles, except after the last profile. */}
+                {(index + 1) % 3 === 0 &&
+                  index + 1 < publicPlayers.length && (
+                    <View style={styles.bannerAdContainer}>
+                      <ExploreBannerAd />
+                    </View>
+                  )}
+              </React.Fragment>
             ))
-          ) : teams.map((teamName) => (
-            <View key={teamName.toLowerCase()} style={styles.resultRow}>
-              <Ionicons name="people-outline" size={20} color="#FFD700" />
-              <Text style={styles.resultTitle}>{teamName}</Text>
-            </View>
-          ))
+          ) : (
+            teams.map((teamName) => (
+              <View key={teamName.toLowerCase()} style={styles.resultRow}>
+                <Ionicons name="people-outline" size={20} color="#FFD700" />
+                <Text style={styles.resultTitle}>{teamName}</Text>
+              </View>
+            ))
+          )
         )}
-        {!searching && !searchError && selectedTab === 'Public Profiles' && publicPlayers.length === 0 && (
-          <Text style={styles.emptyMessage}>No public profiles found.</Text>
-        )}
+
+        {!searching &&
+          !searchError &&
+          selectedTab === 'Public Profiles' &&
+          publicPlayers.length === 0 && (
+            <Text style={styles.emptyMessage}>No public profiles found.</Text>
+          )}
+
         {!searching &&
           !searchError &&
           selectedTab === 'Teams' &&
           (normalizedQuery || hasFilters) &&
           teams.length === 0 && (
             <Text style={styles.emptyMessage}>No teams found.</Text>
-        )}
+          )}
       </ScrollView>
+
       <Modal
         visible={exploreMenuVisible}
         transparent
@@ -444,34 +514,50 @@ export default function ExploreScreen() {
             onPress={() => setExploreMenuVisible(false)}
             accessibilityLabel="Close Explore sections"
           />
+
           <View style={styles.exploreMenu}>
             <Text style={styles.filterModalTitle}>Explore sections</Text>
+
             {exploreSections.map((section) => {
               const isSelected =
                 selectedTab === section.tab &&
                 (!section.connection || connectionTab === section.connection);
+
               return (
                 <TouchableOpacity
                   key={section.label}
                   style={styles.exploreMenuItem}
                   onPress={() => {
                     setSelectedTab(section.tab);
-                    if (section.connection) setConnectionTab(section.connection);
+
+                    if (section.connection) {
+                      setConnectionTab(section.connection);
+                    }
+
                     setExploreMenuVisible(false);
                   }}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
                 >
-                  <Text style={[styles.exploreMenuLabel, isSelected && styles.exploreMenuLabelSelected]}>
+                  <Text
+                    style={[
+                      styles.exploreMenuLabel,
+                      isSelected && styles.exploreMenuLabelSelected,
+                    ]}
+                  >
                     {section.label}
                   </Text>
-                  {isSelected && <Ionicons name="checkmark" size={20} color="#FFD700" />}
+
+                  {isSelected && (
+                    <Ionicons name="checkmark" size={20} color="#FFD700" />
+                  )}
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
       </Modal>
+
       <Modal
         visible={filtersVisible}
         transparent
@@ -485,6 +571,7 @@ export default function ExploreScreen() {
             onPress={() => setFiltersVisible(false)}
             accessibilityLabel="Close filters"
           />
+
           <View style={styles.filterModal}>
             <View style={styles.filterModalHeader}>
               <Text style={styles.filterModalTitle}>
@@ -496,6 +583,7 @@ export default function ExploreScreen() {
                       : 'connections'
                 }
               </Text>
+
               <TouchableOpacity
                 onPress={() => setFiltersVisible(false)}
                 accessibilityRole="button"
@@ -504,18 +592,25 @@ export default function ExploreScreen() {
                 <Ionicons name="close" size={22} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
+
             <ScrollView
               style={styles.filterModalContent}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
               {filterOptionsLoading ? (
-                <ActivityIndicator color="#FFD700" style={styles.filterOptionsLoader} />
+                <ActivityIndicator
+                  color="#FFD700"
+                  style={styles.filterOptionsLoader}
+                />
               ) : filterOptionsError ? (
-                <Text style={styles.filterOptionsError}>{filterOptionsError}</Text>
+                <Text style={styles.filterOptionsError}>
+                  {filterOptionsError}
+                </Text>
               ) : (
                 <>
                   {renderFilterGroup('Game', filterOptions.games, 'game')}
+
                   {renderFilterGroup(
                     'Team Type',
                     filterOptions.teamTypes.length
@@ -526,6 +621,7 @@ export default function ExploreScreen() {
                 </>
               )}
             </ScrollView>
+
             <View style={styles.filterModalActions}>
               <TouchableOpacity
                 style={styles.clearFiltersButton}
@@ -536,6 +632,7 @@ export default function ExploreScreen() {
               >
                 <Text style={styles.clearFiltersText}>Clear all</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.applyFiltersButton}
                 onPress={() => {
@@ -644,6 +741,13 @@ const styles = StyleSheet.create({
     fontSize: rf(14),
     textAlign: 'center',
     marginTop: hp(3),
+  },
+  bannerAdContainer: {
+    width: '100%',
+    minHeight: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: hp(1.5),
   },
   modalOverlay: {
     flex: 1,

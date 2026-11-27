@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "EsportsIndia",
@@ -35,7 +36,13 @@
       "expo-video",
       "expo-web-browser",
       "expo-notifications",
-      "@config-plugins/react-native-webrtc"
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-6973227795015320~4199598750",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

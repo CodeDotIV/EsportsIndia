@@ -1405,22 +1405,10 @@ export default function ConnectScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.chatCallIcon}
-            onPress={() =>
-              Alert.alert(
-                'Voice calls',
-                'Voice calling will be implemented in the next stage.'
-              )
-            }
-          >
-            <Ionicons name="call-outline" color="#E9EDEF" size={21} />
-          </TouchableOpacity>
-
           {activeChat?.type === 'personal' && (
             <View style={styles.playerOptionsAnchor}>
               <TouchableOpacity
-                style={styles.chatCallIcon}
+                style={styles.chatHeaderAction}
                 onPress={openPlayerMenu}
                 accessibilityRole="button"
                 accessibilityLabel="Player options"
@@ -2467,7 +2455,7 @@ const styles = StyleSheet.create({
     fontSize: rf(10),
     marginTop: 2,
   },
-  chatCallIcon: {
+  chatHeaderAction: {
     padding: wp(2),
   },
   playerOptionsAnchor: {
