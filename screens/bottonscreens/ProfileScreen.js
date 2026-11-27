@@ -323,7 +323,6 @@ const ProfileScreen = () => {
 
   const profileSummaryLines = [
     [user.game, user.teamName, user.teamType].filter(Boolean).join(' · '),
-    [user.state, user.zone].filter(Boolean).join(' '),
   ].filter(Boolean);
 
   return (

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "78561595976",
+    "project_id": "esportsindia-b6bde",
+    "storage_bucket": "esportsindia-b6bde.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:78561595976:android:ac69b3053b88f39e5c7e7d",
+        "android_client_info": {
+          "package_name": "com.jeevan12.mynewapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYEAg4LxKkHDvmFgSVDHm4W8kpR1LTPPU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

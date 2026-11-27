@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Platform, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
+import * as Notifications from 'expo-notifications';
 import BottomTabNavigator from './screens/bottonscreens/BottomTabNavigator.js';
 import Freefire from './screens/esports/freefire.js';
 import Bgmi from './screens/esports/bgmi.js';
@@ -72,6 +73,27 @@ import { AppDialogHost } from './components/AppDialog.js';
 import NetworkStatusBanner from './components/NetworkStatusBanner.js';
 
 const Stack = createStackNavigator();
+const MAIN_TABS = ['Home', 'Explore', 'Tournaments', 'Connect', 'Plans', 'Profile'];
+const NOTIFICATION_TAB_BY_TYPE = {
+  daily_gaming: 'Explore',
+  connection_request: 'Connect',
+  tournament: 'Tournaments',
+  tournament_update: 'Tournaments',
+  membership: 'Plans',
+  payment: 'Plans',
+};
+
+const getNotificationTab = (data) => {
+  const requestedScreen = data?.screen || data?.tab;
+  if (typeof requestedScreen === 'string') {
+    const matchingTab = MAIN_TABS.find(
+      (tab) => tab.toLowerCase() === requestedScreen.toLowerCase()
+    );
+    if (matchingTab) return matchingTab;
+  }
+
+  return NOTIFICATION_TAB_BY_TYPE[String(data?.type || '').toLowerCase()] || null;
+};
 
 Text.defaultProps = {
   ...Text.defaultProps,
@@ -91,6 +113,67 @@ const linking = {
 };
 
 export default function App() {
+  const navigationRef = useNavigationContainerRef();
+  const pendingNotificationTab = useRef(null);
+  const handledNotificationResponses = useRef(new Set());
+
+  const flushPendingNotification = useCallback(() => {
+    const tab = pendingNotificationTab.current;
+    if (!tab || !navigationRef.isReady()) return;
+
+    const rootState = navigationRef.getRootState();
+    const activeRoute = rootState?.routes?.[rootState.index]?.name;
+    if (activeRoute === 'Entryscreen' || activeRoute === 'LoginScreen') return;
+
+    pendingNotificationTab.current = null;
+    navigationRef.navigate('Main', { screen: tab });
+  }, [navigationRef]);
+
+  const handleNotificationResponse = useCallback((response) => {
+    const notification = response?.notification;
+    if (!notification) return;
+
+    const responseKey = `${notification.request.identifier}:${notification.date || ''}`;
+    if (handledNotificationResponses.current.has(responseKey)) return;
+    handledNotificationResponses.current.add(responseKey);
+
+    const tab = getNotificationTab(notification.request.content.data);
+    if (tab) {
+      if (!navigationRef.isReady()) {
+        pendingNotificationTab.current = tab;
+      } else {
+        const rootState = navigationRef.getRootState();
+        const activeRoute = rootState?.routes?.[rootState.index]?.name;
+        if (activeRoute !== 'Entryscreen' && activeRoute !== 'LoginScreen') {
+          navigationRef.navigate('Main', { screen: tab });
+        } else {
+          pendingNotificationTab.current = tab;
+        }
+      }
+    }
+
+    Notifications.clearLastNotificationResponseAsync().catch((error) => {
+      console.error('Failed to clear notification response:', error);
+    });
+  }, [navigationRef]);
+
+  useEffect(() => {
+    const subscription =
+      Notifications.addNotificationResponseReceivedListener(
+        handleNotificationResponse
+      );
+
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response) handleNotificationResponse(response);
+      })
+      .catch((error) => {
+        console.error('Failed to read the last notification response:', error);
+      });
+
+    return () => subscription.remove();
+  }, [handleNotificationResponse]);
+
   // iOS and Android app navigation
   return (
     <SafeAreaProvider>
@@ -99,7 +182,12 @@ export default function App() {
         style={{ flex: 1, backgroundColor: '#141E30' }}
       >
         <NetworkStatusBanner />
-        <NavigationContainer linking={linking}>
+        <NavigationContainer
+          linking={linking}
+          ref={navigationRef}
+          onReady={flushPendingNotification}
+          onStateChange={flushPendingNotification}
+        >
           <StatusBar style="light" backgroundColor="#141E30" />
           <Stack.Navigator initialRouteName="Entryscreen">
             <Stack.Screen name="Entryscreen" component={EntryScreen} options={{ headerShown: false }} />

@@ -46,13 +46,6 @@ export default function PublicProfileCard({
     .filter(Boolean)
     .join(' · ');
 
-  const location = [
-    profile.state,
-    profile.zone,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
   const updateConnectionStatus = (status) => {
     setConnectionStatus(status);
     onConnectionStatusChange?.(profile.user_id, status);
@@ -63,7 +56,6 @@ export default function PublicProfileCard({
       setWithdrawing(true);
       await withdrawConnectionRequest(profile.user_id);
       updateConnectionStatus('none');
-      Alert.alert('Request cancelled', `Your request to ${name} was cancelled.`);
     } catch (error) {
       console.error('Withdraw connection request error:', error);
       Alert.alert(
@@ -112,19 +104,12 @@ export default function PublicProfileCard({
 
       if (status === 'pending') {
         updateConnectionStatus('pending');
-        Alert.alert('Request sent', `Your connection request was sent to ${name}.`);
       } else if (status === 'accepted') {
         updateConnectionStatus('accepted');
-        Alert.alert('Connected', `You are already connected with ${name}.`);
       } else if (status === 'incoming') {
         updateConnectionStatus('incoming');
-        Alert.alert(
-          'Request received',
-          `${name} has already sent you a connection request. Open Network to respond.`
-        );
       } else {
         updateConnectionStatus('pending');
-        Alert.alert('Request sent', 'Your connection request was submitted.');
       }
     } catch (error) {
       console.error('Connect request error:', error);
@@ -205,18 +190,6 @@ export default function PublicProfileCard({
             </Text>
           )}
 
-          {!!location && (
-            <View style={styles.locationRow}>
-              <Ionicons
-                name="location-outline"
-                size={rf(13)}
-                color="#85859A"
-              />
-              <Text style={styles.location} numberOfLines={1}>
-                {location}
-              </Text>
-            </View>
-          )}
         </View>
 
       </View>
@@ -325,17 +298,6 @@ const styles = StyleSheet.create({
     marginTop: hp(0.3),
   },
 
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: hp(0.4),
-  },
-
-  location: {
-    color: '#85859A',
-    fontSize: rf(11),
-    marginLeft: wp(1),
-  },
 
   bio: {
     color: '#B5B5C5',

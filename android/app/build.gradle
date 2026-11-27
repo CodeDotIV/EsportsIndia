@@ -89,7 +89,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'Esports.India'
+    namespace 'com.jeevan12.mynewapp'
     defaultConfig {
         applicationId 'com.jeevan12.mynewapp'
         minSdkVersion rootProject.ext.minSdkVersion

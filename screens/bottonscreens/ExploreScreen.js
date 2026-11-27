@@ -50,7 +50,7 @@ export default function ExploreScreen() {
   const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
   const [filterOptionsError, setFilterOptionsError] = useState('');
   const normalizedQuery = query.trim();
-  const hasFilters = Boolean(filters.game || filters.teamType || filters.state || filters.zone);
+  const hasFilters = Boolean(filters.game || filters.teamType);
 
   const loadConnectionOverview = useCallback(async (isActive = () => true) => {
     if (isActive()) {
@@ -135,8 +135,6 @@ export default function ExploreScreen() {
         profile.game,
         profile.team_name,
         profile.team_type,
-        profile.state,
-        profile.zone,
         profile.bio,
       ]
         .filter(Boolean)
@@ -154,15 +152,6 @@ export default function ExploreScreen() {
         filters.teamType &&
         profile.team_type?.toLowerCase() !== filters.teamType.toLowerCase()
       ) return false;
-      if (
-        filters.state &&
-        !profile.state?.toLowerCase().includes(filters.state.toLowerCase())
-      ) return false;
-      if (
-        filters.zone &&
-        profile.zone?.toLowerCase() !== filters.zone.toLowerCase()
-      ) return false;
-
       return true;
     });
   }, [
@@ -534,14 +523,6 @@ export default function ExploreScreen() {
                       : ['Squad', 'Duo', 'Solo'],
                     'teamType'
                   )}
-                  {renderFilterGroup('State', filterOptions.states, 'state')}
-                  {renderFilterGroup(
-                    'Zone',
-                    filterOptions.zones.length
-                      ? filterOptions.zones
-                      : ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'],
-                    'zone'
-                  )}
                 </>
               )}
             </ScrollView>
@@ -549,7 +530,7 @@ export default function ExploreScreen() {
               <TouchableOpacity
                 style={styles.clearFiltersButton}
                 onPress={() =>
-                  setDraftFilters({ game: '', teamType: '', state: '', zone: '' })
+                  setDraftFilters({ game: '', teamType: '' })
                 }
                 accessibilityRole="button"
               >

@@ -83,6 +83,7 @@ export async function scheduleDailyGamingNotifications() {
           priority: Notifications.AndroidNotificationPriority.HIGH,
           data: {
             type: 'daily_gaming',
+            screen: 'Explore',
           },
           ...(Platform.OS === 'android'
             ? { channelId: 'daily-gaming' }
