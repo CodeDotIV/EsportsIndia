@@ -13,6 +13,7 @@ import PlansScreen from './PlansScreen';
 import ProfileScreen from './ProfileScreen';
 
 import { LinearGradient } from 'expo-linear-gradient';
+
 import {
   StyleSheet,
   Platform,
@@ -77,9 +78,16 @@ export default function BottomTabNavigator() {
                 error
               );
 
+              const errorDetails = [
+                error?.code,
+                error?.message || String(error),
+              ]
+                .filter(Boolean)
+                .join('\n');
+
               Alert.alert(
-                'Ad Unavailable',
-                'The rewarded ad could not be loaded. Please try again later.'
+                'Rewarded Ad Error',
+                errorDetails || 'Unknown AdMob error'
               );
             } finally {
               adInProgress.current = false;

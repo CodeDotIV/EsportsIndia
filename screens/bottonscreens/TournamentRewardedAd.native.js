@@ -36,6 +36,11 @@ export function showTournamentRewardedAd() {
       cleanup();
 
       if (error) {
+        console.warn('Rewarded ad failed:', {
+          code: error?.code,
+          message: error?.message,
+        });
+
         reject(error);
       } else {
         resolve(earnedReward);
@@ -47,6 +52,7 @@ export function showTournamentRewardedAd() {
         RewardedAdEventType.LOADED,
         async () => {
           if (shown || settled) return;
+
           shown = true;
 
           try {
@@ -85,6 +91,10 @@ export function showTournamentRewardedAd() {
       )
     );
 
-    rewarded.load();
+    try {
+      rewarded.load();
+    } catch (error) {
+      finish(error);
+    }
   });
 }
